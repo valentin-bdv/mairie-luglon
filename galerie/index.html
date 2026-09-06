@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <title>Galerie - Comité des Fêtes de Luglon</title>
+
+    <link rel="icon" type="image/png" href="/favicon.png">
+
+    <link rel="stylesheet" href="/styles.css">
+
+    <!-- SEO : balises meta -->
+    <meta name="description" content="Les photos des fêtes et animations organisées par le Comité des Fêtes de Luglon : course landaise, repas, carnaval, feu d'artifice.">
+    <link rel="canonical" href="https://cdf-luglon.fr/galerie/">
+
+    <!-- Open Graph (partage WhatsApp, Facebook, etc.) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Galerie — Comité des Fêtes de Luglon">
+    <meta property="og:description" content="Les photos des fêtes et animations organisées par le Comité des Fêtes de Luglon : course landaise, repas, carnaval, feu d'artifice.">
+    <meta property="og:url" content="https://cdf-luglon.fr/galerie/">
+    <meta property="og:image" content="https://cdf-luglon.fr/images/logo_google.jpg">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:site_name" content="Comité des Fêtes de Luglon">
+
+    <!-- JSON-LD : données structurées pour Google -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Comité des Fêtes de Luglon",
+      "url": "https://cdf-luglon.fr",
+      "logo": "https://cdf-luglon.fr/images/logo_google.jpg",
+      "image": "https://cdf-luglon.fr/images/logo_google.jpg",
+      "email": "contact@cdf-luglon.fr",
+      "sameAs": [
+        "https://www.instagram.com/cdfluglon/",
+        "https://www.facebook.com/p/Comit%C3%A9-des-f%C3%AAtes-de-Luglon-100083680651271/"
+      ]
+    }
+    </script>
+</head>
+<body>
+    <!-- ==========================================================
+         BARRE DE NAVIGATION — bloc identique sur toutes les pages.
+         SEULE DIFFÉRENCE ENTRE LES PAGES : l'attribut aria-current.
+           /             → sur « Accueil »
+           /evenements/  → sur « Évènements » (et ses sous-pages)
+           /comite/      → sur « Le Comité »
+           /galerie/     → sur « Galerie »
+           /contact/     → sur « Contact »
+           /reservation/, pages légales → aucun
+         ========================================================== -->
+    <a class="skip-link" href="#contenu">Aller au contenu</a>
+
+    <nav class="site-nav" aria-label="Navigation principale">
+        <div class="site-nav__bar">
+            <span class="site-nav__glass" aria-hidden="true"></span>
+
+            <a class="site-nav__brand" href="/">
+                <img class="site-nav__logo" src="/images/logo_cdf.jpg" alt=""
+                     width="40" height="40" decoding="async">
+                <span class="site-nav__wordmark">
+                    <span class="site-nav__wordmark-top">Comité des Fêtes</span>
+                    <span class="site-nav__wordmark-bot">Luglon</span>
+                </span>
+            </a>
+
+            <ul class="site-nav__links" id="site-nav-panel">
+                <li><a href="/">Accueil</a></li>
+                <li class="site-nav__item--has-menu">
+                    <a href="/evenements/">Évènements<span class="site-nav__chevron" aria-hidden="true"></span></a>
+                    <ul class="site-nav__submenu">
+                        <li><a href="/evenements/fetes-de-luglon/">Les Fêtes de Luglon</a></li>
+                        <li><a href="/evenements/concours-de-belote/">Concours de belote</a></li>
+                        <li><a href="/evenements/carnaval/">Carnaval</a></li>
+                        <li><a href="/evenements/">Tous les évènements</a></li>
+                    </ul>
+                </li>
+                <li><a href="/comite/">Le Comité</a></li>
+                <li><a href="/galerie/" aria-current="page">Galerie</a></li>
+                <li><a href="/contact/">Contact</a></li>
+            </ul>
+
+            <button class="site-nav__toggle" type="button"
+                    aria-expanded="false" aria-controls="site-nav-panel"
+                    aria-label="Ouvrir le menu">
+                <span class="site-nav__burger" aria-hidden="true"></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="site-nav__scrim" aria-hidden="true"></div>
+    <div class="site-nav__sentinel" aria-hidden="true"></div>
+
+    <div class="main-hero" id="contenu">
+        <div class="hero-content">
+            <h1 class="main-title">GALERIE</h1>
+            <p class="main-subtitle">Les souvenirs des éditions passées</p>
+        </div>
+        <!-- MOBILE : le dessin n'est pas seulement masqué, il n'est PAS
+             TÉLÉCHARGÉ. Un simple display:none ne suffit pas — le
+             navigateur récupère l'image quoi qu'il arrive, soit 256 Ko
+             inutiles sur chaque page, en 4G de campagne.
+             Le <source> ci-dessous intercepte sous 769px et sert un SVG
+             vide en data URI (aucune requête). Le CSS masque ensuite le
+             <picture> entier.
+             Sans prise en charge de <picture>, l'<img> reprend la main et
+             affiche le vrai dessin : dégradation propre. -->
+        <picture class="hero-image">
+            <source media="(max-width: 768px)" srcset="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='1734'%20height='1814'/%3E">
+            <img src="/images/dessin_luglon.jpeg" alt="Dessin du bourg de Luglon"
+                 width="1734" height="1814" decoding="async">
+        </picture>
+    </div>
+
+    <main>
+        <section class="page-section has-decor">
+            <!-- DÉCOR VÉGÉTAL — voir la section 19 de styles.css. Purement
+                 ornemental : aria-hidden, pointer-events:none, aucun JS, et rien
+                 ne s'affiche en dessous de 1440px. -->
+            <span class="decor-vine decor-vine--left" aria-hidden="true"><span class="decor-vine__ink"></span></span>
+            <span class="decor-vine decor-vine--right" aria-hidden="true"><span class="decor-vine__ink"></span></span>
+            <div class="section-head" data-reveal>
+                <p class="kicker">Édition 2026</p>
+                <h2>Les fêtes de l'été</h2>
+                <p>Quatre jours, du 30 juillet au 2 août 2026. Cliquez sur une photo pour l'agrandir.</p>
+            </div>
+
+            <div class="gallery-flow">
+                <div class="gallery-row">
+                    <figure class="gallery-figure" data-reveal="left">
+                        <a href="galerie/2026-montage-chapiteau.jpg">
+                            <img src="galerie/2026-montage-chapiteau.jpg" alt="Des bénévoles assemblent l'armature métallique d'un chapiteau devant une maison landaise"
+                                 width="1600" height="1200" loading="lazy" decoding="async">
+                        </a>
+                    </figure>
+                    <div class="gallery-caption" data-reveal>
+                        <p class="gallery-caption__kicker">Avant la fête</p>
+                        <h3>Le montage du chapiteau</h3>
+                        <p>Une semaine plus tôt, les bénévoles assemblent la structure derrière la salle des fêtes. Rien de ce qui suit n'existe sans ces soirées-là.</p>
+                    </div>
+                </div>
+
+                <div class="gallery-row">
+                    <figure class="gallery-figure gallery-figure--portrait" data-reveal="right">
+                        <a href="galerie/2026-loto-boulier.jpg">
+                            <img src="galerie/2026-loto-boulier.jpg" alt="Un animateur devant le boulier rouge du loto, cartons et pions posés sur la table"
+                                 width="900" height="1600" loading="lazy" decoding="async">
+                        </a>
+                    </figure>
+                    <div class="gallery-caption" data-reveal>
+                        <p class="gallery-caption__kicker">Jeudi</p>
+                        <h3>Le loto</h3>
+                        <p>Le boulier tourne, les numéros tombent. La première soirée des fêtes remplit la salle chaque année.</p>
+                    </div>
+                </div>
+
+                <div class="gallery-row">
+                    <figure class="gallery-figure gallery-figure--portrait" data-reveal="left">
+                        <a href="galerie/2026-loto-chapiteau.jpg">
+                            <img src="galerie/2026-loto-chapiteau.jpg" alt="Vue intérieure du chapiteau, tables et bancs de bois occupés par les joueurs de loto"
+                                 width="900" height="1600" loading="lazy" decoding="async">
+                        </a>
+                    </figure>
+                    <div class="gallery-caption" data-reveal>
+                        <p class="gallery-caption__kicker">Jeudi</p>
+                        <h3>Sous le chapiteau</h3>
+                        <p>Les tables de bois alignées, les cartons étalés, et le silence qui tombe entre deux annonces.</p>
+                    </div>
+                </div>
+
+                <div class="gallery-row">
+                    <figure class="gallery-figure gallery-figure--portrait" data-reveal="right">
+                        <a href="galerie/2026-brasero.jpg">
+                            <img src="galerie/2026-brasero.jpg" alt="Un cuisinier retourne des grillades à la pince sur une plancha chauffée aux braises"
+                                 width="1200" height="1600" loading="lazy" decoding="async">
+                        </a>
+                    </figure>
+                    <div class="gallery-caption" data-reveal>
+                        <p class="gallery-caption__kicker">Vendredi et samedi</p>
+                        <h3>Au brasero</h3>
+                        <p>La viande sur la plaque, les braises en dessous. Deux services, plusieurs centaines de couverts, et une équipe debout depuis le matin.</p>
+                    </div>
+                </div>
+
+                <div class="gallery-row">
+                    <figure class="gallery-figure gallery-figure--portrait" data-reveal="left">
+                        <a href="galerie/2026-service-repas.jpg">
+                            <img src="galerie/2026-service-repas.jpg" alt="Des bénévoles servent frites et grillades derrière un buffet, sous une tente"
+                                 width="900" height="1600" loading="lazy" decoding="async">
+                        </a>
+                    </figure>
+                    <div class="gallery-caption" data-reveal>
+                        <p class="gallery-caption__kicker">Vendredi et samedi</p>
+                        <h3>Le service</h3>
+                        <p>Les frites sortent par bacs entiers. Derrière le buffet, les bénévoles enchaînent les assiettes sans s'arrêter.</p>
+                    </div>
+                </div>
+
+                <div class="gallery-row">
+                    <figure class="gallery-figure gallery-figure--portrait" data-reveal="right">
+                        <a href="galerie/2026-banda.jpg">
+                            <img src="galerie/2026-banda.jpg" alt="Une jeune femme debout bras écartés devant les musiciens en tenue bleue et jaune d'une banda"
+                                 width="900" height="1600" loading="lazy" decoding="async">
+                        </a>
+                    </figure>
+                    <div class="gallery-caption" data-reveal>
+                        <p class="gallery-caption__kicker">Tous les soirs</p>
+                        <h3>La banda</h3>
+                        <p>Cuivres, tambour, et le chapiteau qui se lève. C'est le moment où la fête bascule.</p>
+                    </div>
+                </div>
+
+                <!-- ==================================================
+                     MODÈLE D'UNE RANGÉE — copiez ce bloc pour chaque photo.
+
+                     • data-reveal : "left" si la photo tombe à gauche,
+                       "right" si elle tombe à droite. Une rangée sur deux
+                       est inversée automatiquement par le CSS
+                       (.gallery-row:nth-child(even)) : comptez les rangées.
+                     • gallery-figure--portrait sur une photo verticale
+                       (cadrage 4/5), rien sur une horizontale (4/3).
+                     • href et src pointent le MÊME fichier : href sert à
+                       l'agrandissement, et de repli si le JS ne tourne pas.
+                     • width/height = dimensions réelles du fichier :
+                           sips -g pixelWidth -g pixelHeight images/galerie/*.jpg
+                       Sans elles, la page saute pendant le chargement.
+
+                <div class="gallery-row">
+                    <figure class="gallery-figure gallery-figure--portrait" data-reveal="left">
+                        <a href="/images/galerie/2026-petanque.jpg">
+                            <img src="/images/galerie/2026-petanque.jpg"
+                                 alt="Joueurs au concours de pétanque"
+                                 width="900" height="1600" loading="lazy" decoding="async">
+                        </a>
+                    </figure>
+                    <div class="gallery-caption" data-reveal>
+                        <p class="gallery-caption__kicker">Dimanche</p>
+                        <h3>Le concours de pétanque</h3>
+                        <p>Deux ou trois phrases sur le moment.</p>
+                    </div>
+                </div>
+
+                     ================================================== -->
+            </div>
+        </section>
+
+        <section class="page-section has-decor">
+            <!-- DÉCOR VÉGÉTAL — voir la section 19 de styles.css. Purement
+                 ornemental : aria-hidden, pointer-events:none, aucun JS, et rien
+                 ne s'affiche en dessous de 1440px. -->
+            <span class="decor-vine decor-vine--left" aria-hidden="true"><span class="decor-vine__ink"></span></span>
+            <span class="decor-vine decor-vine--right" aria-hidden="true"><span class="decor-vine__ink"></span></span>
+            <div class="section-head" data-reveal>
+                <p class="kicker">En vrac</p>
+                <h2>Autres moments</h2>
+                <p>Cliquez pour agrandir.</p>
+            </div>
+
+            <div class="gallery-grid">
+
+                <figure data-reveal>
+                    <span class="gallery-figure gallery-figure--portrait" data-reveal>
+                        <a href="galerie/2026-loto-salle.jpg">
+                            <img src="galerie/2026-loto-salle.jpg" alt="Une salle remplie de joueurs de loto attablés"
+                                 width="900" height="1600" loading="lazy" decoding="async">
+                        </a>
+                    </span>
+                    <figcaption>Le loto à la salle des fêtes</figcaption>
+                </figure>
+
+                <figure data-reveal>
+                    <span class="gallery-figure gallery-figure--portrait" data-reveal>
+                        <a href="galerie/2026-loto-annonce.jpg">
+                            <img src="galerie/2026-loto-annonce.jpg" alt="Une animatrice au micro penchée vers une joueuse pendant le loto"
+                                 width="900" height="1600" loading="lazy" decoding="async">
+                        </a>
+                    </span>
+                    <figcaption>L'annonce des numéros</figcaption>
+                </figure>
+
+                <figure data-reveal>
+                    <span class="gallery-figure gallery-figure--portrait" data-reveal>
+                        <a href="galerie/2026-grillades.jpg">
+                            <img src="galerie/2026-grillades.jpg" alt="Un cuisinier devant une grande grille de viande au-dessus des braises"
+                                 width="900" height="1600" loading="lazy" decoding="async">
+                        </a>
+                    </span>
+                    <figcaption>Les grillades</figcaption>
+                </figure>
+
+                <figure data-reveal>
+                    <span class="gallery-figure gallery-figure--portrait" data-reveal>
+                        <a href="galerie/2026-preparation.jpg">
+                            <img src="galerie/2026-preparation.jpg" alt="Une bénévole dresse des assiettes d'entrée sous la tente cuisine"
+                                 width="900" height="1600" loading="lazy" decoding="async">
+                        </a>
+                    </span>
+                    <figcaption>La préparation des entrées</figcaption>
+                </figure>
+
+                <figure data-reveal>
+                    <span class="gallery-figure gallery-figure--portrait" data-reveal>
+                        <a href="galerie/2026-plancha.jpg">
+                            <img src="galerie/2026-plancha.jpg" alt="Un cuisinier en tablier dispose des morceaux de viande sur la plancha"
+                                 width="1200" height="1600" loading="lazy" decoding="async">
+                        </a>
+                    </span>
+                    <figcaption>À la plancha</figcaption>
+                </figure>
+
+                <figure data-reveal>
+                    <span class="gallery-figure gallery-figure--portrait" data-reveal>
+                        <a href="galerie/2026-plancha-flammes.jpg">
+                            <img src="galerie/2026-plancha-flammes.jpg" alt="Un cuisinier retourne la viande, les flammes visibles sous la plancha"
+                                 width="1200" height="1600" loading="lazy" decoding="async">
+                        </a>
+                    </span>
+                    <figcaption>Les flammes sous la plaque</figcaption>
+                </figure>
+
+                <figure data-reveal>
+                    <span class="gallery-figure gallery-figure--portrait" data-reveal>
+                        <a href="galerie/2026-soiree.jpg">
+                            <img src="galerie/2026-soiree.jpg" alt="Des bénévoles autour d'une table dans la nuit, éclairés par les lumières de la fête"
+                                 width="900" height="1600" loading="lazy" decoding="async">
+                        </a>
+                    </span>
+                    <figcaption>En soirée</figcaption>
+                </figure>
+
+            </div>
+        </section>
+
+        <section class="page-section page-section--footer-band">
+            <div class="section-head section-head--center" data-reveal>
+                <p class="kicker">Vous avez des photos ?</p>
+                <h2>Envoyez-les nous</h2>
+                <p>
+                    Si vous avez pris de belles photos pendant les fêtes, nous serons
+                    ravis de les ajouter ici — avec le crédit qui vous revient.
+                </p>
+                <div class="cta-row" style="justify-content:center">
+                    <a class="btn btn--primary" href="mailto:contact@cdf-luglon.fr">Envoyer des photos</a>
+                    <a class="btn btn--ghost" href="/evenements/">Voir les évènements</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <span class="footer-title">Comité des Fêtes de Luglon</span>
+                <span class="footer-copyright">©2026 Tous droits réservés.</span>
+                <a href="/confidentialite/" class="footer-legal-link">Politique de confidentialité</a>
+                <a href="/mentions-legales/" class="footer-legal-link">Mentions légales</a>
+            </div>
+            <div class="footer-social">
+                <a href="https://www.instagram.com/cdfluglon/" target="_blank" rel="noopener noreferrer" aria-label="Instagram du Comité des Fêtes de Luglon" class="footer-social-link footer-instagram">
+                    <svg viewBox="0 0 24 24" class="footer-icon" aria-hidden="true"><path fill="currentColor" d="M12 2c-2.72 0-3.06.01-4.12.06-1.06.05-1.79.22-2.43.47a4.9 4.9 0 0 0-1.77 1.15A4.9 4.9 0 0 0 2.53 5.45c-.25.64-.42 1.37-.47 2.43C2.01 8.94 2 9.28 2 12s.01 3.06.06 4.12c.05 1.06.22 1.79.47 2.43.26.66.6 1.22 1.15 1.77.55.55 1.11.9 1.77 1.15.64.25 1.37.42 2.43.47C8.94 21.99 9.28 22 12 22s3.06-.01 4.12-.06c1.06-.05 1.79-.22 2.43-.47a4.9 4.9 0 0 0 1.77-1.15 4.9 4.9 0 0 0 1.15-1.77c.25-.64.42-1.37.47-2.43.05-1.06.06-1.4.06-4.12s-.01-3.06-.06-4.12c-.05-1.06-.22-1.79-.47-2.43a4.9 4.9 0 0 0-1.15-1.77A4.9 4.9 0 0 0 18.55 2.53c-.64-.25-1.37-.42-2.43-.47C15.06 2.01 14.72 2 12 2Zm0 1.8c2.67 0 2.99.01 4.04.06.97.04 1.5.21 1.85.34.46.18.79.39 1.14.74.35.35.56.68.74 1.14.13.35.3.88.34 1.85.05 1.05.06 1.37.06 4.04s-.01 2.99-.06 4.04c-.04.97-.21 1.5-.34 1.85-.18.46-.39.79-.74 1.14-.35.35-.68.56-1.14.74-.35.13-.88.3-1.85.34-1.05.05-1.37.06-4.04.06s-2.99-.01-4.04-.06c-.97-.04-1.5-.21-1.85-.34a3.1 3.1 0 0 1-1.14-.74 3.1 3.1 0 0 1-.74-1.14c-.13-.35-.3-.88-.34-1.85C3.81 14.99 3.8 14.67 3.8 12s.01-2.99.06-4.04c.04-.97.21-1.5.34-1.85.18-.46.39-.79.74-1.14.35-.35.68-.56 1.14-.74.35-.13.88-.3 1.85-.34C9.01 3.81 9.33 3.8 12 3.8Zm0 3.05a5.15 5.15 0 1 0 0 10.3 5.15 5.15 0 0 0 0-10.3Zm0 8.5a3.35 3.35 0 1 1 0-6.7 3.35 3.35 0 0 1 0 6.7Zm5.36-8.7a1.2 1.2 0 1 1-2.4 0 1.2 1.2 0 0 1 2.4 0Z"/></svg>
+                </a>
+                <a href="https://www.facebook.com/p/Comit%C3%A9-des-f%C3%AAtes-de-Luglon-100083680651271/" target="_blank" rel="noopener noreferrer" aria-label="Facebook du Comité des Fêtes de Luglon" class="footer-social-link footer-facebook">
+                    <svg viewBox="0 0 24 24" class="footer-icon" aria-hidden="true"><path fill="currentColor" d="M13.5 21.5v-7.9h2.65l.4-3.08h-3.05V8.55c0-.89.25-1.5 1.52-1.5h1.63V4.3a21.8 21.8 0 0 0-2.37-.12c-2.35 0-3.96 1.43-3.96 4.06v2.27H7.66v3.08h2.66v7.9h3.18Z"/></svg>
+                </a>
+                <a href="mailto:contact@cdf-luglon.fr" aria-label="Envoyer un e-mail au Comité des Fêtes de Luglon" class="footer-social-link footer-mail">
+                    <svg viewBox="0 0 24 24" class="footer-icon" aria-hidden="true"><path fill="currentColor" d="M3 5.5A1.5 1.5 0 0 1 4.5 4h15A1.5 1.5 0 0 1 21 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5v-13Zm2.1.5 6.9 5.17L18.9 6H5.1Zm13.4 1.3-6.1 4.57a1.5 1.5 0 0 1-1.8 0L4.5 7.3v11.2h15V7.3Z"/></svg>
+                </a>
+                <a href="mailto:contact@cdf-luglon.fr" class="footer-email">contact@cdf-luglon.fr</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/scroll-animations.js"></script>
+    <script src="/gallery.js"></script>
+    <script src="/nav.js"></script>
+</body>
+</html>

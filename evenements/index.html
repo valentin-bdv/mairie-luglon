@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <title>Évènements - Comité des Fêtes de Luglon</title>
+
+    <link rel="icon" type="image/png" href="/favicon.png">
+
+    <link rel="stylesheet" href="/styles.css">
+
+    <!-- SEO : balises meta -->
+    <meta name="description" content="Tous les évènements organisés par le Comité des Fêtes de Luglon : les fêtes de l'été, le concours de belote, le carnaval et les autres rendez-vous de l'année.">
+    <link rel="canonical" href="https://cdf-luglon.fr/evenements/">
+
+    <!-- Open Graph (partage WhatsApp, Facebook, etc.) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Évènements — Comité des Fêtes de Luglon">
+    <meta property="og:description" content="Tous les évènements organisés par le Comité des Fêtes de Luglon : les fêtes de l'été, le concours de belote, le carnaval et les autres rendez-vous de l'année.">
+    <meta property="og:url" content="https://cdf-luglon.fr/evenements/">
+    <meta property="og:image" content="https://cdf-luglon.fr/images/logo_google.jpg">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:site_name" content="Comité des Fêtes de Luglon">
+
+    <!-- JSON-LD : données structurées pour Google -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Comité des Fêtes de Luglon",
+      "url": "https://cdf-luglon.fr",
+      "logo": "https://cdf-luglon.fr/images/logo_google.jpg",
+      "image": "https://cdf-luglon.fr/images/logo_google.jpg",
+      "email": "contact@cdf-luglon.fr",
+      "sameAs": [
+        "https://www.instagram.com/cdfluglon/",
+        "https://www.facebook.com/p/Comit%C3%A9-des-f%C3%AAtes-de-Luglon-100083680651271/"
+      ]
+    }
+    </script>
+</head>
+<body>
+    <!-- ==========================================================
+         BARRE DE NAVIGATION — bloc identique sur toutes les pages.
+         SEULE DIFFÉRENCE ENTRE LES PAGES : l'attribut aria-current.
+           /             → sur « Accueil »
+           /evenements/  → sur « Évènements » (et ses sous-pages)
+           /comite/      → sur « Le Comité »
+           /galerie/     → sur « Galerie »
+           /contact/     → sur « Contact »
+           /reservation/, pages légales → aucun
+         ========================================================== -->
+    <a class="skip-link" href="#contenu">Aller au contenu</a>
+
+    <nav class="site-nav" aria-label="Navigation principale">
+        <div class="site-nav__bar">
+            <span class="site-nav__glass" aria-hidden="true"></span>
+
+            <a class="site-nav__brand" href="/">
+                <img class="site-nav__logo" src="/images/logo_cdf.jpg" alt=""
+                     width="40" height="40" decoding="async">
+                <span class="site-nav__wordmark">
+                    <span class="site-nav__wordmark-top">Comité des Fêtes</span>
+                    <span class="site-nav__wordmark-bot">Luglon</span>
+                </span>
+            </a>
+
+            <ul class="site-nav__links" id="site-nav-panel">
+                <li><a href="/">Accueil</a></li>
+                <li class="site-nav__item--has-menu">
+                    <a href="/evenements/" aria-current="page">Évènements<span class="site-nav__chevron" aria-hidden="true"></span></a>
+                    <ul class="site-nav__submenu">
+                        <li><a href="/evenements/fetes-de-luglon/">Les Fêtes de Luglon</a></li>
+                        <li><a href="/evenements/concours-de-belote/">Concours de belote</a></li>
+                        <li><a href="/evenements/carnaval/">Carnaval</a></li>
+                        <li><a href="/evenements/">Tous les évènements</a></li>
+                    </ul>
+                </li>
+                <li><a href="/comite/">Le Comité</a></li>
+                <li><a href="/galerie/">Galerie</a></li>
+                <li><a href="/contact/">Contact</a></li>
+            </ul>
+
+            <button class="site-nav__toggle" type="button"
+                    aria-expanded="false" aria-controls="site-nav-panel"
+                    aria-label="Ouvrir le menu">
+                <span class="site-nav__burger" aria-hidden="true"></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="site-nav__scrim" aria-hidden="true"></div>
+    <div class="site-nav__sentinel" aria-hidden="true"></div>
+
+    <div class="main-hero" id="contenu">
+        <div class="hero-content">
+            <h1 class="main-title">ÉVÈNEMENTS</h1>
+            <p class="main-subtitle">Les rendez-vous de l'année</p>
+        </div>
+        <!-- MOBILE : le dessin n'est pas seulement masqué, il n'est PAS
+             TÉLÉCHARGÉ. Un simple display:none ne suffit pas — le
+             navigateur récupère l'image quoi qu'il arrive, soit 256 Ko
+             inutiles sur chaque page, en 4G de campagne.
+             Le <source> ci-dessous intercepte sous 769px et sert un SVG
+             vide en data URI (aucune requête). Le CSS masque ensuite le
+             <picture> entier.
+             Sans prise en charge de <picture>, l'<img> reprend la main et
+             affiche le vrai dessin : dégradation propre. -->
+        <picture class="hero-image">
+            <source media="(max-width: 768px)" srcset="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='1734'%20height='1814'/%3E">
+            <img src="/images/dessin_luglon.jpeg" alt="Dessin du bourg de Luglon"
+                 width="1734" height="1814" decoding="async">
+        </picture>
+    </div>
+
+    <main>
+        <section class="page-section has-decor">
+            <!-- DÉCOR VÉGÉTAL — voir la section 19 de styles.css. Purement
+                 ornemental : aria-hidden, pointer-events:none, aucun JS, et rien
+                 ne s'affiche en dessous de 1440px. -->
+            <span class="decor-vine decor-vine--left" aria-hidden="true"><span class="decor-vine__ink"></span></span>
+            <span class="decor-vine decor-vine--right" aria-hidden="true"><span class="decor-vine__ink"></span></span>
+            <div class="section-head" data-reveal>
+                <p class="kicker">Toute l'année</p>
+                <h2>Ce que le Comité organise</h2>
+                <p>
+                    Le Comité des Fêtes anime le village bien au-delà des fêtes de l'été : concours de belotte, carnaval, repas et animations font vivre
+                    l'année. Chaque rendez-vous est ouvert à tous, habitants du village comme visiteurs.
+                </p>
+            </div>
+
+            <div class="rail event-grid" tabindex="0"
+                 role="group" aria-label="Les évènements du Comité">
+
+                <!-- ========== CONCOURS DE BELOTE ========== -->
+                <article class="event-card" data-date="2026-11-14" data-reveal style="--i:0">
+                    <div class="event-card__head">
+                        <span class="event-card__icon icon-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="3.4" width="11" height="14" rx="2"/><path d="M6 7a2 2 0 0 0-2 2v8.6a3 3 0 0 0 3 3h8.6"/><path d="m14.5 7.8 1.9 2.9-1.9 2.9-1.9-2.9Z"/></svg></span>
+                        <span class="event-card__badge">À venir</span>
+                    </div>
+                    <p class="event-card__date">
+                        <time datetime="2026-11-14">Automne 2026</time> · Salle des fêtes
+                    </p>
+                    <h3 class="event-card__title">Concours de belote</h3>
+                    <p class="event-card__text">
+                        Concours par équipe de 2, ouvert à tous. Tout le monde repart gagnant,
+                        buvette et casse-croûte sur place. Inscription ici ou par téléphone.
+                    </p>
+                    <p class="event-card__meta">Date, horaire et tarif à confirmer</p>
+                    <div class="event-card__foot">
+                        <a class="event-card__link" href="/evenements/concours-de-belote/">
+                            En savoir plus
+                        </a>
+                    </div>
+                </article>
+
+                <!-- ========== CARNAVAL ========== -->
+                <article class="event-card" data-date="2027-03-20" data-reveal style="--i:1">
+                    <div class="event-card__head">
+                        <span class="event-card__icon icon-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2.6 7.5c3-1.1 5.9-.8 8.2 1 .7.5 1.7.5 2.4 0 2.3-1.8 5.2-2.1 8.2-1 .4 5.1-2.1 9.2-5.4 9.2-2.1 0-3.3-1.3-4-3.1-.7 1.8-1.9 3.1-4 3.1-3.3 0-5.8-4.1-5.4-9.2Z"/><circle cx="7.4" cy="11" r="1.15" fill="currentColor" stroke="none"/><circle cx="16.6" cy="11" r="1.15" fill="currentColor" stroke="none"/></svg></span>
+                        <span class="event-card__badge">À venir</span>
+                    </div>
+                    <p class="event-card__date">
+                        <time datetime="2027-03-20">Mars 2027</time> · Dans le bourg
+                    </p>
+                    <h3 class="event-card__title">Carnaval</h3>
+                    <p class="event-card__text">
+                        Défilé costumé dans les rues du village, jugement et brûlage du
+                        Monsieur Carnaval, tournée des maisons du village. Déguisement
+                        vivement conseillé.
+                    </p>
+                    <p class="event-card__meta">Date et parcours à confirmer</p>
+                    <div class="event-card__foot">
+                        <a class="event-card__link" href="/evenements/carnaval/">
+                            En savoir plus
+                        </a>
+                    </div>
+                </article>
+
+                <!-- ========== LES FÊTES DE LUGLON ==========
+                     Les trois évènements ont chacun leur page dédiée, listées
+                     dans le sous-menu « Évènements » de la barre de navigation.
+                     Celle-ci porte en plus le programme 2026 archivé et le
+                     lien vers la réservation des repas. -->
+                <article class="event-card" data-date="2027-08-01" data-reveal style="--i:2">
+                    <div class="event-card__head">
+                        <span class="event-card__icon icon-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10.4 2.6 12.1 7.6 17.1 9.3 12.1 11 10.4 16 8.7 11 3.7 9.3 8.7 7.6Z"/><path d="m17.9 13.6.9 2.5 2.5.9-2.5.9-.9 2.5-.9-2.5-2.5-.9 2.5-.9Z"/></svg></span>
+                        <span class="event-card__badge">À venir</span>
+                    </div>
+                    <p class="event-card__date">
+                        <time datetime="2027-07-29">Fin juillet 2027</time> · 4 jours
+                    </p>
+                    <h3 class="event-card__title">Les Fêtes de Luglon</h3>
+                    <p class="event-card__text">
+                        Le grand rendez-vous de l'été : loto, course landaise, bandas,
+                        repas sous les chapiteaux, pétanque et feu d'artifice. Quatre
+                        jours qui rassemblent tout le village.
+                    </p>
+                    <p class="event-card__meta">Dates de l'édition 2027 à confirmer</p>
+                    <div class="event-card__foot">
+                        <a class="event-card__link" href="/evenements/fetes-de-luglon/">
+                            Programme et réservation
+                        </a>
+                    </div>
+                </article>
+                <!-- ==================================================
+                     POUR AJOUTER UN ÉVÈNEMENT : copiez le bloc
+                     ci-dessous, retirez les balises de commentaire,
+                     et renseignez data-date + le contenu.
+                     Incrémentez --i pour l'ordre d'apparition.
+
+                     ⚠️ data-date = DERNIER jour de l'évènement s'il
+                     dure plusieurs jours (voir events.js).
+
+                     S'IL A SA PROPRE PAGE, trois choses de plus :
+                       • créer evenements/<son-nom>/index.html
+                         (copier evenements/carnaval/ comme gabarit)
+                       • l'ajouter au <ul class="site-nav__submenu">
+                         de la nav — DE TOUTES LES PAGES HTML
+                       • l'ajouter à sitemap.xml
+                     ==================================================
+
+                <article class="event-card" data-date="AAAA-MM-JJ" data-reveal style="--i:3">
+                    <div class="event-card__head">
+                        <span class="event-card__icon icon-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v3.2"/><path d="M3 20.5V12a9 9 0 0 1 18 0v8.5"/><path d="M12 6.2 3 12M12 6.2 21 12"/><path d="M12 6.2v14.3"/><path d="M3 20.5h18"/></svg></span>
+                        <span class="event-card__badge">À venir</span>
+                    </div>
+                    <p class="event-card__date">
+                        <time datetime="AAAA-MM-JJ">Mois AAAA</time> · Lieu
+                    </p>
+                    <h3 class="event-card__title">Nom de l'évènement</h3>
+                    <p class="event-card__text">Description en deux ou trois phrases.</p>
+                    <p class="event-card__meta">Précision éventuelle (tarif, inscription…)</p>
+                </article>
+
+                     ================================================== -->
+
+            </div>
+            <!-- Points remplis par rail-dots.js : tout .rail suivi d'un
+                 .rail-dots en reçoit, sans rien déclarer côté JS.
+                 Masqués au-dessus de 900px, où le rail devient une grille. -->
+            <div class="rail-dots" role="group" aria-label="Aller à un évènement"></div>
+        </section>
+
+        <section class="page-section page-section--footer-band">
+            <div class="section-head section-head--center" data-reveal>
+                <p class="kicker">Vous êtes Luglonnais ?</p>
+                <h2>Donner un coup de main</h2>
+                <p>
+                    Chaque évènement repose sur des bénévoles : monter un chapiteau,
+                    tenir la buvette une heure, prêter une remorque. Aucune expérience
+                    requise, aucune obligation de durée.
+                </p>
+                <div class="cta-row" style="justify-content:center">
+                    <a class="btn btn--primary" href="/contact/">Nous contacter</a>
+                    <a class="btn btn--ghost" href="/comite/">Découvrir le Comité</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <span class="footer-title">Comité des Fêtes de Luglon</span>
+                <span class="footer-copyright">©2026 Tous droits réservés.</span>
+                <a href="/confidentialite/" class="footer-legal-link">Politique de confidentialité</a>
+                <a href="/mentions-legales/" class="footer-legal-link">Mentions légales</a>
+            </div>
+            <div class="footer-social">
+                <a href="https://www.instagram.com/cdfluglon/" target="_blank" rel="noopener noreferrer" aria-label="Instagram du Comité des Fêtes de Luglon" class="footer-social-link footer-instagram">
+                    <svg viewBox="0 0 24 24" class="footer-icon" aria-hidden="true"><path fill="currentColor" d="M12 2c-2.72 0-3.06.01-4.12.06-1.06.05-1.79.22-2.43.47a4.9 4.9 0 0 0-1.77 1.15A4.9 4.9 0 0 0 2.53 5.45c-.25.64-.42 1.37-.47 2.43C2.01 8.94 2 9.28 2 12s.01 3.06.06 4.12c.05 1.06.22 1.79.47 2.43.26.66.6 1.22 1.15 1.77.55.55 1.11.9 1.77 1.15.64.25 1.37.42 2.43.47C8.94 21.99 9.28 22 12 22s3.06-.01 4.12-.06c1.06-.05 1.79-.22 2.43-.47a4.9 4.9 0 0 0 1.77-1.15 4.9 4.9 0 0 0 1.15-1.77c.25-.64.42-1.37.47-2.43.05-1.06.06-1.4.06-4.12s-.01-3.06-.06-4.12c-.05-1.06-.22-1.79-.47-2.43a4.9 4.9 0 0 0-1.15-1.77A4.9 4.9 0 0 0 18.55 2.53c-.64-.25-1.37-.42-2.43-.47C15.06 2.01 14.72 2 12 2Zm0 1.8c2.67 0 2.99.01 4.04.06.97.04 1.5.21 1.85.34.46.18.79.39 1.14.74.35.35.56.68.74 1.14.13.35.3.88.34 1.85.05 1.05.06 1.37.06 4.04s-.01 2.99-.06 4.04c-.04.97-.21 1.5-.34 1.85-.18.46-.39.79-.74 1.14-.35.35-.68.56-1.14.74-.35.13-.88.3-1.85.34-1.05.05-1.37.06-4.04.06s-2.99-.01-4.04-.06c-.97-.04-1.5-.21-1.85-.34a3.1 3.1 0 0 1-1.14-.74 3.1 3.1 0 0 1-.74-1.14c-.13-.35-.3-.88-.34-1.85C3.81 14.99 3.8 14.67 3.8 12s.01-2.99.06-4.04c.04-.97.21-1.5.34-1.85.18-.46.39-.79.74-1.14.35-.35.68-.56 1.14-.74.35-.13.88-.3 1.85-.34C9.01 3.81 9.33 3.8 12 3.8Zm0 3.05a5.15 5.15 0 1 0 0 10.3 5.15 5.15 0 0 0 0-10.3Zm0 8.5a3.35 3.35 0 1 1 0-6.7 3.35 3.35 0 0 1 0 6.7Zm5.36-8.7a1.2 1.2 0 1 1-2.4 0 1.2 1.2 0 0 1 2.4 0Z"/></svg>
+                </a>
+                <a href="https://www.facebook.com/p/Comit%C3%A9-des-f%C3%AAtes-de-Luglon-100083680651271/" target="_blank" rel="noopener noreferrer" aria-label="Facebook du Comité des Fêtes de Luglon" class="footer-social-link footer-facebook">
+                    <svg viewBox="0 0 24 24" class="footer-icon" aria-hidden="true"><path fill="currentColor" d="M13.5 21.5v-7.9h2.65l.4-3.08h-3.05V8.55c0-.89.25-1.5 1.52-1.5h1.63V4.3a21.8 21.8 0 0 0-2.37-.12c-2.35 0-3.96 1.43-3.96 4.06v2.27H7.66v3.08h2.66v7.9h3.18Z"/></svg>
+                </a>
+                <a href="mailto:contact@cdf-luglon.fr" aria-label="Envoyer un e-mail au Comité des Fêtes de Luglon" class="footer-social-link footer-mail">
+                    <svg viewBox="0 0 24 24" class="footer-icon" aria-hidden="true"><path fill="currentColor" d="M3 5.5A1.5 1.5 0 0 1 4.5 4h15A1.5 1.5 0 0 1 21 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5v-13Zm2.1.5 6.9 5.17L18.9 6H5.1Zm13.4 1.3-6.1 4.57a1.5 1.5 0 0 1-1.8 0L4.5 7.3v11.2h15V7.3Z"/></svg>
+                </a>
+                <a href="mailto:contact@cdf-luglon.fr" class="footer-email">contact@cdf-luglon.fr</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/scroll-animations.js"></script>
+    <script src="/events.js"></script>
+    <script src="/rail-dots.js"></script>
+    <script src="/nav.js"></script>
+</body>
+</html>
