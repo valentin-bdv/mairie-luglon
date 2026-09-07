@@ -1,6 +1,6 @@
 // ============================================================
-// calendar-export.js — Boutons "Ajouter au calendrier" (page Programme)
-// Génère un fichier .ics par jour (compatible Apple Calendar, Google
+// calendar-export.js — Boutons "Ajouter au calendrier" (pages Actualités)
+// Génère un fichier .ics par évènement (compatible Apple Calendar, Google
 // Calendar, Outlook...) en un clic, sans dépendance externe.
 // À inclure : <script src="/calendar-export.js"></script>
 // ============================================================
@@ -8,55 +8,27 @@
 (function () {
 
   // *************************************************************************
-  // CONFIGURATION DES ÉVÉNEMENTS PAR JOUR
-  // Modifie ici les dates, horaires, lieux et descriptions si le programme change.
-  // Format de date JS : new Date(année, mois(0-11), jour, heure, minute)
+  // CONFIGURATION DES ÉVÉNEMENTS
+  // Modifie ici les dates, horaires, lieux et descriptions au fil des
+  // annonces municipales. Format de date JS : new Date(année, mois(0-11), jour, heure, minute)
   // *************************************************************************
   const EVENTS = {
-    jeudi: {
-      title: 'Fêtes de Luglon — Jeudi : Loto Bingo',
-      start: new Date(2026, 6, 30, 20, 30), // 30 juillet 2026, 20h30
-      end:   new Date(2026, 6, 30, 23, 30),
-      location: 'Salle des fêtes, Luglon',
+    'conseil-municipal': {
+      title: 'Conseil municipal de Luglon',
+      start: new Date(2027, 2, 12, 19, 0), // 12 mars 2027, 19h00
+      end:   new Date(2027, 2, 12, 21, 0),
+      location: 'Salle du conseil, Mairie de Luglon',
       description:
-        '20h30 : LOTO BINGO (nombreux lots) — ' +
-        'Buvette + Sandwichs / Frites sur place.'
+        'Séance publique du conseil municipal — ordre du jour affiché en mairie ' +
+        'et publié sur le site quelques jours avant la séance.'
     },
-    vendredi: {
-      title: 'Fêtes de Luglon — Vendredi : Ouverture des fêtes',
-      start: new Date(2026, 6, 31, 19, 30), // 31 juillet 2026, 19h30
-      end:   new Date(2026, 6, 31, 23, 59),
-      location: 'Luglon (centre bourg)',
+    'ceremonie-11-novembre': {
+      title: 'Cérémonie du 11 novembre',
+      start: new Date(2026, 10, 11, 11, 0), // 11 novembre 2026, 11h00
+      end:   new Date(2026, 10, 11, 12, 0),
+      location: 'Monument aux morts, Luglon',
       description:
-        '19h30 : Ouverture des fêtes — Remise des clés par le Maire — ' +
-        '20h : Banda La Juventud — ' +
-        '20h : Repas d\'ouverture — Adulte 14€ | Enfant (-12 ans) 7€ — ' +
-        'Macédoine et terrine de saumon, Araignées de porc marinées aux épices ou txistorra + frites, Flan gourmand, Café.'
-    },
-    samedi: {
-      title: 'Fêtes de Luglon — Samedi : Course landaise & Repas du comité',
-      start: new Date(2026, 7, 1, 8, 30), // 1er août 2026, 8h30
-      end:   new Date(2026, 7, 1, 23, 59),
-      location: 'Stade de Luglon',
-      description:
-        '8h30-12h : Ball-trap, planche au mérite — Menon — ' +
-        '16h30 : Course landaise (Ganaderia Maynus) au stade. Adulte 10€ | -18ans 5€ | Gratuit -12ans — ' +
-        '20h30-23h30 : Animation musicale avec le groupe Les Tulipes — ' +
-        '20h : Repas du comité — Adulte 16€ | Enfant (-12 ans) 8€ — ' +
-        'Assiette luglonaise, Entrecôte au brasero et sa sauce maison + frites, Pastis et Crème anglaise, Café.'
-    },
-    dimanche: {
-      title: 'Fêtes de Luglon — Dimanche : Messe, pétanque & feu d\'artifice',
-      start: new Date(2026, 7, 2, 11, 0), // 2 août 2026, 11h00
-      end:   new Date(2026, 7, 2, 23, 59),
-      location: 'Luglon (église, stade et centre bourg)',
-      description:
-        '11h : Messe en musique avec Sonneur de trompe et Accordéon — ' +
-        '12h : Vin d\'honneur offert par la Mairie — ' +
-        '14h30 : Concours de pétanque — au stade (inscription sur place) — ' +
-        '20h-23h : Animation musicale avec le groupe Soul\'r Rock 82 — ' +
-        '20h : Soirée Tapas — 7€ — ' +
-        '23h : Feu d\'artifice (selon météo).'
+        'Cérémonie commémorative suivie d\'un vin d\'honneur en mairie.'
     }
   };
 
@@ -75,12 +47,12 @@
 
   function buildICS(event) {
     const now = toICSDate(new Date());
-    const uid = 'luglon-' + event.start.getTime() + '@cdf-luglon.fr';
+    const uid = 'luglon-' + event.start.getTime() + '@mairie-luglon.fr';
 
     const lines = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
-      'PRODID:-//Comite des Fetes de Luglon//Programme 2026//FR',
+      'PRODID:-//Mairie de Luglon//Agenda municipal//FR',
       'CALSCALE:GREGORIAN',
       'METHOD:PUBLISH',
       'BEGIN:VEVENT',

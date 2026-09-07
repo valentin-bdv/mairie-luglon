@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://cdf-luglon.fr/sitemap.xml
+Sitemap: https://mairie-luglon.fr/sitemap.xml

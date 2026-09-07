@@ -31,21 +31,26 @@
   // état valide, pas une panne.
 
   // ----------------------------------------------------------
-  // 2. Sous-menu « Évènements » — touche Échap uniquement
+  // 2. Sous-menus déroulants — touche Échap uniquement
   //
   // L'ouverture et la fermeture sont 100 % CSS (:hover et
   // :focus-within, voir la section 8 de styles.css). Ce bloc ne gère
-  // qu'un seul cas, que le CSS ne sait pas exprimer : Échap doit
-  // refermer le menu ET rendre le focus à l'onglet parent. Or rendre le
-  // focus au parent le fait matcher :focus-within, ce qui rouvre le menu
+  // que ce que le CSS ne sait pas exprimer : Échap doit refermer le
+  // menu ET rendre le focus à l'onglet parent. Or rendre le focus au
+  // parent le fait matcher :focus-within, ce qui rouvre le menu
   // aussitôt. D'où la classe .is-collapsed, qui force la fermeture le
   // temps que le focus quitte l'élément.
   //
-  // Si ce bloc ne s'exécute pas, le menu fonctionne toujours : on perd
-  // seulement le raccourci Échap.
+  // querySelectorAll et non querySelector : la nav porte désormais
+  // plusieurs sous-menus (Mairie, Vie pratique, Actualités). Avec un
+  // querySelector unique, Échap n'aurait fonctionné que sur le premier
+  // trouvé dans le DOM — les autres seraient restés ouverts au clavier.
+  //
+  // Si ce bloc ne s'exécute pas, chaque menu fonctionne toujours : on
+  // perd seulement le raccourci Échap.
   // ----------------------------------------------------------
-  const menuItem = nav.querySelector('.site-nav__item--has-menu');
-  if (menuItem) {
+  const menuItems = nav.querySelectorAll('.site-nav__item--has-menu');
+  menuItems.forEach(function (menuItem) {
     const trigger = menuItem.querySelector('a');
 
     menuItem.addEventListener('keydown', function (e) {
@@ -70,6 +75,106 @@
     menuItem.addEventListener('mouseleave', function () {
       menuItem.classList.remove('is-collapsed');
     });
+  });
+
+  // ----------------------------------------------------------
+  // 2 bis. Sous-menus en accordéon SUR MOBILE UNIQUEMENT (< 860px)
+  //
+  // Au-delà de 860px on ne touche à rien : l'ouverture reste 100% CSS
+  // (:hover/:focus-within, bloc 2 ci-dessus). En dessous, le panneau ne
+  // montre plus que MAIRIE / VIE PRATIQUE / ACTUALITÉS / CONTACT ; cliquer
+  // sur l'un des trois premiers ne navigue plus, il déplie son sous-menu
+  // (un seul ouvert à la fois), avec la même mécanique d'animation de
+  // hauteur qu'accordion.js — dupliquée plutôt que partagée, faute d'un
+  // balisage commun (ici <a>+<ul>, là <details>).
+  //
+  // FAIL-OPEN : la classe .nav-accordion-armed n'est posée sur .site-nav
+  // qu'après confirmation qu'Element.animate existe. Tant qu'elle est
+  // absente, styles.css garde les sous-menus dans leur état d'origine
+  // (liste indentée, toujours dépliée) — voir le commentaire CSS associé.
+  // Si ce bloc ne s'exécute pas du tout, c'est cet état d'origine qui
+  // s'applique : jamais un sous-menu invisible et impossible à déplier.
+  // ----------------------------------------------------------
+  if ('animate' in Element.prototype) {
+    const mqMobile = window.matchMedia('(max-width: 859px)');
+
+    menuItems.forEach(function (menuItem) {
+      const trigger = menuItem.querySelector('a');
+      const submenu = menuItem.querySelector('.site-nav__submenu');
+      if (!trigger || !submenu) return;
+
+      let animation = null;
+      let isClosing = false;
+
+      trigger.setAttribute('aria-expanded', 'false');
+
+      trigger.addEventListener('click', function (e) {
+        if (!mqMobile.matches) return;   // desktop : lien normal, survol CSS
+        e.preventDefault();
+        e.stopPropagation();   // n'aille pas déclencher la fermeture du
+                                // panneau prévue au clic sur un lien (bloc 3)
+        if (isClosing || !menuItem.classList.contains('is-expanded')) {
+          openSubmenu();
+        } else {
+          closeSubmenu();
+        }
+      });
+
+      function closeSubmenu() {
+        isClosing = true;
+        const startHeight = submenu.offsetHeight + 'px';
+        submenu.style.overflow = 'hidden';
+        if (animation) animation.cancel();
+        animation = submenu.animate(
+          { height: [startHeight, '0px'] },
+          { duration: 220, easing: 'ease-in-out' }
+        );
+        animation.onfinish = function () { finish(false); };
+        animation.oncancel = function () { isClosing = false; };
+      }
+
+      function openSubmenu() {
+        // Referme les autres sous-menus du panneau avant d'ouvrir
+        // celui-ci, en déclenchant LEUR propre clic : chaque sous-menu
+        // garde la responsabilité de son propre état (isClosing, anim…),
+        // exactement comme dans accordion.js.
+        menuItems.forEach(function (other) {
+          if (other === menuItem) return;
+          if (other.classList.contains('is-expanded')) {
+            const otherTrigger = other.querySelector('a');
+            if (otherTrigger) otherTrigger.click();
+          }
+        });
+
+        submenu.style.overflow = 'hidden';
+        submenu.style.height = '0px';
+        menuItem.classList.add('is-expanded');
+        trigger.setAttribute('aria-expanded', 'true');
+
+        window.requestAnimationFrame(function () {
+          submenu.style.height = 'auto';
+          const endHeight = submenu.offsetHeight + 'px';
+          submenu.style.height = '0px';
+          if (animation) animation.cancel();
+          animation = submenu.animate(
+            { height: ['0px', endHeight] },
+            { duration: 260, easing: 'ease-in-out' }
+          );
+          animation.onfinish = function () { finish(true); };
+        });
+      }
+
+      function finish(isOpen) {
+        menuItem.classList.toggle('is-expanded', isOpen);
+        trigger.setAttribute('aria-expanded', String(isOpen));
+        animation = null;
+        isClosing = false;
+        submenu.style.height = isOpen ? '' : '0px';
+        submenu.style.overflow = isOpen ? '' : 'hidden';
+      }
+    });
+
+    nav.classList.add('nav-accordion-armed');
   }
 
   // ----------------------------------------------------------

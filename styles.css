@@ -63,6 +63,7 @@
   --text-shadow: #0000001a;
   --luglon-green: #166136;
   --resa-shadow: #00000080;
+  --nav-brand-bg: #dadce0;      /* panneau derrière la marque du nav : gris doux, à mi-chemin entre --muted (texte « Mairie de ») et le blanc de la barre */
 
   --accent: var(--luglon-green);
   --error-red: #dc3545;
@@ -223,6 +224,7 @@
     --text-shadow: #16613680;
     --tab-border : #444444;
     --resa-shadow: #000000cc;
+    --nav-brand-bg: #242424;
 
     /* Voir le commentaire de --green-ink dans :root */
     --green-ink: #6bd698;
@@ -384,13 +386,6 @@ body {
 .field-small {
   width: 160px;
   flex-shrink: 0;
-}
-.field-end {
-  align-items: flex-end;
-}
-.reservation-count {
-  margin-left: auto;
-  font-size: 13px;
 }
 
 form .row {
@@ -723,6 +718,96 @@ form .row {
   margin-right: auto;
   min-width: 0;
   border-radius: var(--r-s);
+  /* Étend la zone cliquable jusqu'au panneau/vague (voir .site-nav__brand-panel) :
+     sans ce padding, seul le mot-symbole serait cliquable et le reste du
+     panneau ne serait qu'un décor mort. Posé à mi-chemin vers le premier
+     lien plutôt que collé au texte, pour que la moitié gauche de la barre
+     — jusque-là vide à cause du margin-right:auto ci-dessus — réagisse au
+     clic elle aussi. */
+  padding-right: clamp(90px, 20vw, 260px);
+}
+/* Panneau derrière la marque : la marque devient sa propre zone plutôt que
+   du texte flottant au milieu des liens. Comme .site-nav__glass, il déborde
+   jusqu'au bord de .site-nav__bar en annulant son padding (même valeurs,
+   signe opposé) — pas de overflow:hidden sur la barre, donc le rayon du
+   panneau DOIT être identique au sien pour ne rien faire dépasser des coins
+   arrondis. S'arrête à 10px du bord droit : ces 10px sont la bande de
+   .site-nav__brand-wave juste après.
+
+   Visible UNIQUEMENT en mode « bulle » (.is-scrolled, verre blanc) — voir
+   plus bas. Non replié, le nav est incrusté sur le héros sans fond propre
+   (.site-nav__glass a opacity:0, section 8) : un panneau gris dessus aurait
+   été le SEUL fond de toute la barre, ce que le fondu blanc décrit
+   juste en dessous suppose déjà résolu autrement.
+
+   Le fond n'est PAS une teinte plate : un dégradé sans point d'arrêt
+   explicite, donc étiré sur TOUTE la largeur du panneau (gris au bord
+   droit, transparent pile au bord gauche — juste avant le mot-symbole).
+   Sans position fixe en px, la longueur du fondu suit d'elle-même la
+   largeur du panneau (clamp() plus haut, donc variable) au lieu de laisser
+   un aplat transparent mort au milieu suivi d'un raccourci brutal côté
+   vague. Résultat : « Mairie de Luglon » repose sur le même verre blanc
+   que les autres onglets, la teinte ne s'affirmant que près de la vague. */
+.site-nav__brand-panel {
+  position: absolute;
+  top: calc(-1 * var(--space-2xs));
+  bottom: calc(-1 * var(--space-2xs));
+  left: calc(-1 * var(--space-s));
+  right: 10px;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(to left, var(--nav-brand-bg), transparent);
+  border-radius: var(--r-l) 0 0 var(--r-l);
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--ease-standard);
+}
+/* La vague : de vrais ronds, à taille FIXE en pixels (10×20px), donc
+   identiques quel que soit l'écran ou la largeur du mot-symbole — une
+   valeur en % ou vw serait relative à la boîte et donnerait des ovales.
+   Le motif est un carrelage SVG (mask-repeat: repeat-y) plutôt qu'un
+   clip-path : le clip-path ne peut pas se répéter, et re-décrire l'arc à
+   la main pour chaque hauteur de barre (64px déplié, 54px replié) serait
+   fragile. Chaque tuile trace un demi-cercle qui bombe à droite (jusqu'au
+   bord du panneau) suivi d'un demi-cercle qui rentre à gauche (jusqu'au
+   bord de .site-nav__brand-panel) : amplitude = rayon = 5px, moitié de la
+   « longueur d'onde » de 10px d'un demi-cercle, donc des ronds, pas des
+   pics. Tangente horizontale aux deux bouts de chaque arc → pas d'angle à
+   la jonction, la coder à la main. Reste pleine teinte (pas de dégradé) :
+   c'est elle qui MARQUE la rupture, le fondu du panneau y mène. */
+.site-nav__brand-wave {
+  position: absolute;
+  top: calc(-1 * var(--space-2xs));
+  bottom: calc(-1 * var(--space-2xs));
+  right: 0;
+  width: 10px;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--nav-brand-bg);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2710%27%20height%3D%2720%27%20viewBox%3D%270%200%2010%2020%27%3E%3Cpath%20d%3D%27M0%2C0%20L5%2C0%20A5%2C5%200%200%201%205%2C10%20A5%2C5%200%200%200%205%2C20%20L0%2C20%20Z%27%20fill%3D%27white%27/%3E%3C/svg%3E");
+          mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2710%27%20height%3D%2720%27%20viewBox%3D%270%200%2010%2020%27%3E%3Cpath%20d%3D%27M0%2C0%20L5%2C0%20A5%2C5%200%200%201%205%2C10%20A5%2C5%200%200%200%205%2C20%20L0%2C20%20Z%27%20fill%3D%27white%27/%3E%3C/svg%3E");
+  -webkit-mask-size: 10px 20px;
+          mask-size: 10px 20px;
+  -webkit-mask-repeat: repeat-y;
+          mask-repeat: repeat-y;
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--ease-standard);
+}
+/* Le panneau et la vague ne s'affichent qu'une fois la barre repliée en
+   bulle : c'est .site-nav__glass (section 8) qui pose le verre blanc sous
+   la marque à ce moment-là, condition du dégradé ci-dessus. */
+.site-nav.is-scrolled .site-nav__brand-panel,
+.site-nav.is-scrolled .site-nav__brand-wave {
+  opacity: 1;
+}
+/* Sur téléphone, la marque n'a plus la place de respirer (mot-symbole
+   réduit à "Luglon", bouton burger juste à côté) : la vague et le panneau
+   y feraient un détail perdu contre le bord plutôt qu'une respiration.
+   On retire les deux plutôt que de garder le dégradé seul. */
+@media (max-width: 768px) {
+  .site-nav__brand-panel,
+  .site-nav__brand-wave {
+    display: none;
+  }
 }
 .site-nav__logo {
   width: 40px;
@@ -736,11 +821,15 @@ form .row {
   font-family: var(--font-title);
 }
 .site-nav__wordmark-top {
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-title);
   color: var(--muted);
 }
 .site-nav__wordmark-bot {
-  font-size: var(--fs-sm);
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-title);
   color: var(--green-ink);
   text-shadow: 0 0 5px var(--text-shadow);
 }
@@ -760,7 +849,8 @@ form .row {
   padding: var(--space-2xs) var(--space-xs);
   border-radius: var(--r-s);
   font-family: var(--font-title);
-  font-size: 1.05rem;
+  font-size: 1.3rem;
+  text-transform: uppercase;
   letter-spacing: var(--tracking-title);
   color: var(--text);
   text-decoration: none;
@@ -805,10 +895,15 @@ form .row {
       panneau est donc opaque : --bg + une ombre portée. Il passe au-dessus
       de contenu qui défile, l'opacité est de toute façon plus lisible.
 
-   3. SUR MOBILE, PAS DE DÉROULÉ DU TOUT. En dessous de 860px les sous-liens
-      sont une simple liste indentée, toujours visible dans le panneau. Un
-      accordéon dans un panneau déjà coulissant, c'est deux animations
-      imbriquées et un piège au tactile — pour quatre liens. */
+   3. SUR MOBILE, LES SOUS-MENUS SONT REPLIABLES (nav.js, classe
+      .nav-accordion-armed posée en JS) : un seul déplié à la fois parmi
+      Mairie/Vie pratique/Actualités, chevron ré-affiché et animé au clic
+      plutôt qu'au survol. C'est un ajout ultérieur au-dessus de l'état de
+      base ci-dessous (liste indentée toujours dépliée) : cet état de base
+      reste le repli si `Element.animate` manque ou si nav.js échoue — voir
+      les deux blocs `@media (max-width: 859px)` qui suivent, et le
+      commentaire dans nav.js. Ne supprime pas le premier bloc en pensant
+      qu'il est mort code : c'est le filet de sécurité de l'accordéon. */
 
 .site-nav__item--has-menu {
   position: relative;
@@ -893,6 +988,7 @@ form .row {
     padding: var(--space-2xs) var(--space-s);
     border-radius: var(--r-s);
     font-size: 1rem;
+    text-transform: none;
   }
   .site-nav__submenu a[aria-current] {
     background: var(--green-tint-08);
@@ -909,8 +1005,13 @@ form .row {
   }
 }
 
-/* Panneau mobile : sous-liste indentée, ouverte en permanence. Le filet
-   vertical remplace le chevron, qui n'aurait plus rien à replier. */
+/* Panneau mobile : par défaut (repli sans JS), sous-liste indentée, ouverte
+   en permanence, chevron masqué — c'était le SEUL comportement avant que
+   nav.js n'apprenne à replier les sous-menus (voir juste après). On garde
+   ces règles comme base, jamais retirées : si nav.js ne s'exécute pas (JS
+   bloqué, erreur, navigateur trop ancien pour Element.animate), la classe
+   .nav-accordion-armed n'est jamais posée sur .site-nav et le panneau
+   retombe sur cet état — toujours utilisable, juste sans le repli. */
 @media (max-width: 859px) {
   .site-nav__chevron { display: none; }
 
@@ -923,9 +1024,30 @@ form .row {
     font-size: 1.05rem;
     padding: var(--space-2xs) var(--space-s);
     color: var(--muted);
+    text-transform: none;
   }
   .site-nav__submenu a[aria-current] {
     color: var(--green-ink);
+  }
+}
+
+/* Panneau mobile EN ACCORDÉON — posé uniquement par nav.js (classe
+   .nav-accordion-armed sur .site-nav) une fois l'animation de hauteur
+   confirmée disponible. Un seul sous-menu ouvert à la fois (MAIRIE,
+   VIE PRATIQUE, ACTUALITÉS) ; CONTACT n'a pas de sous-menu, il reste un
+   lien direct. Le chevron reprend le même dessin que sur desktop (deux
+   bordures à 45°), mais sa rotation est pilotée par .is-expanded (posée
+   en JS) et non par :hover/:focus-within, qui n'ont pas de sens au doigt. */
+@media (max-width: 859px) {
+  .site-nav.nav-accordion-armed .site-nav__chevron {
+    display: inline-block;
+  }
+  .site-nav.nav-accordion-armed .site-nav__item--has-menu.is-expanded > a .site-nav__chevron {
+    transform: translateY(0.05em) rotate(225deg);
+  }
+  .site-nav.nav-accordion-armed .site-nav__submenu {
+    height: 0;
+    overflow: hidden;
   }
 }
 
@@ -1133,6 +1255,66 @@ html {
   .cta-row {
     justify-content: center;
   }
+}
+
+/* --- Barre utilitaire (téléphone / e-mail) ---
+   Un enfant de plus dans .site-nav (fixed) : elle suit donc le même --nav-top
+   sans le moindre calcul de coordonnées. Masquée sous 860px (l'écran mobile
+   est déjà occupé par la marque et le bouton burger) et repliée dès que
+   .is-scrolled est posée par nav.js — c'est la même classe qui rétrécit déjà
+   la barre principale, aucune ligne de JS à ajouter. */
+.site-nav__utility {
+  display: none;
+  justify-content: center;
+  pointer-events: none;
+  margin-bottom: var(--space-2xs);
+}
+@media (min-width: 860px) {
+  .site-nav__utility { display: flex; }
+}
+.site-nav.is-scrolled .site-nav__utility {
+  display: none;
+}
+/* La pastille tél/e-mail ajoute ~38px AU-DESSUS de .site-nav__bar, dans le
+   même bloc fixe. --nav-offset ne réservait que la hauteur de la barre
+   principale : le titre du héros démarrait donc sous le nav mais SOUS la
+   pastille aussi, qui le recouvrait en partie dès 860px (bug remonté : « le
+   gris du hero est trop bas »). On ne corrige qu'à partir de 860px, seuil
+   où .site-nav__utility devient visible. */
+@media (min-width: 860px) {
+  :root {
+    --nav-offset: calc(var(--nav-h) + var(--nav-top) + var(--space-s) + 38px);
+  }
+}
+.site-nav__utility-bar {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-s);
+  background: var(--green-700);
+  color: #fff;
+  font-size: var(--fs-xs);
+  line-height: 1;
+  padding: 7px var(--space-s);
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-s);
+}
+.site-nav__utility-bar a {
+  color: #fff;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.site-nav__utility-bar a:hover {
+  text-decoration: underline;
+}
+.site-nav__utility-bar .icon {
+  width: 14px;
+  height: 14px;
+}
+.site-nav__utility-bar .sep {
+  opacity: 0.4;
 }
 
 
@@ -1380,6 +1562,87 @@ html {
   }
 }
 
+/* --- Frise chronologique (déroulé d'un évènement en N étapes) ---
+   Horizontale par défaut (une ligne continue derrière des repères ronds,
+   comme une frise historique) ; bascule en verticale sous 700px, où une
+   ligne de N étapes côte à côte ne tiendrait plus. Même icon-badge que
+   .value-card__icon pour rester cohérent avec le reste du site — voir
+   .mairie/conseils-municipaux/ pour un exemple d'usage. */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: var(--space-l);
+  position: relative;
+}
+/* La ligne : un seul trait derrière tous les repères, positionné à leur
+   centre vertical (23px = moitié des 46px de .icon-badge). */
+.timeline::before {
+  content: "";
+  position: absolute;
+  top: 23px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--tab-border);
+  z-index: 0;
+}
+.timeline__step {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-s);
+  text-align: center;
+}
+/* .icon-badge est volontairement translucide (background en rgba, voir
+   section 6 bis) : posé tel quel sur le trait de la frise, ce dernier se
+   voyait PAR-TRANSPARENCE à travers le repère au lieu de rester caché
+   derrière — un fond plein est nécessaire ici, ailleurs sur le site
+   l'icône ne recouvre jamais un tracé. */
+.timeline__marker {
+  background: var(--bg);
+}
+.timeline__content h3 {
+  font-family: var(--font-title);
+  font-size: var(--fs-h3);
+  margin: 0 0 var(--space-3xs);
+  color: var(--green-ink);
+}
+.timeline__content p {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+
+@media (max-width: 700px) {
+  .timeline {
+    flex-direction: column;
+    gap: var(--space-m);
+  }
+  .timeline::before {
+    top: 0;
+    bottom: 0;
+    left: 23px;
+    right: auto;
+    width: 2px;
+    height: auto;
+  }
+  .timeline__step {
+    flex-direction: row;
+    align-items: flex-start;
+    text-align: left;
+  }
+  .timeline__marker {
+    flex: none;
+  }
+}
+
 
 /* ============================================================================
    11. RAILS / CARROUSELS À DÉFILEMENT MAGNÉTIQUE
@@ -1591,6 +1854,125 @@ html {
   margin-bottom: 0;
 }
 
+/* --- Bloc d'accueil avec carte des Landes ---
+   Repère de situation, pas une carte interactive : un contour simplifié du
+   département en SVG inline (pour hériter des couleurs du thème, y compris
+   le mode sombre) avec un point sur Luglon. Empilée sous le texte par
+   défaut ; passe à deux colonnes au même palier que .gallery-row (760px)
+   pour se poser « à droite » du texte comme sur un écran de bureau. */
+.welcome-grid {
+  display: grid;
+  gap: var(--space-l);
+  align-items: center;
+}
+@media (min-width: 760px) {
+  .welcome-grid {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: var(--space-xl);
+  }
+}
+.landes-map {
+  margin: 0;
+  max-width: 11rem;   /* plus petit sur smartphone : à 18rem le dessin
+                         prenait presque toute la largeur de l'écran pour
+                         une simple illustration d'appoint sous le texte. */
+  margin-inline: auto;
+}
+@media (min-width: 760px) {
+  .landes-map {
+    max-width: none;
+  }
+}
+.landes-map svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.landes-map__outline {
+  fill: var(--green-050);
+  stroke: var(--green-ink);
+  stroke-width: 2;
+}
+.landes-map__point-ring {
+  fill: none;
+  stroke: var(--green-ink);
+  stroke-width: 1.5;
+  opacity: 0.45;
+}
+.landes-map__point {
+  fill: var(--green-ink);
+}
+
+/* Carte du RPI (enfance-jeunesse) : même principe que .landes-map (SVG
+   inline pour hériter des couleurs/thème), mais ce n'est pas un contour —
+   ce sont les routes réelles (D327 Luglon-Sabres, D626 Sabres-Commensacq,
+   D45 Sabres-Trensacq, simplifiées depuis OpenStreetMap) qui relient les
+   quatre communes, plus leurs points/étiquettes. Portrait (199.8×260) et
+   non paysage comme .landes-map, d'où max-width plus étroit. */
+.rpi-map {
+  margin: 0;
+  max-width: 12rem;
+  margin-inline: auto;
+}
+@media (min-width: 760px) {
+  .rpi-map {
+    max-width: 14rem;
+  }
+}
+.rpi-map svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+/* Chaque route est une seule courbe quadratique (M...Q...) : un unique
+   sommet de contrôle, pas une succession de segments droits recopiés du
+   tracé OSM point par point. Ce dernier zigzaguait au gré du relevé réel
+   et rendait mal une fois réduit à cette taille ; ici l'épaisseur reste
+   visuellement constante sur tout le tracé, sans à-coups aux jonctions. */
+.rpi-map__road {
+  fill: none;
+  stroke: var(--green-ink);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* Petites routes alentour, réelles (D834, D77, D14 simplifiées) mais sans
+   étiquette : elles ne servent qu'à situer les 4 communes dans un vrai
+   réseau routier plutôt que de les laisser flotter sur fond vide. */
+.rpi-map__road-minor {
+  fill: none;
+  stroke: var(--tab-border);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.rpi-map__point {
+  fill: var(--green-ink);
+}
+.rpi-map__label {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--green-ink);
+}
+
+/* Carte Google Maps intégrée à côté d'un texte (.welcome-grid) — utilisée
+   sur vie-pratique/dechets/ pour situer le point de tri et la déchetterie.
+   Même cadre (angle arrondi, ombre) que les photos de hero ; ratio 4/3
+   par défaut comme les autres iframes de carte du site (galerie
+   d'origine, hero d'accueil) pour rester cohérent. */
+.embed-map {
+  margin: 0;
+}
+.embed-map iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: 0;
+  border-radius: var(--r-l);
+  box-shadow: var(--shadow-m);
+}
+
 /* Conteneur de section de contenu : la même mesure sur toutes les pages.
    .programme est l'alias historique de la page programme ; ne pas le
    supprimer tant que /evenements/fetes-de-luglon/ y fait référence. */
@@ -1683,6 +2065,87 @@ html {
 }
 .prose p { margin: 0 0 var(--space-s); }
 .prose a { color: var(--green-ink); }
+
+/* Accordéon — listes dépliables par catégorie (associations, entreprises).
+   <details>/<summary> plutôt qu'un <button> + JS : l'ouverture/fermeture est
+   native (clavier, lecteurs d'écran, pas de script à charger), ce qu'un
+   sous-menu de nav ne peut pas se permettre (lui doit gérer le survol
+   desktop ET le clic mobile, d'où script.js). Le chevron reprend le même
+   dessin que .site-nav__chevron (deux bordures à 45°) pour la cohérence
+   visuelle demandée, mais n'est pas partagé avec lui : contextes trop
+   différents (rotation pilotée par [open] ici, par :hover là-bas). */
+.accordion-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+.accordion {
+  border: 1px solid var(--tab-border);
+  border-radius: var(--r-m);
+  background: var(--bg);
+  overflow: hidden;
+}
+.accordion summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-s);
+  padding: var(--space-s) var(--space-m);
+  cursor: pointer;
+  font-family: var(--font-title);
+  letter-spacing: var(--tracking-title);
+  font-size: 1.1rem;
+  color: var(--green-ink);
+  list-style: none;
+}
+.accordion summary::-webkit-details-marker { display: none; }
+.accordion__count {
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--muted);
+  margin-left: var(--space-2xs);
+}
+.accordion__chevron {
+  flex: none;
+  width: 0.5em;
+  height: 0.5em;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform var(--dur-base) var(--ease-standard);
+}
+.accordion[open] .accordion__chevron {
+  transform: rotate(225deg);
+}
+.accordion__body {
+  padding: 0 var(--space-m) var(--space-m);
+  border-top: 1px solid var(--tab-border);
+}
+.accordion__list {
+  list-style: none;
+  margin: 0;
+  padding-top: var(--space-m);
+}
+.accordion__list li {
+  padding-bottom: var(--space-s);
+  margin-bottom: var(--space-s);
+  border-bottom: 1px solid var(--tab-border);
+}
+.accordion__list li:last-child {
+  padding-bottom: 0;
+  margin-bottom: 0;
+  border-bottom: none;
+}
+.accordion__list strong {
+  display: block;
+  color: var(--text);
+}
+.accordion__list span {
+  display: block;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
 
 /* Chapô — la première phrase d'une section, sortie du pavé.
    Deux paragraphes d'affilée dans la police de labeur, c'est un mur : l'œil
@@ -1849,6 +2312,23 @@ html {
   color: var(--muted);
 }
 
+/* Étiquette de thème (Travaux, Vie associative...) — distincte du badge de
+   statut ci-dessus par construction : contour plutôt que fond plein, pour
+   qu'on ne confonde jamais "à venir/terminé" (un état, toujours vert) avec
+   la thématique (une catégorie, neutre). */
+.event-card__tag {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 2px 10px;
+  margin: 0 0 var(--space-2xs);
+  border: 1px solid var(--tab-border);
+  border-radius: var(--r-pill);
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--muted);
+}
+
 /* min-height = deux lignes, TOUJOURS réservées. La date la plus longue
    (« AUTOMNE 2026 · SALLE DES FÊTES ») passait sur deux lignes tandis que
    les autres tenaient sur une : le titre de cette carte descendait de 18px
@@ -1933,6 +2413,37 @@ html {
 .value-card__icon {
   margin-bottom: var(--space-s);
 }
+/* Vignette libre de droit dans le rectangle qui restait vide à droite de
+   l'icône (l'icône fait 46px de large, la carte beaucoup plus : sans ça
+   .value-card__icon laissait un grand blanc avant le h3). Décorative
+   uniquement — le h3 qui suit porte déjà l'information, d'où alt="". */
+.value-card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  margin-bottom: var(--space-s);
+}
+.value-card__head .value-card__icon {
+  margin-bottom: 0;
+}
+.value-card__thumb {
+  flex: 1;
+  width: 100%;   /* sans ça, l'attribut HTML width="700" de l'image (une
+                    aide au calcul du ratio, pas une taille d'affichage)
+                    resurgit comme largeur réelle : les cartes "Accès
+                    rapide" s'élargissaient à ~800px et débordaient le rail
+                    sur mobile, avec des points de pagination qui n'avaient
+                    plus aucun rapport avec la position réelle du défilement. */
+  min-width: 0;
+  height: 46px;
+  object-fit: cover;
+  border-radius: var(--r-m);
+  /* Un filet à 1px se perdait contre les photos claires (mer de nuages,
+     papier blanc) : la vignette semblait flotter sans cadre. Le même vert
+     que .icon-badge, en plus épais, la rattache visuellement à l'icône
+     juste à côté. */
+  border: 2px solid var(--green-tint-16);
+}
 .value-card h3 {
   font-family: var(--font-title);
   font-size: var(--fs-h3);
@@ -1950,6 +2461,34 @@ html {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
   gap: var(--space-s);
+}
+/* Variante carrousel : `.rail.team-grid` (équipe municipale, conseillers).
+   Même bascule que `.event-grid`/`.value-grid`/`.rail.contact-grid` —
+   carrousel magnétique sous 900px, grille figée au-dessus. Le maire et les
+   adjoints restent un `.team-grid` seul (sans `.rail`) : peu nombreux, pas
+   besoin de défiler, alors que les conseillers (souvent une bonne dizaine)
+   allongeaient beaucoup la page sur mobile en liste empilée.
+   `.rail.team-grid { display:flex }` EN DEHORS de toute media query est
+   nécessaire : `.team-grid` seul pose `display:grid` sans condition, et à
+   spécificité égale (une classe) c'est l'ordre dans la feuille qui
+   tranche — `.team-grid` étant déclaré après `.rail`, il gagnait TOUJOURS,
+   y compris sous 900px, où le carrousel restait donc une grille figée
+   plutôt qu'un défilement. Le sélecteur composé `.rail.team-grid` (deux
+   classes) a une spécificité plus élevée que `.team-grid` seul et regagne
+   la main à toutes les tailles ; seule la règle ci-dessous, dans le media
+   ≥900px, la repasse en grille au-delà. */
+.rail.team-grid {
+  display: flex;
+}
+@media (min-width: 900px) {
+  .rail.team-grid {
+    display: grid;
+    overflow: visible;
+    scroll-snap-type: none;
+    padding-inline: 0;
+    margin-inline: 0;
+  }
+  .rail.team-grid > * { flex: initial; }
 }
 .member {
   background: var(--bg);
@@ -1984,6 +2523,28 @@ html {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
   gap: var(--space-m);
+}
+/* Variante carrousel : `.rail.contact-grid` (accueil, "La mairie en bref").
+   Même bascule que `.event-grid`/`.value-grid` — carrousel magnétique sous
+   900px (règles de la section 11 via `.rail`), grille figée au-dessus.
+   Scopée à `.rail.contact-grid` uniquement : les `.contact-grid` seuls
+   (vie-pratique, mairie…) gardent leur grille classique, jamais un rail.
+   `display:flex` HORS media query, comme pour `.rail.team-grid` juste
+   au-dessus et pour la même raison : `.contact-grid` seul pose
+   `display:grid` sans condition et gagnait toujours face à `.rail` à
+   spécificité égale, y compris sous 900px. */
+.rail.contact-grid {
+  display: flex;
+}
+@media (min-width: 900px) {
+  .rail.contact-grid {
+    display: grid;
+    overflow: visible;
+    scroll-snap-type: none;
+    padding-inline: 0;
+    margin-inline: 0;
+  }
+  .rail.contact-grid > * { flex: initial; }
 }
 .contact-card {
   display: flex;
@@ -2027,287 +2588,119 @@ html {
   overflow-wrap: anywhere;   /* une adresse e-mail ne doit pas élargir la carte */
 }
 
+/* Modificateur optionnel : bandeau photo en tête de carte, pour les cartes
+   où une vignette existe et a un rapport clair avec le sujet (l'adresse →
+   la mairie, l'e-mail → des enveloppes...). Volontairement à part de
+   .contact-card plutôt qu'un ajout systématique : forcer une photo sur
+   des cartes sans rapport (Horaires, Urbanisme...) ferait pire que rien.
+   overflow:hidden est LOCAL à ce modificateur — la carte de base n'a pas
+   besoin de couper son contenu, seule la photo doit déborder du padding. */
+.contact-card--photo {
+  padding-top: 0;
+  overflow: hidden;
+}
+.contact-card__photo {
+  display: block;
+  width: calc(100% + 2 * var(--space-m));
+  margin: 0 calc(-1 * var(--space-m)) var(--space-s);
+  height: 96px;
+  object-fit: cover;
+}
 
-/* ============================================================================
-   12. GALERIE PHOTO
-   ============================================================================
-
-   DEUX PRÉSENTATIONS, UN SEUL COMPOSANT PHOTO :
-     .gallery-flow — le flux principal, une photo par « rangée », alternée
-                     gauche/droite, avec sa légende en vis-à-vis ;
-     .gallery-grid — la grille compacte, conservée pour les emplacements
-                     vides et les séries secondaires.
-
-   L'agrandissement au clic est géré par gallery.js, avec un <dialog>. Chaque
-   photo est enveloppée dans un <a href> pointant sur le fichier : sans
-   JavaScript, le clic ouvre l'image dans un onglet. Rien n'est jamais mort.
-   ============================================================================ */
-
-/* --- Flux alterné --- */
-
-.gallery-flow {
+/* Chiffres-clés d'une commune (accueil : Luglon et Sabres côte à côte).
+   Deux `.stats-block` (un par commune) posés dans un flex qui empile en
+   dessous de 720px plutôt qu'un `.value-grid`/`.contact-grid` existant :
+   ceux-ci sont pensés pour des cartes-liens ou des cartes-icône, pas pour
+   un simple tableau de nombres — les recycler aurait ajouté un lien/icône
+   sans objet à chaque case. */
+.stats-columns {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-2xl);
+  flex-wrap: wrap;
+  gap: var(--space-l);
 }
-
-.gallery-row {
-  display: grid;
-  gap: var(--space-m);
-  align-items: center;
+.stats-block {
+  flex: 1 1 280px;
+  max-width: 26rem;   /* un seul bloc (Luglon) ne doit pas s'étirer sur
+                         toute la largeur maintenant que Sabres est parti */
+  padding: var(--space-m);
+  background: var(--green-050);
+  border: 1px solid var(--green-tint-16);
+  border-radius: var(--r-xl);
 }
-
-@media (min-width: 760px) {
-  .gallery-row {
-    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-    gap: var(--space-xl);
-  }
-  /* Alternance : une rangée sur deux inverse l'ordre des colonnes.
-     On échange les COLONNES (grid-column), pas l'ordre du DOM : la légende
-     reste écrite après sa photo, donc lue après elle par un lecteur d'écran,
-     quel que soit le côté où elle s'affiche. */
-  /* ⚠️ La largeur des colonnes doit être inversée AUSSI, pas seulement la
-     place des éléments. Sans cette première ligne, la photo des rangées
-     paires atterrit dans la colonne 1fr (441px) et la légende dans la
-     colonne 1.35fr (595px) : les photos alternaient large/étroite d'une
-     rangée à l'autre, ce qui se voyait immédiatement. */
-  .gallery-row:nth-child(even) { grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); }
-  .gallery-row:nth-child(even) .gallery-figure  { grid-column: 2; grid-row: 1; }
-  .gallery-row:nth-child(even) .gallery-caption { grid-column: 1; grid-row: 1; }
-}
-
-.gallery-caption__kicker {
-  font-family: var(--font-kicker);
-  font-size: var(--fs-xs);
-  letter-spacing: var(--tracking-kicker);
-  text-transform: uppercase;
-  color: var(--green-ink);
-  margin: 0 0 var(--space-3xs);
-}
-.gallery-caption h3 {
+.stats-block h3 {
+  margin: 0 0 var(--space-s);
   font-family: var(--font-title);
   font-size: var(--fs-h3);
-  line-height: 1.15;
-  margin: 0 0 var(--space-2xs);
   color: var(--green-ink);
 }
-.gallery-caption p {
-  margin: 0;
-  font-size: var(--fs-sm);
-  line-height: var(--lh-body);
-  color: var(--muted);
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-m) var(--space-s);
 }
-
-/* --- La photo elle-même --- */
-
-.gallery-figure {
-  margin: 0;
-  position: relative;
-}
-.gallery-figure a {
-  display: block;
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--r-l);
-  box-shadow: var(--shadow-m);
-  /* Le cadre ne bouge pas au survol : c'est l'image DEDANS qui grandit.
-     Agrandir le cadre décalerait la légende voisine à chaque passage de
-     souris. */
-  transition: box-shadow var(--dur-base) var(--ease-standard),
-              transform  var(--dur-base) var(--ease-standard);
-}
-/* CADRAGE — pourquoi deux rapports et pas un seul.
-   Ces photos viennent de téléphones : la plupart sont en 9/16 très allongé.
-   Les forcer toutes en 4/3 paysage revenait à jeter les deux tiers de
-   l'image et à couper les têtes. Chaque figure déclare donc son
-   orientation, et garde un rapport proche du sien :
-     .gallery-figure--portrait  → 4/5, recadrage léger
-     par défaut (paysage)       → 4/3
-   Les deux restent des rapports FIXES : c'est ce qui donne un rythme
-   régulier à la colonne, et ce qui empêche la page de sauter au
-   chargement (avec width/height sur le <img>, la place est réservée). */
-.gallery-figure img {
-  display: block;
-  width: 100%;
-  height: auto;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-  transition: transform var(--dur-slow) var(--ease-standard),
-              filter    var(--dur-base) var(--ease-standard);
-}
-.gallery-figure--portrait img {
-  aspect-ratio: 4 / 5;
-}
-
-/* Voile + libellé « Agrandir », révélés au survol et au focus clavier */
-.gallery-figure a::after {
-  content: "Agrandir";
-  position: absolute;
-  inset: auto var(--space-s) var(--space-s) auto;
-  padding: var(--space-3xs) var(--space-xs);
-  border-radius: var(--r-pill);
-  background: var(--luglon-green);
-  color: #fff;
-  font-family: var(--font-title);
-  font-size: var(--fs-sm);
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity   var(--dur-base) var(--ease-standard),
-              transform var(--dur-base) var(--ease-overshoot);
-  pointer-events: none;
-}
-
-@media (hover: hover) {
-  .gallery-figure a:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-l);
-  }
-  .gallery-figure a:hover img {
-    transform: scale(1.06);
-    filter: saturate(1.08);
-  }
-}
-.gallery-figure a:hover::after,
-.gallery-figure a:focus-visible::after {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* --- Lightbox ---
-   <dialog> et non une div maison : le navigateur fournit gratuitement le
-   piège à focus, la fermeture par Échap, l'inertie du reste de la page et le
-   ::backdrop. Réécrire tout ça à la main est la façon habituelle de produire
-   une modale dont on ne peut plus sortir au clavier.
-
-   ⚠️ NE PAS réutiliser .modal-overlay / .modal-box : ces classes ont un
-   contrat explicite avec script.js (ouverture par style.display, bordure
-   rouge d'alerte). Voir la section 14. */
-.lightbox {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  max-width: 100vw;
-  max-height: 100vh;
-  overflow: visible;
-}
-.lightbox::backdrop {
-  background: rgba(9, 30, 18, 0.88);
-}
-.lightbox[open] {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.lightbox__inner {
-  position: relative;
+.stat {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2xs);
-  max-width: min(94vw, 1200px);
-  animation: lightboxIn var(--dur-base) var(--ease-enter) both;
+  gap: var(--space-3xs);
 }
-.lightbox__img {
-  display: block;
-  max-width: 100%;
-  /* 100vh moins la place de la légende et du bouton : sans plafond, une photo
-     en orientation portrait déborde en bas de l'écran. */
-  max-height: 84vh;
-  width: auto;
-  height: auto;
-  border-radius: var(--r-m);
-  box-shadow: var(--shadow-l);
-  background: var(--card);
+.stat__value {
+  font-family: var(--font-title);
+  font-size: 1.5rem;
+  color: var(--text);
 }
-.lightbox__caption {
-  margin: 0;
-  color: #f6f6f6;
-  font-size: var(--fs-sm);
-  text-align: center;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
-}
-.lightbox__close {
-  position: absolute;
-  top: calc(-1 * var(--space-l));
-  right: 0;
-  width: 40px;
-  height: 40px;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.16);
-  color: #fff;
-  font-size: 1.4rem;
-  line-height: 1;
-  cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-standard),
-              transform  var(--dur-fast) var(--ease-overshoot);
-}
-.lightbox__close:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.08);
-}
-
-@keyframes lightboxIn {
-  from { opacity: 0; transform: scale(0.94); }
-  to   { opacity: 1; transform: scale(1); }
-}
-
-/* --- Grille compacte (emplacements vides, séries secondaires) --- */
-
-.gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
-  gap: var(--space-s);
-}
-.gallery-grid figure {
-  margin: 0;
-}
-/* Vignettes carrées : sur une grille de petites images, un rapport unique
-   vaut mieux qu'un rapport juste. Le carré ampute moins un portrait qu'un
-   4/3 paysage, et la grille reste alignée. Le cadrage complet est à un clic,
-   dans la lightbox. */
-.gallery-grid .gallery-figure img,
-.gallery-grid img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  border-radius: var(--r-m);
-  box-shadow: var(--shadow-s);
-}
-.gallery-grid .gallery-figure a {
-  border-radius: var(--r-m);
-  box-shadow: none;
-}
-/* Le libellé « Agrandir » ne tient pas sur une vignette : on ne garde que
-   l'effet de zoom et l'ombre. */
-.gallery-grid .gallery-figure a::after {
-  display: none;
-}
-.gallery-grid figcaption {
-  margin-top: var(--space-3xs);
+.stat__label {
   font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-kicker);
   color: var(--muted);
 }
 
-/* Emplacement en attente de photo. Une bordure tiretée et un fond neutre :
-   on doit voir au premier coup d'œil qu'il reste des cases à remplir. */
-.gallery-slot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  aspect-ratio: 4 / 3;
-  border: 2px dashed var(--tab-border);
-  border-radius: var(--r-m);
-  background: var(--card);
-  color: var(--muted);
-  font-size: var(--fs-sm);
+/* Horaires du secrétariat en semainier (accueil, mairie/) : une case par
+   jour de la semaine, du lundi au dimanche, plutôt qu'une ligne qui ne
+   listait que les jours ouverts — on voit d'un coup d'œil la semaine
+   entière, fermetures comprises, comme sur une porte de commerce. */
+.week-hours-caption {
   text-align: center;
-  padding: var(--space-s);
+  margin-bottom: var(--space-s);
+}
+.week-hours {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: var(--space-2xs);
+}
+.week-hours__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3xs);
+  padding: var(--space-s) var(--space-2xs);
+  border: 1px solid var(--tab-border);
+  border-radius: var(--r-m);
+  text-align: center;
+}
+.week-hours__label {
+  font-family: var(--font-title);
+  font-size: var(--fs-sm);
+  color: var(--green-ink);
+}
+.week-hours__value {
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+/* Jours fermés : fond neutre, texte atténué — l'œil va directement aux
+   jours ouverts sans avoir à lire chaque case. */
+.week-hours__day--closed {
+  background: var(--card);
+  border-color: transparent;
+}
+.week-hours__day--closed .week-hours__label,
+.week-hours__day--closed .week-hours__value {
+  color: var(--muted);
 }
 
 
 /* ============================================================================
-   13. FORMULAIRE DE RÉSERVATION
+   12. FORMULAIRE DE RÉSERVATION
    ============================================================================ */
 
 .wrap.res-wrap {
@@ -2402,30 +2795,12 @@ html {
   margin-top: 0;
   font-size: 18px;
 }
-
-.price-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-  color: var(--text);
-}
-.price-table th, .price-table td {
-  padding: 8px 5px;
-  border: 1px solid var(--tab-border);
-}
-.price-table th {
-  color: var(--green-ink);
-  text-align: center;
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 13px;
-  padding-bottom: 10px;
-}
-.price-table td {
-  text-align: center;
+.salle-info {
+  margin: 0;
+  font-size: 15px;
 }
 
-/* --- Note d'avertissement (double réservation) --- */
+/* --- Note d'avertissement --- */
 .warning-note {
   padding: 10px 12px;
   border-radius: 8px;
@@ -2461,6 +2836,176 @@ html {
 }
 .warning-note strong {
   font-weight: 700;
+}
+
+/* --- Calendrier de réservation ---
+   Remplace le formulaire salle/créneau/date : une seule salle, donc une
+   seule chose à choisir, la journée. Les jours indisponibles (déjà pris,
+   ou passés) sont désactivés (disabled) directement en HTML — pas
+   seulement grisés visuellement — pour qu'ils ne soient ni cliquables ni
+   focusables au clavier. */
+/* Plafonnée en largeur : sans ça, sur un écran large, .res-wrap (70vw) fait
+   grandir les 7 colonnes en fr jusqu'à des cases énormes. 340px = assez
+   pour 7 cases confortables sans être un calendrier géant. */
+.res-calendar {
+  max-width: 340px;
+  margin: 0 auto var(--space-m);
+}
+.res-calendar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-xs);
+}
+.res-calendar__label {
+  font-family: var(--font-title);
+  font-size: 1rem;
+  color: var(--green-ink);
+  text-transform: uppercase;
+}
+.res-calendar__nav {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border: 1px solid var(--tab-border);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--green-ink);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard),
+              transform  var(--dur-fast) var(--ease-standard);
+}
+.res-calendar__nav:hover:not(:disabled) {
+  background: var(--green-tint-08);
+  transform: translateY(-1px);
+}
+.res-calendar__nav:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.res-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+.res-calendar__weekday {
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  padding-bottom: 4px;
+}
+.res-calendar__day {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-s);
+  font-size: 0.78rem;
+  font-family: var(--font-body);
+}
+.res-calendar__day--empty {
+  visibility: hidden;
+}
+.res-calendar__day--available {
+  border: 1px solid var(--tab-border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard),
+              border-color var(--dur-fast) var(--ease-standard),
+              transform var(--dur-fast) var(--ease-standard);
+}
+.res-calendar__day--available:hover {
+  border-color: var(--luglon-green);
+  background: var(--green-tint-08);
+  transform: translateY(-1px);
+}
+.res-calendar__day--unavailable {
+  border: 1px solid transparent;
+  background: var(--card);
+  color: var(--muted);
+  cursor: not-allowed;
+  text-decoration: line-through;
+  text-decoration-color: var(--tab-border);
+}
+.res-calendar__day--selected {
+  border: 1px solid var(--luglon-green);
+  background: var(--luglon-green);
+  color: #fff;
+  font-weight: 700;
+}
+
+.res-calendar__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-m);
+  margin-top: var(--space-s);
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+.res-calendar__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.res-calendar__swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex: none;
+}
+.res-calendar__swatch--available {
+  border: 1px solid var(--tab-border);
+  background: var(--bg);
+}
+.res-calendar__swatch--unavailable {
+  background: var(--card);
+}
+.res-calendar__swatch--selected {
+  background: var(--luglon-green);
+}
+
+.res-reserve-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-s);
+  padding-top: var(--space-s);
+  border-top: 1px solid var(--tab-border);
+}
+.res-selected-date {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+.res-reserve-row .submit-button {
+  width: auto;
+  margin: 0;
+  padding: 14px 24px;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .res-calendar {
+    max-width: 300px;
+  }
+  .res-calendar__day {
+    font-size: 0.7rem;
+  }
+  .res-reserve-row {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+  .res-reserve-row .submit-button {
+    width: 100%;
+  }
 }
 
 /* --- Champs --- */
@@ -2560,13 +3105,6 @@ input[type="number"] {
   display: inline-block;
 }
 
-/* --- Ligne d'envoi --- */
-.form-submit-row {
-  margin-top: 14px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
 .submit-button {
   width: 30%;
   display: inline-block;
@@ -2615,11 +3153,6 @@ input[type="number"] {
 }
 
 @media (max-width: 768px) {
-  .form-submit-row {
-    flex-wrap: wrap;
-    align-items: center;
-    margin-left: 0 auto; margin-right: 0 auto;
-  }
   .submit-button {
     width: 60%;
     padding: 12px;
@@ -2637,16 +3170,6 @@ input[type="number"] {
 }
 .input-error {
   border-color: var(--error-red);
-}
-/* Message informatif non bloquant : « déjà réservé pour ce soir » */
-.info-feedback {
-  color: var(--sending-border);
-  background: var(--sending-bg);
-  font-size: 13px;
-  margin: 8px 0 0 0;
-  padding: 8px 12px;
-  border-radius: 8px;
-  line-height: 1.4;
 }
 
 /* --- Statut d'envoi ---
@@ -2708,27 +3231,9 @@ input[type="number"] {
   }
 }
 
-/* --- Liste des réservations précédentes (générée par script.js) --- */
-.res-item {
-  padding: 12px;
-  border-radius: 10px;
-  margin-bottom: 10px;
-  border: 1px solid var(--tab-border);
-  background: var(--form-bg);
-  animation: resItemIn var(--dur-slow) var(--ease-expo-out) both;
-}
-.res-item h4 {
-  margin: 0 0 4px;
-  font-size: 15px;
-}
-.meta {
-  color: var(--muted);
-  font-size: 13px;
-}
-
 
 /* ============================================================================
-   14. MODALES
+   13. MODALES
    Contrat avec script.js — à ne pas casser :
      • l'ouverture/fermeture se fait par `style.display = 'flex' | 'none'`,
        et script.js RELIT cette valeur pour savoir si une modale est ouverte
@@ -2764,14 +3269,6 @@ input[type="number"] {
   font-family: var(--font-title);
   font-size: 1.4rem;
 }
-.modal-summary {
-  background: rgba(198, 40, 40, 0.06);
-  border-radius: 10px;
-  padding: 12px 16px;
-  margin: 10px 0 16px;
-  font-size: 14px;
-  line-height: 1.7;
-}
 .modal-question {
   font-weight: 600;
   margin: 14px 0 18px;
@@ -2794,14 +3291,14 @@ input[type="number"] {
   font-family: var(--font-title);
 }
 .modal-btn-cancel        { background: var(--muted); }
-.modal-btn-confirm       { background: var(--alert); }
 .modal-btn-confirm-green { background: var(--luglon-green); }
 
 .modal-btn-cancel:hover,
-.modal-btn-confirm:hover,
 .modal-btn-confirm-green:hover { filter: brightness(1.1); }
 
-/* --- Modale de récapitulatif final (avant envoi) --- */
+/* --- Modale de demande de réservation ---
+   Réutilise .modal-box (contrat display:flex/none avec script.js, voir
+   l'en-tête de section) : même ouverture/fermeture, même fond sombre. */
 .recap-modal-box {
   max-width: 520px;
   max-height: 88vh;
@@ -2821,19 +3318,10 @@ input[type="number"] {
   font-size: 1.15rem;
   color: var(--green-ink);
 }
-.recap-event-meta {
-  font-size: 13px;
-  color: var(--muted);
-  margin-top: 2px;
-}
-/* Doit rester APRÈS .modal-summary : les deux classes sont sur le même nœud */
-.recap-summary {
-  background: var(--card);
-}
 
 
 /* ============================================================================
-   15. PAGE DE CONFIRMATION
+   14. PAGE DE CONFIRMATION
    ============================================================================ */
 
 .confirmation-card {
@@ -2939,7 +3427,7 @@ input[type="number"] {
 
 
 /* ============================================================================
-   16. PAGES LÉGALES
+   15. PAGES LÉGALES
    ============================================================================ */
 
 .legal-card {
@@ -2980,7 +3468,7 @@ input[type="number"] {
 
 
 /* ============================================================================
-   17. PIED DE PAGE
+   16. PIED DE PAGE
    ============================================================================ */
 
 /* Le pied de page a le MÊME fond que .page-section--footer-band (--card). Quand
@@ -3075,17 +3563,14 @@ main:has(> .page-section--footer-band:last-child) + .site-footer {
   height: 17px;
 }
 
-.footer-email,
 .footer-legal-link {
   color: var(--muted);
   text-decoration: none;
   border-bottom: 1px solid transparent;
   transition: color var(--dur-fast), border-color var(--dur-fast);
+  font-size: 0.75rem;
 }
-.footer-email { font-size: 0.8rem; }
-.footer-legal-link { font-size: 0.75rem; }
 
-.footer-email:hover,
 .footer-legal-link:hover {
   color: var(--green-ink);
   border-color: var(--luglon-green);
@@ -3104,7 +3589,7 @@ main:has(> .page-section--footer-band:last-child) + .site-footer {
 
 
 /* ============================================================================
-   18. MOUVEMENT, APPARITIONS AU SCROLL, ACCESSIBILITÉ
+   17. MOUVEMENT, APPARITIONS AU SCROLL, ACCESSIBILITÉ
    Ne contient que ce qui est PARTAGÉ. Les animations propres à un composant
    vivent dans la section de ce composant.
    ============================================================================ */
@@ -3132,8 +3617,8 @@ main:has(> .page-section--footer-band:last-child) + .site-footer {
   to   { opacity: 1; filter: blur(0);   transform: translateY(0); }
 }
 @keyframes titleReveal {
-  from { opacity: 0; transform: translateY(-30px) skewY(-3deg); filter: blur(6px); }
-  to   { opacity: 1; transform: translateY(0) skewY(0); filter: blur(0); }
+  from { opacity: 0; transform: translateY(-30px) skewY(-3deg); }
+  to   { opacity: 1; transform: translateY(0) skewY(0); }
 }
 @keyframes subtitleReveal {
   from { opacity: 0; transform: translateX(-20px); }
@@ -3146,10 +3631,6 @@ main:has(> .page-section--footer-band:last-child) + .site-footer {
 @keyframes cardSlideUp {
   from { opacity: 0; transform: translateY(30px); }
   to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes resItemIn {
-  from { opacity: 0; transform: translateX(-20px); }
-  to   { opacity: 1; transform: translateX(0); }
 }
 @keyframes fougereWave {
   0%, 100% { transform: rotate(-3deg) scale(1); }
@@ -3326,7 +3807,7 @@ main:has(> .page-section--footer-band:last-child) + .site-footer {
 
 
 /* ============================================================================
-   19. DÉCOR VÉGÉTAL — la fougère qui pousse au fil du défilement
+   18. DÉCOR VÉGÉTAL — la fougère qui pousse au fil du défilement
    ============================================================================
 
    Une fougère aigle et un rameau de pin maritime dessinés au trait, qui
