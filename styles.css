@@ -265,21 +265,21 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/fascinate-inline.woff2') format('woff2');
+  src: url('/mairie-luglon/fonts/fascinate-inline.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Slackey';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/slackey.woff2') format('woff2');
+  src: url('/mairie-luglon/fonts/slackey.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Special Gothic Condensed One';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/special-gothic-condensed-one.woff2') format('woff2');
+  src: url('/mairie-luglon/fonts/special-gothic-condensed-one.woff2') format('woff2');
 }
 
 
@@ -3923,8 +3923,8 @@ main:has(> .page-section--footer-band:last-child) + .site-footer {
     height: 100%;
     background-color: var(--green-ink);
 
-    -webkit-mask: url("/images/decor-fougere.svg") repeat-y 0 0 / 100% auto;
-            mask: url("/images/decor-fougere.svg") repeat-y 0 0 / 100% auto;
+    -webkit-mask: url("/mairie-luglon/images/decor-fougere.svg") repeat-y 0 0 / 100% auto;
+            mask: url("/mairie-luglon/images/decor-fougere.svg") repeat-y 0 0 / 100% auto;
   }
   /* La tuile est dessinée pour la marge GAUCHE. Le côté droit en est le
      miroir. Le retournement est porté par l'encre, jamais par .decor-vine :

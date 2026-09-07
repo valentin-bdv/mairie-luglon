@@ -87,11 +87,21 @@ the prefix everywhere fixed that. `<link rel="canonical">` and `sitemap.xml`/`ro
 were deliberately left pointing at the bare `mairie-luglon.fr` domain — those describe the
 site's real eventual address, not wherever it happens to be previewed today.
 
+This isn't only an HTML thing: `styles.css`'s own `@font-face` `src: url(...)` (the three
+self-hosted fonts) and the `.decor-vine__ink` fern `mask`/`-webkit-mask` both point at
+site assets too (`/fonts/*.woff2`, `/images/decor-fougere.svg`) and needed the exact same
+`/mairie-luglon/` prefix — a first pass fixed every `.html` file's `href`/`src` and missed
+these two CSS-only spots, which is why fonts (and the fern mask) quietly disappeared even
+after links and images were already working. If this is ever revisited, grep `styles.css`
+for `url(` pointing at `/fonts` or `/images`, not just the HTML files, before declaring it
+done.
+
 **If a custom domain is ever wired up** (a `CNAME` file, or moving to a user/org root
-`github.io` site), this prefix must come back OUT — a single find-and-replace of
-`/mairie-luglon/` → `/` across every `.html` file, mirroring the script that put it there.
-Don't leave it in "just in case": it'll silently 404 everything again the day the domain
-that doesn't need the subfolder goes live.
+`github.io` site), this prefix must come back OUT of **both** the HTML files and
+`styles.css` — a find-and-replace of `/mairie-luglon/` → `/` across every `.html` file
+*and* inside `styles.css`'s `@font-face`/`.decor-vine__ink` rules, mirroring the script
+that put it there. Don't leave it in "just in case": it'll silently 404 everything again
+the day the domain that doesn't need the subfolder goes live.
 
 **Local testing must mirror this subpath**, or every internal link 404s locally even
 though the live GitHub Pages site is fine. Don't serve this directory's own root with a
