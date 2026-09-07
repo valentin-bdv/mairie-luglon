@@ -72,6 +72,33 @@ HTML/CSS/vanilla-JS site. "Running" the site means opening the HTML files direct
 serving the directory with any static file server — there is no dev server command
 defined in this repo, and no `CNAME` (no domain is committed to yet).
 
+### Every internal link is `/mairie-luglon/…`, not `/…` — because of GitHub Pages
+
+Every `href`/`src` that points at this site's own pages or assets (nav links, `/styles.css`,
+`/nav.js`, `/images/...`, favicon) carries a literal `/mairie-luglon/` prefix — e.g.
+`href="/mairie-luglon/vie-pratique/"`, not `href="/vie-pratique/"`. This looks wrong for a
+site whose `<link rel="canonical">` and `sitemap.xml`/`robots.txt` all say
+`https://mairie-luglon.fr/...` (no prefix) — and it IS wrong for that eventual domain. It's
+there because the site is currently viewed at `https://valentin-bdv.github.io/mairie-luglon/`,
+a GitHub Pages **project site**: the repo is served under a `/mairie-luglon/` subpath, not
+at the origin's root, so a root-relative path like `/styles.css` resolved to
+`valentin-bdv.github.io/styles.css` (404) instead of `.../mairie-luglon/styles.css`. Adding
+the prefix everywhere fixed that. `<link rel="canonical">` and `sitemap.xml`/`robots.txt`
+were deliberately left pointing at the bare `mairie-luglon.fr` domain — those describe the
+site's real eventual address, not wherever it happens to be previewed today.
+
+**If a custom domain is ever wired up** (a `CNAME` file, or moving to a user/org root
+`github.io` site), this prefix must come back OUT — a single find-and-replace of
+`/mairie-luglon/` → `/` across every `.html` file, mirroring the script that put it there.
+Don't leave it in "just in case": it'll silently 404 everything again the day the domain
+that doesn't need the subfolder goes live.
+
+**Local testing must mirror this subpath**, or every internal link 404s locally even
+though the live GitHub Pages site is fine. Don't serve this directory's own root with a
+static server — serve its **parent** directory instead, so `mairie-luglon/` sits under the
+server root exactly like it does on GitHub Pages:
+`cd .. && python3 -m http.server 8123`, then browse `http://localhost:8123/mairie-luglon/`.
+
 ## Working in this codebase
 
 The code is heavily commented in French, and those comments are load-bearing: they
