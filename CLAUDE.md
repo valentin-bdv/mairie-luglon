@@ -174,11 +174,17 @@ Each HTML page manually includes only the scripts it needs, always after `config
 - `nav.js` — nav bar (all pages): shrink-on-scroll via `IntersectionObserver` (never a
   `scroll` listener — see comments on iOS jank), mobile panel with focus trap, and — under
   860px only — an accordion for the Mairie/Vie pratique/Actualités submenus (one open at
-  a time, animated via `Element.animate`, same idea as `accordion.js` but a separate
-  implementation since the markup differs, `<a>`+`<ul>` here vs `<details>` there). Fails
-  open: the accordion only arms (`.nav-accordion-armed` on `.site-nav`) once
-  `Element.animate` is confirmed; otherwise mobile submenus fall back to their original
-  always-expanded indented list — never a submenu stuck invisible.
+  a time). Deliberately **not** animated via `Element.animate`/`requestAnimationFrame`
+  like `accordion.js`: a first version measured the submenu's height with a rAF callback,
+  and on real phones the submenu closed itself right after opening, before a link could be
+  tapped — the rAF's delay left a window where a second event could land on the "close"
+  branch before the "open" had finished. The fix was to make everything synchronous: a
+  plain CSS `max-height` transition plus a class added/removed in one go, no measurement,
+  no frame boundary. Don't reintroduce the measured-height approach here even though it
+  looks more "correct" than a fixed 600px cap — it's the reason this broke once already.
+  Fails open: the accordion only arms (`.nav-accordion-armed` on `.site-nav`) once the
+  listeners are attached; if this block doesn't run at all, mobile submenus fall back to
+  their original always-expanded indented list — never a submenu stuck invisible.
 - `events.js` — actualité card badges ("À venir"/"Terminé") computed from `data-date` on
   `.event-card` elements. Content lives in HTML, not JS, so search engines see it without
   JS. Fail-open: on failure, hardcoded HTML badges remain visible.

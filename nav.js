@@ -84,98 +84,65 @@
   // (:hover/:focus-within, bloc 2 ci-dessus). En dessous, le panneau ne
   // montre plus que MAIRIE / VIE PRATIQUE / ACTUALITÉS / CONTACT ; cliquer
   // sur l'un des trois premiers ne navigue plus, il déplie son sous-menu
-  // (un seul ouvert à la fois), avec la même mécanique d'animation de
-  // hauteur qu'accordion.js — dupliquée plutôt que partagée, faute d'un
-  // balisage commun (ici <a>+<ul>, là <details>).
+  // (un seul ouvert à la fois).
+  //
+  // VOLONTAIREMENT SANS Element.animate/requestAnimationFrame. Une première
+  // version mesurait la hauteur et l'animait via la Web Animations API (le
+  // même principe qu'accordion.js) ; sur téléphone, le sous-menu se
+  // repliait aussitôt ouvert, sans laisser le temps de toucher un lien.
+  // Cause probable : la mesure de hauteur passait par un rAF (donc un
+  // painting ultérieur), une fenêtre pendant laquelle un second évènement
+  // (clic fantôme, re-render) pouvait retomber sur la branche « fermer »
+  // avant même que l'ouverture n'ait fini de s'exécuter. Ici, tout est
+  // synchrone : un simple `max-height` en CSS (transition ci-dessous) et
+  // une classe posée/retirée d'un coup — aucune fenêtre entre deux étapes
+  // où un second évènement pourrait interférer.
   //
   // FAIL-OPEN : la classe .nav-accordion-armed n'est posée sur .site-nav
-  // qu'après confirmation qu'Element.animate existe. Tant qu'elle est
-  // absente, styles.css garde les sous-menus dans leur état d'origine
-  // (liste indentée, toujours dépliée) — voir le commentaire CSS associé.
-  // Si ce bloc ne s'exécute pas du tout, c'est cet état d'origine qui
-  // s'applique : jamais un sous-menu invisible et impossible à déplier.
+  // qu'après la mise en place des écouteurs ci-dessous. Si ce bloc ne
+  // s'exécute pas (JS bloqué, erreur), elle n'est jamais posée et
+  // styles.css garde les sous-menus dans leur état d'origine (liste
+  // indentée, toujours dépliée) — voir le commentaire CSS associé.
   // ----------------------------------------------------------
-  if ('animate' in Element.prototype) {
+  (function () {
     const mqMobile = window.matchMedia('(max-width: 859px)');
+    const triggers = [];
 
     menuItems.forEach(function (menuItem) {
       const trigger = menuItem.querySelector('a');
       const submenu = menuItem.querySelector('.site-nav__submenu');
       if (!trigger || !submenu) return;
 
-      let animation = null;
-      let isClosing = false;
-
       trigger.setAttribute('aria-expanded', 'false');
+      triggers.push(trigger);
 
       trigger.addEventListener('click', function (e) {
         if (!mqMobile.matches) return;   // desktop : lien normal, survol CSS
         e.preventDefault();
         e.stopPropagation();   // n'aille pas déclencher la fermeture du
                                 // panneau prévue au clic sur un lien (bloc 3)
-        if (isClosing || !menuItem.classList.contains('is-expanded')) {
-          openSubmenu();
-        } else {
-          closeSubmenu();
+
+        const wasExpanded = menuItem.classList.contains('is-expanded');
+
+        // Un seul ouvert à la fois : on referme TOUS les sous-menus
+        // (y compris celui-ci) avant de rouvrir celui qu'on vient de
+        // toucher, si ce n'était pas déjà lui — deux lignes, aucun état
+        // intermédiaire à synchroniser entre plusieurs fonctions.
+        menuItems.forEach(function (other) {
+          other.classList.remove('is-expanded');
+          const otherTrigger = other.querySelector('a');
+          if (otherTrigger) otherTrigger.setAttribute('aria-expanded', 'false');
+        });
+
+        if (!wasExpanded) {
+          menuItem.classList.add('is-expanded');
+          trigger.setAttribute('aria-expanded', 'true');
         }
       });
-
-      function closeSubmenu() {
-        isClosing = true;
-        const startHeight = submenu.offsetHeight + 'px';
-        submenu.style.overflow = 'hidden';
-        if (animation) animation.cancel();
-        animation = submenu.animate(
-          { height: [startHeight, '0px'] },
-          { duration: 220, easing: 'ease-in-out' }
-        );
-        animation.onfinish = function () { finish(false); };
-        animation.oncancel = function () { isClosing = false; };
-      }
-
-      function openSubmenu() {
-        // Referme les autres sous-menus du panneau avant d'ouvrir
-        // celui-ci, en déclenchant LEUR propre clic : chaque sous-menu
-        // garde la responsabilité de son propre état (isClosing, anim…),
-        // exactement comme dans accordion.js.
-        menuItems.forEach(function (other) {
-          if (other === menuItem) return;
-          if (other.classList.contains('is-expanded')) {
-            const otherTrigger = other.querySelector('a');
-            if (otherTrigger) otherTrigger.click();
-          }
-        });
-
-        submenu.style.overflow = 'hidden';
-        submenu.style.height = '0px';
-        menuItem.classList.add('is-expanded');
-        trigger.setAttribute('aria-expanded', 'true');
-
-        window.requestAnimationFrame(function () {
-          submenu.style.height = 'auto';
-          const endHeight = submenu.offsetHeight + 'px';
-          submenu.style.height = '0px';
-          if (animation) animation.cancel();
-          animation = submenu.animate(
-            { height: ['0px', endHeight] },
-            { duration: 260, easing: 'ease-in-out' }
-          );
-          animation.onfinish = function () { finish(true); };
-        });
-      }
-
-      function finish(isOpen) {
-        menuItem.classList.toggle('is-expanded', isOpen);
-        trigger.setAttribute('aria-expanded', String(isOpen));
-        animation = null;
-        isClosing = false;
-        submenu.style.height = isOpen ? '' : '0px';
-        submenu.style.overflow = isOpen ? '' : 'hidden';
-      }
     });
 
-    nav.classList.add('nav-accordion-armed');
-  }
+    if (triggers.length) nav.classList.add('nav-accordion-armed');
+  })();
 
   // ----------------------------------------------------------
   // 3. Panneau mobile

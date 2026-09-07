@@ -900,10 +900,13 @@ form .row {
       Mairie/Vie pratique/Actualités, chevron ré-affiché et animé au clic
       plutôt qu'au survol. C'est un ajout ultérieur au-dessus de l'état de
       base ci-dessous (liste indentée toujours dépliée) : cet état de base
-      reste le repli si `Element.animate` manque ou si nav.js échoue — voir
-      les deux blocs `@media (max-width: 859px)` qui suivent, et le
-      commentaire dans nav.js. Ne supprime pas le premier bloc en pensant
-      qu'il est mort code : c'est le filet de sécurité de l'accordéon. */
+      reste le repli si nav.js échoue — voir les deux blocs
+      `@media (max-width: 859px)` qui suivent, et le commentaire dans
+      nav.js. Ne supprime pas le premier bloc en pensant qu'il est mort
+      code : c'est le filet de sécurité de l'accordéon. Le repli/dépli
+      lui-même est une transition CSS `max-height` toute simple, pas une
+      hauteur mesurée en JS — voir pourquoi dans nav.js, c'est déjà cassé
+      une fois en production. */
 
 .site-nav__item--has-menu {
   position: relative;
@@ -1032,12 +1035,20 @@ form .row {
 }
 
 /* Panneau mobile EN ACCORDÉON — posé uniquement par nav.js (classe
-   .nav-accordion-armed sur .site-nav) une fois l'animation de hauteur
-   confirmée disponible. Un seul sous-menu ouvert à la fois (MAIRIE,
-   VIE PRATIQUE, ACTUALITÉS) ; CONTACT n'a pas de sous-menu, il reste un
-   lien direct. Le chevron reprend le même dessin que sur desktop (deux
-   bordures à 45°), mais sa rotation est pilotée par .is-expanded (posée
-   en JS) et non par :hover/:focus-within, qui n'ont pas de sens au doigt. */
+   .nav-accordion-armed sur .site-nav) une fois les écouteurs en place. Un
+   seul sous-menu ouvert à la fois (MAIRIE, VIE PRATIQUE, ACTUALITÉS) ;
+   CONTACT n'a pas de sous-menu, il reste un lien direct. Le chevron
+   reprend le même dessin que sur desktop (deux bordures à 45°), mais sa
+   rotation est pilotée par .is-expanded (posée en JS) et non par
+   :hover/:focus-within, qui n'ont pas de sens au doigt.
+   max-height plutôt qu'une hauteur mesurée en JS (voir le commentaire dans
+   nav.js) : une transition CSS pure, sans mesure ni requestAnimationFrame,
+   ne laisse aucune fenêtre entre « ouvrir » et « l'ouverture est visible »
+   où un second évènement pourrait tout refermer aussitôt. 600px est
+   arbitraire mais largement supérieur à la hauteur du plus long sous-menu
+   du site (huit liens) — seule la valeur DE DÉPART (0) et le fait qu'on ne
+   dépasse jamais le contenu réel comptent, la transition s'arrête
+   naturellement à la hauteur du contenu, pas à 600px. */
 @media (max-width: 859px) {
   .site-nav.nav-accordion-armed .site-nav__chevron {
     display: inline-block;
@@ -1046,8 +1057,12 @@ form .row {
     transform: translateY(0.05em) rotate(225deg);
   }
   .site-nav.nav-accordion-armed .site-nav__submenu {
-    height: 0;
+    max-height: 0;
     overflow: hidden;
+    transition: max-height var(--dur-base) var(--ease-standard);
+  }
+  .site-nav.nav-accordion-armed .site-nav__item--has-menu.is-expanded > .site-nav__submenu {
+    max-height: 600px;
   }
 }
 
