@@ -284,6 +284,23 @@ same edit — don't treat the nav `<li>` as the only place the category lives. U
 the cautionary example: it sat for a while with `← Vie pratique` even after its nav entry
 had already moved to Mairie.
 
+### Hero text is left-aligned on mobile, never centered
+
+`.main-hero`'s title/subtitle/`← Category` button stay left-aligned at every width,
+including under the 768px breakpoint where the hero photo disappears and the layout
+stacks to a single column. There is no `.main-hero { text-align: center }` on mobile —
+there was, once, and it silently centered the title/subtitle *and* (since `.cta-row` had
+no `justify-content` of its own on mobile) every subpage's `← Category` back-button too.
+Both rules were removed together. If a hero ever needs centered text again, that's a
+deliberate per-page choice, not a global mobile default — don't reintroduce either rule
+site-wide.
+
+`.cta-row` itself has no `justify-content` at any width — it's `flex-start` (left) by
+default. The `cta-row`s that should visually center (footer-band CTAs, the ones at the
+bottom of a page) get `style="justify-content: center"` inline in the HTML, on purpose,
+so that a global mobile override can't silently pull in a `cta-row` that was never meant
+to center (exactly what happened to the hero's back-button — see above).
+
 ### Footer's mail icon links to `/contact/`, not `mailto:`
 
 `.footer-social-link.footer-mail` (the green circular icon in `.footer-social`) is an

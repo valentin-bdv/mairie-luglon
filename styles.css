@@ -1266,11 +1266,12 @@ html {
   color: var(--green-ink);
 }
 
-@media (max-width: 768px) {
-  .cta-row {
-    justify-content: center;
-  }
-}
+/* Pas de `.cta-row { justify-content: center }` global sous 768px : ça
+   centrait aussi le bouton "← Catégorie" du héros de chaque sous-page, qui
+   doit rester aligné à gauche comme le titre au-dessus de lui. Les
+   `.cta-row` qu'on veut réellement centrés sur mobile (bandeaux d'appel à
+   l'action en bas de page) le sont déjà via `style="justify-content:
+   center"` posé directement dans le HTML — voir CLAUDE.md. */
 
 /* --- Barre utilitaire (téléphone / e-mail) ---
    Un enfant de plus dans .site-nav (fixed) : elle suit donc le même --nav-top
@@ -1389,7 +1390,11 @@ html {
     display: block;             /* empile titre puis image */
     /* La marge négative vient de la règle de base ; seul le padding change. */
     padding: calc(var(--nav-offset) + 10px) 5% 30px;
-    text-align: center;
+    /* PAS de text-align: center ici : le titre, le sous-titre et le
+       bouton "← Catégorie" restent alignés à gauche comme un texte normal,
+       y compris sur mobile — l'image du héros disparaît sous ce seuil
+       (voir .hero-image ci-dessous), mais ça n'a jamais été une raison de
+       centrer le texte. */
   }
   .hero-content {
     margin-top: 0;
