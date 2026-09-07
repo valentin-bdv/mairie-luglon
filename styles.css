@@ -60,12 +60,12 @@
   --tab-font: #e9f2ee;
   --tab-border : #ccc;
   --form-bg: #ffffff;
-  --text-shadow: #0000001a;
-  --luglon-green: #166136;
+  --text-shadow: #1b2a4a1a;
+  --luglon-navy: #1b2a4a;
   --resa-shadow: #00000080;
   --nav-brand-bg: #dadce0;      /* panneau derrière la marque du nav : gris doux, à mi-chemin entre --muted (texte « Mairie de ») et le blanc de la barre */
 
-  --accent: var(--luglon-green);
+  --accent: var(--luglon-navy);
   --error-red: #dc3545;
   --warning-orange-font: #ffa5001a;
   --warning-orange-border: #ffa500;
@@ -77,24 +77,24 @@
   --success-bg: #e8f5e9;
   --success-border: #2e7d32;
 
-  /* Alerte / attention — volontairement en rupture avec le vert de marque */
+  /* Alerte / attention — volontairement en rupture avec le bleu marine de marque */
   --alert: #c62828;
 
-  /* VERT DE TEXTE — à utiliser pour tout titre ou libellé écrit en vert.
-     --luglon-green est le vert des SURFACES (boutons, filets, fonds) : il est
-     conçu pour porter du texte blanc. Employé comme couleur d'encre sur le
-     fond sombre (#1a1a1a), il tombe à 2,2:1, très en dessous du minimum de
-     4,5:1. --green-ink suit donc le thème : vert de marque en clair, vert
-     clair en sombre. Les deux tiennent ~9,7:1 sur leur fond respectif. */
-  --green-ink: #166136;
+  /* ENCRE MARINE — à utiliser pour tout titre ou libellé écrit en bleu marine.
+     --luglon-navy est le bleu des SURFACES (boutons, filets, fonds) : il est
+     conçu pour porter du texte blanc. Sur fond clair il reste très lisible
+     utilisé directement comme encre (~10:1) ; --navy-ink existe surtout pour
+     que le thème sombre (fond #1a1a1a) puisse le remplacer par une teinte
+     plus claire sans toucher aux surfaces — voir plus bas, mode sombre. */
+  --navy-ink: #1b2a4a;
 
-  /* Déclinaisons du vert de marque (dérivées de --luglon-green) */
-  --green-050: #f2f8f4;
-  --green-100: #dcebe2;
-  --green-700: #0f4a28;
-  --green-tint-08: rgba(22, 97, 54, 0.08);
-  --green-tint-16: rgba(22, 97, 54, 0.16);
-  --green-tint-24: rgba(22, 97, 54, 0.24);
+  /* Déclinaisons du bleu marine de marque (dérivées de --luglon-navy) */
+  --navy-050: #eef1f6;
+  --navy-100: #dbe2ee;
+  --navy-700: #121e36;
+  --navy-tint-08: rgba(27, 42, 74, 0.08);
+  --navy-tint-16: rgba(27, 42, 74, 0.16);
+  --navy-tint-24: rgba(27, 42, 74, 0.24);
 
   /* --- Polices --- */
   --font-body: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
@@ -152,7 +152,7 @@
               0 18px 48px -12px rgba(9, 30, 18, 0.22);
   --shadow-nav: 0 1px 2px rgba(9, 30, 18, 0.06),
                 0 8px 30px -8px rgba(9, 30, 18, 0.18);
-  --shadow-focus: 0 0 0 3px var(--green-tint-24);
+  --shadow-focus: 0 0 0 3px var(--navy-tint-24);
 
   /* --- Verre (voir la règle A en tête de fichier) --- */
   --glass-blur: 12px;
@@ -216,24 +216,24 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #1a1a1a;      /* Fond principal (BODY) */
-    --card: #121212;    /* Fond des cartes/boîtes sombre (HERO) */
+    --card: #121212;    /* Fond des cartes/boîtes sombre */
     --text: #f6f6f6;    /* Blanc cassé */
     --muted: #a1a1a1;
     --tab-font: #222222;
     --form-bg: #222222;
-    --text-shadow: #16613680;
+    --text-shadow: #1b2a4a80;
     --tab-border : #444444;
     --resa-shadow: #000000cc;
     --nav-brand-bg: #242424;
 
-    /* Voir le commentaire de --green-ink dans :root */
-    --green-ink: #6bd698;
+    /* Voir le commentaire de --navy-ink dans :root */
+    --navy-ink: #a9c1e0;
 
-    --green-050: #10251a;
-    --green-100: #16321f;
-    --green-tint-08: rgba(107, 214, 152, 0.10);
-    --green-tint-16: rgba(107, 214, 152, 0.18);
-    --green-tint-24: rgba(107, 214, 152, 0.28);
+    --navy-050: #17223a;
+    --navy-100: #1c2c4a;
+    --navy-tint-08: rgba(169, 193, 224, 0.10);
+    --navy-tint-16: rgba(169, 193, 224, 0.18);
+    --navy-tint-24: rgba(169, 193, 224, 0.28);
 
     /* Le liseré est un token : toutes les ombres qui le référencent suivent */
     --rim-top: inset 0 1px 0 rgba(255, 255, 255, 0.10);
@@ -310,37 +310,58 @@ body {
    4. TYPOGRAPHIE
    ============================================================================ */
 
-/* Titres principaux de page */
+/* Titres principaux de page — toujours dans .main-hero, jamais ailleurs :
+   le blanc fixe (et non --text) suit le fond bleu marine fixe du héros
+   (section 9), pas le thème clair/sombre. */
 .main-title {
   font-size: 9rem;
   font-family: var(--font-title);
   line-height: 1.1;
   margin: 0 0 10px;
-  color: var(--text);
+  color: #fff;
   animation: titleReveal 0.9s var(--ease-expo-out) both;
 }
+/* Posé PAR-DESSUS le titre, sans agrandir le héros : le HTML place
+   .main-subtitle AVANT .main-title (comme un .kicker avant un <h2> ailleurs
+   sur le site), mais sa propre boîte est annulée par une margin-bottom
+   négative égale à sa hauteur (-1.4em de line-height 1.4 = -1 ligne pile) :
+   le titre qui suit remonte donc exactement à la position qu'il aurait sans
+   sous-titre, et le sous-titre se retrouve superposé sur son tout début.
+   z-index le fait peindre AU-DESSUS du titre malgré son ordre dans le DOM.
+
+   Une première version utilisait position: absolute + translateY(-100%)
+   ancré sur .hero-content — ça marchait en desktop, où le padding-top du
+   héros laisse une grande marge au-dessus, mais en mobile cette marge est
+   minime (.main-hero n'ajoute que 10px) et le sous-titre débordait SOUS la
+   barre de nav fixe. La technique margin négative ne sort jamais du bloc du
+   titre lui-même : elle ne peut donc jamais remonter plus haut que lui, quel
+   que soit le padding au-dessus — d'où le changement. */
 .main-subtitle {
-  font-size: 3rem;
-  font-family: var(--font-title);
-  color: var(--text);
+  position: relative;
+  z-index: 1;
+  margin: 0 0 -1.4em;
+  line-height: 1.4;
+  font-family: var(--font-kicker);
+  font-size: var(--fs-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-kicker);
+  color: rgba(255, 255, 255, 0.8);
   animation: subtitleReveal 0.7s 0.4s var(--ease-expo-out) both;
 }
 
+/* Un titre trop long pour tenir sur 2 lignes (à n'importe quelle largeur, pas
+   seulement mobile) est réduit dynamiquement par hero-fit.js, qui mesure le
+   rendu réel plutôt que de deviner une taille par avance — voir ce fichier.
+   Il n'y a donc plus de modificateur --long à poser à la main par page. */
 @media (max-width: 768px) {
   .main-title {
     font-size: 4rem;
     line-height: 1;
     margin-bottom: 5px;
   }
-  /* Titre d'un seul mot très long (ex. « CONFIDENTIALITÉ ») : on réduit la
-     taille proportionnellement à la largeur d'écran pour qu'il tienne sur une
-     ligne sans déborder. Doit rester APRÈS .main-title. */
-  .main-title--long {
-    font-size: clamp(1.9rem, 9.5vw, 4rem);
-  }
-  .main-subtitle {
-    font-size: 1.5rem;
-  }
+  /* Pas de taille mobile dédiée pour .main-subtitle : à la taille kicker
+     (--fs-sm), elle n'a pas besoin de rétrécir davantage, comme .kicker
+     ailleurs sur le site. */
 }
 
 /* Textes de feedback (type « merci de remplir la case ») */
@@ -355,7 +376,7 @@ body {
   line-height: 1.5;
 }
 .form-note a {
-  color: var(--green-ink);
+  color: var(--navy-ink);
 }
 
 
@@ -454,9 +475,9 @@ form .row {
    emoji du SYSTÈME. Le même 🃏 est un joker sur macOS, un dos de carte sur
    Android, autre chose encore sur Windows — en couleurs qui n'ont aucun
    rapport avec la charte, et sans aucun moyen de les corriger. Sur un site
-   dont tout l'intérêt visuel tient à un vert précis, c'est un trou.
+   dont tout l'intérêt visuel tient à un bleu marine précis, c'est un trou.
    Les SVG ci-dessous héritent de `currentColor` : ils suivent le thème
-   clair/sombre et le vert de marque, à l'identique partout.
+   clair/sombre et le bleu marine de marque, à l'identique partout.
 
    POURQUOI EN LIGNE PLUTÔT QU'UN SPRITE
    Un sprite externe (<use href="/icons.svg#x">) économiserait quelques
@@ -489,15 +510,15 @@ form .row {
   height: 46px;
   flex: none;
   border-radius: var(--r-m);
-  background: var(--green-tint-08);
-  border: 1px solid var(--green-tint-16);
-  color: var(--green-ink);
+  background: var(--navy-tint-08);
+  border: 1px solid var(--navy-tint-16);
+  color: var(--navy-ink);
   transition: background var(--dur-base) var(--ease-standard),
               transform  var(--dur-base) var(--ease-overshoot);
 }
 
 /* Marques déposées : couleurs officielles, logo en blanc. Un logo de marque
-   ne se redessine pas en vert — il se cite. Mêmes valeurs que le pied de
+   ne se redessine pas dans le bleu marine du site — il se cite. Mêmes valeurs que le pied de
    page, pour que les deux endroits ne divergent jamais. */
 .icon-badge--facebook {
   background: #1877F2;
@@ -530,7 +551,7 @@ form .row {
 /* --- Bouton principal (actions de bas de page : confirmation, pages légales) --- */
 .nav-button {
   color: white;
-  background: var(--luglon-green);
+  background: var(--luglon-navy);
   border-radius: 10px;
   padding: 15px;
   display: block;
@@ -566,9 +587,9 @@ form .row {
 .btn-add-calendar {
   margin-top: 6px;
   padding: 6px 14px;
-  border: 1px solid var(--luglon-green);
+  border: 1px solid var(--luglon-navy);
   border-radius: 20px;
-  background: var(--luglon-green);
+  background: var(--luglon-navy);
   color: #ffffff;
   font-size: 0.8rem;
   font-weight: 600;
@@ -578,11 +599,11 @@ form .row {
 }
 .btn-add-calendar:hover {
   background: #ffffff;
-  /* --luglon-green et NON --green-ink : le fond est un blanc codé en dur, il
-     ne suit pas le thème sombre. Y poser le vert clair donnerait 1,9:1. */
-  color: var(--luglon-green);
+  /* --luglon-navy et NON --navy-ink : le fond est un blanc codé en dur, il
+     ne suit pas le thème sombre. Y poser le bleu clair du mode sombre donnerait ~1,8:1. */
+  color: var(--luglon-navy);
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(22, 97, 54, 0.3);
+  box-shadow: 0 4px 14px rgba(27, 42, 74, 0.3);
 }
 .btn-add-calendar:active {
   transform: translateY(0) scale(0.97);
@@ -624,6 +645,12 @@ form .row {
   inset: var(--nav-top-scrolled) 0 auto 0;
 }
 
+/* Rectangle, pas de bulle : la barre gardait un rayon variable (--r-l replié,
+   --r-pill en bulle au défilement). Sur demande (2027), elle est maintenant à
+   angles droits dans les deux états — border-radius: 0 explicite, et non
+   simplement omis, pour que ce soit lisible comme un choix et pas un oubli.
+   .site-nav__glass hérite de ce rayon (border-radius: inherit, plus bas) : le
+   changer ici suffit à carrer le verre aussi, sans le toucher séparément. */
 .site-nav__bar {
   position: relative;
   pointer-events: auto;
@@ -634,16 +661,14 @@ form .row {
   margin-inline: auto;
   min-height: var(--nav-h);
   padding: var(--space-2xs) var(--space-s);
-  border-radius: var(--r-l);
-  transition: width         var(--dur-slow) var(--ease-standard),
-              min-height    var(--dur-slow) var(--ease-standard),
-              border-radius var(--dur-slow) var(--ease-standard),
-              padding       var(--dur-slow) var(--ease-standard);
+  border-radius: 0;
+  transition: width      var(--dur-slow) var(--ease-standard),
+              min-height var(--dur-slow) var(--ease-standard),
+              padding    var(--dur-slow) var(--ease-standard);
 }
 .site-nav.is-scrolled .site-nav__bar {
   width: var(--nav-w-scrolled);
   min-height: var(--nav-h-scrolled);
-  border-radius: var(--r-pill);
   padding-inline: var(--space-m);
 }
 /* Panneau ouvert : on fige le rétrécissement, sinon le panneau se relayoute
@@ -655,25 +680,45 @@ form .row {
 /* --- La surface de verre --- */
 /* z-index: 0 — sans quoi cette couche, étant positionnée, se peindrait
    AU-DESSUS de la marque et du bouton, qui sont en flux normal. Le contenu de
-   la barre est remonté à z-index 1 juste en dessous. */
+   la barre est remonté à z-index 1 juste en dessous.
+
+   OPAQUE DÈS LE CHARGEMENT, PAS SEULEMENT AU DÉFILEMENT. Avant, ce verre
+   restait à opacity:0 tant que la page n'avait pas défilé : la barre posée
+   sur le héros n'avait alors aucun fond propre, et ses liens (couleur
+   --text, sombre) comptaient sur le héros clair (--card, gris) en dessous
+   pour rester lisibles. Depuis que le héros porte un fond bleu marine plein
+   (voir .main-hero), ce montage rendrait des liens sombres illisibles sur
+   fond sombre tant que la page n'a pas bougé. La barre a donc désormais un
+   fond dès le premier rendu, sur toutes les pages.
+
+   PLAT ET OPAQUE AU REPOS, DÉPOLI EN BULLE. --glass-opaque (uni, sans flou)
+   au repos plutôt que --glass-bg-strong (translucide) : un blanc à 78%
+   d'opacité au-dessus d'un héros marine ne lit PAS comme du blanc, il prend
+   la teinte du héros en transparence — un bleu-gris fade loin du "blanc"
+   voulu. --glass-opaque est un aplat, donc un vrai blanc (ou noir en thème
+   sombre) quelle que soit la couleur en dessous. Le flou (backdrop-filter)
+   n'apparaît qu'au défilement/à l'ouverture, avec --glass-bg-strong — géré
+   juste en dessous — ce qui a aussi l'avantage d'économiser cette passe GPU
+   tant que la barre est au repos (voir RÈGLE A en tête de fichier).
+   .is-scrolled change donc trois choses en même temps, pas une seule : la
+   FORME (largeur/rayon, voir .site-nav__bar plus haut), la texture (aplat →
+   dépoli) et l'apparition du panneau/vague de la marque (plus bas) — mais
+   jamais la simple présence du fond, qui est là depuis la première image. */
 .site-nav__glass {
   position: absolute;
   inset: 0;
   z-index: 0;
   border-radius: inherit;
-  background: var(--glass-bg-strong);
-  -webkit-backdrop-filter: var(--glass-filter);
-          backdrop-filter: var(--glass-filter);
+  background: var(--glass-opaque);
   box-shadow: var(--shadow-nav), var(--rim-top);
-  opacity: 0;
-  /* On anime l'OPACITÉ, jamais le backdrop-filter : modifier le filtre force
-     une recomposition complète du fond à chaque frame. */
-  transition: opacity var(--dur-base) var(--ease-standard);
   pointer-events: none;
+  transition: background var(--dur-base) var(--ease-standard);
 }
 .site-nav.is-scrolled .site-nav__glass,
 .site-nav.is-open      .site-nav__glass {
-  opacity: 1;
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: var(--glass-filter);
+          backdrop-filter: var(--glass-filter);
 }
 /* Liseré spéculaire : bordure dégradée de 1px découpée au masque */
 .site-nav__glass::after {
@@ -757,7 +802,7 @@ form .row {
   z-index: -1;
   pointer-events: none;
   background: linear-gradient(to left, var(--nav-brand-bg), transparent);
-  border-radius: var(--r-l) 0 0 var(--r-l);
+  border-radius: 0;
   opacity: 0;
   transition: opacity var(--dur-base) var(--ease-standard);
 }
@@ -830,7 +875,7 @@ form .row {
   font-size: 1.2rem;
   text-transform: uppercase;
   letter-spacing: var(--tracking-title);
-  color: var(--green-ink);
+  color: var(--navy-ink);
   text-shadow: 0 0 5px var(--text-shadow);
 }
 
@@ -858,27 +903,29 @@ form .row {
               color      var(--dur-hover) var(--ease-standard);
 }
 .site-nav__links a:hover {
-  background: var(--green-tint-08);
-}
-/* Page active : soulignement */
-.site-nav__links a::after {
-  content: "";
-  position: absolute;
-  left: var(--space-xs);
-  right: var(--space-xs);
-  bottom: 4px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--luglon-green);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform var(--dur-base) var(--ease-enter);
+  background: var(--navy-tint-08);
 }
 .site-nav__links a[aria-current] {
-  color: var(--green-ink);
+  color: var(--navy-ink);
 }
-.site-nav__links a[aria-current]::after {
-  transform: scaleX(1);
+
+/* --- Onglets de premier niveau : tuile pleine, pas un soulignement ---
+   Il y avait un trait de 2px sous l'onglet actif (::after, scaleX). Depuis
+   que la barre est un rectangle et non plus une bulle (voir .site-nav__bar),
+   un trait fin détonnait à côté d'angles droits — remplacé par un vrai bloc
+   de couleur qui remplit toute la case, au survol ET sur la page active des
+   quatre onglets de tête (Mairie, Vie pratique, Actualités, Contact)
+   uniquement. Le sélecteur enfant direct (> li > a) exclut volontairement
+   les liens du sous-menu, qui gardent leur survol discret hérité de la règle
+   générale juste au-dessus (--navy-tint-08) — une tuile pleine dans un petit
+   menu déroulant aurait été trop lourde. */
+.site-nav__links > li > a {
+  border-radius: 0;
+}
+.site-nav__links > li > a:hover,
+.site-nav__links > li > a[aria-current] {
+  background: var(--luglon-navy);
+  color: #fff;
 }
 
 /* --- Sous-menu « Évènements » ---
@@ -915,12 +962,6 @@ form .row {
   list-style: none;
   margin: 0;
   padding: 0;
-}
-/* Le soulignement de page active (.site-nav__links a::after) est calé sur les
-   onglets de premier niveau : neutralisé ici, l'item courant du sous-menu est
-   signalé par la couleur et le fond. */
-.site-nav__submenu a::after {
-  display: none;
 }
 
 /* Chevron : purement décoratif, d'où le aria-hidden dans le HTML */
@@ -994,7 +1035,7 @@ form .row {
     text-transform: none;
   }
   .site-nav__submenu a[aria-current] {
-    background: var(--green-tint-08);
+    background: var(--navy-tint-08);
   }
 
   /* Échap : voir nav.js. Cette règle doit rester APRÈS les règles
@@ -1030,7 +1071,7 @@ form .row {
     text-transform: none;
   }
   .site-nav__submenu a[aria-current] {
-    color: var(--green-ink);
+    color: var(--navy-ink);
   }
 }
 
@@ -1073,10 +1114,6 @@ form .row {
   .site-nav__links a {
     font-size: 0.95rem;
     padding: var(--space-2xs) var(--space-2xs);
-  }
-  .site-nav__links a::after {
-    left: var(--space-2xs);
-    right: var(--space-2xs);
   }
   .site-nav__wordmark-top { display: none; }
 }
@@ -1145,7 +1182,6 @@ form .row {
   /* Pas de rétrécissement sur mobile : la barre est déjà à la bonne taille */
   .site-nav.is-scrolled .site-nav__bar {
     width: var(--nav-w);
-    border-radius: var(--r-l);
     padding-inline: var(--space-s);
   }
 
@@ -1162,7 +1198,7 @@ form .row {
     align-items: stretch;
     gap: var(--space-3xs);
     padding: var(--space-2xs);
-    border-radius: var(--r-l);
+    border-radius: 0;
     background: var(--glass-bg-strong);
     -webkit-backdrop-filter: var(--glass-filter);
             backdrop-filter: var(--glass-filter);
@@ -1190,11 +1226,6 @@ form .row {
     font-size: 1.25rem;
     padding: var(--space-xs) var(--space-s);
   }
-  .site-nav__links a::after {
-    left: var(--space-s);
-    right: auto;
-    width: 22px;
-  }
 }
 
 /* --- Compensation de la barre fixe --- */
@@ -1212,7 +1243,7 @@ html {
   top: 0;
   z-index: var(--z-toast);
   padding: var(--space-2xs) var(--space-s);
-  background: var(--luglon-green);
+  background: var(--luglon-navy);
   color: #fff;
   border-radius: 0 0 var(--r-s) 0;
   font-family: var(--font-title);
@@ -1223,7 +1254,7 @@ html {
 
 /* --- Anneau de focus visible, partout --- */
 :focus-visible {
-  outline: 2px solid var(--luglon-green);
+  outline: 2px solid var(--luglon-navy);
   outline-offset: 3px;
 }
 
@@ -1248,9 +1279,9 @@ html {
               background var(--dur-fast) var(--ease-standard);
 }
 .cta-row .btn--primary {
-  background: var(--luglon-green);
+  background: var(--luglon-navy);
   color: #fff;
-  border: 2px solid var(--luglon-green);
+  border: 2px solid var(--luglon-navy);
 }
 .cta-row .btn--ghost {
   background: transparent;
@@ -1262,8 +1293,8 @@ html {
   box-shadow: var(--shadow-m);
 }
 .cta-row .btn--ghost:hover {
-  border-color: var(--luglon-green);
-  color: var(--green-ink);
+  border-color: var(--luglon-navy);
+  color: var(--navy-ink);
 }
 
 /* Pas de `.cta-row { justify-content: center }` global sous 768px : ça
@@ -1307,7 +1338,7 @@ html {
   display: inline-flex;
   align-items: center;
   gap: var(--space-s);
-  background: var(--green-700);
+  background: var(--navy-700);
   color: #fff;
   font-size: var(--fs-xs);
   line-height: 1;
@@ -1342,27 +1373,42 @@ html {
 
    Avant : <body> portait un padding-top de --nav-offset pour dégager la
    barre fixe, et ce padding laissait voir le fond de page (--bg, blanc)
-   au-dessus du héros gris. Résultat, un bandeau blanc de ~92px en haut de
-   chaque page, qui n'appartenait à rien et donnait l'impression d'une barre
-   posée sur une seconde page.
+   au-dessus du héros. Résultat, un bandeau blanc de ~92px en haut de chaque
+   page, qui n'appartenait à rien et donnait l'impression d'une barre posée
+   sur une seconde page.
 
    Maintenant : le héros s'annule ce décalage en marge NÉGATIVE et le
-   récupère en PADDING. Sa surface grise démarre donc au bord de l'écran et
-   passe sous la barre — qui est translucide, et se teinte du gris au lieu
-   du blanc. Au défilement, .site-nav__glass prend le relais (section 8).
+   récupère en PADDING. Sa surface bleu marine démarre donc au bord de
+   l'écran et passe sous la barre — dont le verre blanc dépoli reste
+   opaque dès le chargement (voir section 8) pour rester lisible sur ce
+   fond sombre, y compris avant tout défilement.
 
-   Le padding de <body> est conservé : /programme/ n'a pas de héros, et
-   toute page future sans héros continue de dégager la barre correctement.
-   Les deux mécanismes s'additionnent exactement à zéro ici. */
+   Le padding de <body> est conservé : toute page future sans héros continue
+   de dégager la barre correctement. Les deux mécanismes s'additionnent
+   exactement à zéro ici. */
 .main-hero {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-top: calc(-1 * var(--nav-offset));
   padding: calc(var(--nav-offset) + var(--space-xl)) 5% 50px;
-  background: var(--card);
+  background: linear-gradient(155deg, var(--luglon-navy), var(--navy-700));
+}
+/* .main-title/.main-subtitle sont en blanc fixe, pas --text : voir le
+   commentaire à leur définition (section 4). Le bouton fantôme du
+   cta-row a besoin de la même exception, lui n'a pas d'autre usage
+   dans ce contexte. */
+.main-hero .cta-row .btn--ghost {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.55);
+}
+.main-hero .cta-row .btn--ghost:hover {
+  border-color: #fff;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
 }
 .hero-content {
+  position: relative; /* ancre .main-subtitle, posé en absolute au-dessus du titre */
   flex-basis: 70%;
   padding-right: 15px;
 }
@@ -1466,7 +1512,7 @@ html {
   font-family: var(--font-title);
   font-size: 4rem;
   margin-bottom: 0px;
-  color: var(--green-ink);
+  color: var(--navy-ink);
 }
 .history-text {
   font-family: var(--font-title);
@@ -1506,12 +1552,12 @@ html {
 .day-title {
   position: relative;
 }
-/* Ligne verte animée sous le titre du jour */
+/* Ligne marine animée sous le titre du jour */
 .day-title::after {
   content: '';
   display: block;
   height: 3px;
-  background: var(--luglon-green);
+  background: var(--luglon-navy);
   border-radius: 2px;
   animation: underlineGrow 0.6s 0.3s var(--ease-expo-out) both;
 }
@@ -1523,7 +1569,7 @@ html {
   margin-right: 20px; margin-left: 20px;
   margin-bottom: 0;
   margin-top: 100px;
-  color: var(--green-ink);
+  color: var(--navy-ink);
   text-shadow: 0 0 5px var(--text-shadow);
 }
 
@@ -1554,7 +1600,7 @@ html {
 
 .activity-time {
   font-weight: 700;
-  color: var(--green-ink);
+  color: var(--navy-ink);
   margin-right: 15px;
   display: inline-block;
   min-width: 80px;
@@ -1566,7 +1612,7 @@ html {
   padding-left: 4px;
 }
 .activity-line:hover {
-  background: var(--green-tint-08);
+  background: var(--navy-tint-08);
   padding-left: 10px;
 }
 
@@ -1631,7 +1677,7 @@ html {
   font-family: var(--font-title);
   font-size: var(--fs-h3);
   margin: 0 0 var(--space-3xs);
-  color: var(--green-ink);
+  color: var(--navy-ink);
 }
 .timeline__content p {
   margin: 0;
@@ -1704,7 +1750,7 @@ html {
   align-items: stretch;
 }
 .rail:focus-visible {
-  outline: 2px solid var(--luglon-green);
+  outline: 2px solid var(--luglon-navy);
   outline-offset: 4px;
 }
 
@@ -1728,7 +1774,7 @@ html {
 }
 .rail-dots button[aria-current="true"] {
   width: 22px;
-  background: var(--luglon-green);
+  background: var(--luglon-navy);
 }
 
 /* --- Programme : cartes de journée --- */
@@ -1760,7 +1806,7 @@ html {
   font-size: 1.35rem;
   line-height: 1.15;
   margin: 0 0 var(--space-2xs);
-  color: var(--green-ink);
+  color: var(--navy-ink);
 }
 /* PAS de flex:1 ici. Il forçait la liste à occuper toute la hauteur
    disponible ; combinée à l'étirement de la grille, chaque carte prenait la
@@ -1797,7 +1843,7 @@ html {
   display: block;
 }
 .activity:hover {
-  background: var(--green-tint-08);
+  background: var(--navy-tint-08);
 }
 .activity .activity-time {
   min-width: 0;      /* annule le min-width: 80px du gabarit historique */
@@ -1854,19 +1900,19 @@ html {
   font-size: var(--fs-xs);
   letter-spacing: var(--tracking-kicker);
   text-transform: uppercase;
-  color: var(--green-ink);
+  color: var(--navy-ink);
   margin: 0 0 var(--space-2xs);
 }
-/* RÈGLE DE COULEUR DU SITE : les TITRES sont verts, le CORPS DE TEXTE reste
-   en --text. Un titre vert sur un paragraphe sombre donne la hiérarchie sans
-   fatiguer la lecture ; l'inverse (du corps en vert) rend la page illisible.
+/* RÈGLE DE COULEUR DU SITE : les TITRES sont en bleu marine, le CORPS DE TEXTE
+   reste en --text. Un titre marine sur un paragraphe sombre donne la hiérarchie
+   sans fatiguer la lecture ; l'inverse (du corps en bleu marine) rend la page illisible.
    Voir aussi .day-card__title, .value-card h3, .contact-card h3. */
 .section-head h2 {
   font-family: var(--font-title);
   font-size: var(--fs-h2);
   line-height: var(--lh-tight);
   margin: 0;
-  color: var(--green-ink);
+  color: var(--navy-ink);
 }
 /* Dernier bloc d'une section : sa marge basse s'ajouterait au padding de la
    section, ce qui creuse un vide inexpliqué sous les bandeaux courts. */
@@ -1909,18 +1955,18 @@ html {
   height: auto;
 }
 .landes-map__outline {
-  fill: var(--green-050);
-  stroke: var(--green-ink);
+  fill: var(--navy-050);
+  stroke: var(--navy-ink);
   stroke-width: 2;
 }
 .landes-map__point-ring {
   fill: none;
-  stroke: var(--green-ink);
+  stroke: var(--navy-ink);
   stroke-width: 1.5;
   opacity: 0.45;
 }
 .landes-map__point {
-  fill: var(--green-ink);
+  fill: var(--navy-ink);
 }
 
 /* Carte du RPI (enfance-jeunesse) : même principe que .landes-map (SVG
@@ -1951,7 +1997,7 @@ html {
    visuellement constante sur tout le tracé, sans à-coups aux jonctions. */
 .rpi-map__road {
   fill: none;
-  stroke: var(--green-ink);
+  stroke: var(--navy-ink);
   stroke-width: 2.5;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -1967,13 +2013,13 @@ html {
   stroke-linejoin: round;
 }
 .rpi-map__point {
-  fill: var(--green-ink);
+  fill: var(--navy-ink);
 }
 .rpi-map__label {
   font-family: var(--font-body);
   font-size: 11px;
   font-weight: 700;
-  fill: var(--green-ink);
+  fill: var(--navy-ink);
 }
 
 /* Carte Google Maps intégrée à côté d'un texte (.welcome-grid) — utilisée
@@ -2052,8 +2098,8 @@ html {
 .panel {
   --panel-pad: clamp(1.25rem, 3vw, 3rem);
   padding: var(--panel-pad);
-  background: var(--green-050);
-  border: 1px solid var(--green-tint-16);
+  background: var(--navy-050);
+  border: 1px solid var(--navy-tint-16);
   border-radius: var(--r-xl);
 }
 /* Un carrousel dans un panneau déborde jusqu'au bord INTÉRIEUR du panneau,
@@ -2084,7 +2130,7 @@ html {
   color: var(--text);
 }
 .prose p { margin: 0 0 var(--space-s); }
-.prose a { color: var(--green-ink); }
+.prose a { color: var(--navy-ink); }
 
 /* Accordéon — listes dépliables par catégorie (associations, entreprises).
    <details>/<summary> plutôt qu'un <button> + JS : l'ouverture/fermeture est
@@ -2115,7 +2161,7 @@ html {
   font-family: var(--font-title);
   letter-spacing: var(--tracking-title);
   font-size: 1.1rem;
-  color: var(--green-ink);
+  color: var(--navy-ink);
   list-style: none;
 }
 .accordion summary::-webkit-details-marker { display: none; }
@@ -2170,20 +2216,20 @@ html {
 /* Chapô — la première phrase d'une section, sortie du pavé.
    Deux paragraphes d'affilée dans la police de labeur, c'est un mur : l'œil
    n'a aucun point d'entrée. Le chapô donne ce point d'entrée en reprenant la
-   police de titre et le vert, et le pavé qui suit peut alors être court. */
+   police de titre et le bleu marine, et le pavé qui suit peut alors être court. */
 .lead {
   max-width: 24ch;
   margin: 0 0 var(--space-m);
   font-family: var(--font-title);
   font-size: var(--fs-lead-xl);
   line-height: 1.2;
-  color: var(--green-ink);
+  color: var(--navy-ink);
 }
 /* Filet vertical : rattache visuellement le chapô au corps qui suit. */
 .lead--rule {
   max-width: 34ch;
   padding-left: var(--space-s);
-  border-left: 3px solid var(--luglon-green);
+  border-left: 3px solid var(--luglon-navy);
 }
 
 /* Pastilles — remplacent une énumération noyée dans une phrase.
@@ -2201,16 +2247,16 @@ html {
 .tag-list li {
   padding: var(--space-3xs) var(--space-xs);
   border-radius: var(--r-pill);
-  background: var(--green-tint-08);
-  border: 1px solid var(--green-tint-16);
+  background: var(--navy-tint-08);
+  border: 1px solid var(--navy-tint-16);
   font-family: var(--font-title);
   font-size: 1rem;
-  color: var(--green-ink);
+  color: var(--navy-ink);
   transition: background var(--dur-fast) var(--ease-standard),
               transform  var(--dur-fast) var(--ease-overshoot);
 }
 .tag-list li:hover {
-  background: var(--green-tint-16);
+  background: var(--navy-tint-16);
   transform: translateY(-2px);
 }
 
@@ -2233,7 +2279,7 @@ html {
   color: var(--text);
 }
 .todo-note strong { color: var(--warning-orange-border); }
-/* Le triangle reprend l'orange du bandeau, et non le vert par défaut.
+/* Le triangle reprend l'orange du bandeau, et non le bleu marine par défaut.
    Le décalage de 1px cale son centre optique sur la première ligne. */
 .todo-note .icon {
   width: 22px;
@@ -2290,7 +2336,7 @@ html {
 .event-card:has(.event-card__link:focus-visible) {
   transform: translateY(-4px);
   box-shadow: var(--shadow-l);
-  border-color: var(--luglon-green);
+  border-color: var(--luglon-navy);
 }
 
 .event-card__head {
@@ -2312,15 +2358,15 @@ html {
 }
 /* La pastille suit le survol de la carte entière, pas seulement le sien. */
 .event-card:has(.event-card__link:hover) .event-card__icon {
-  background: var(--green-tint-16);
+  background: var(--navy-tint-16);
   transform: translateY(-2px);
 }
 .event-card__badge {
   flex-shrink: 0;
   padding: 3px 12px;
   border-radius: var(--r-pill);
-  background: var(--green-tint-16);
-  color: var(--green-ink);
+  background: var(--navy-tint-16);
+  color: var(--navy-ink);
   font-family: var(--font-body);
   font-size: var(--fs-xs);
   font-weight: 700;
@@ -2328,13 +2374,13 @@ html {
   text-transform: uppercase;
 }
 .event-card__badge--past {
-  background: var(--green-tint-08);
+  background: var(--navy-tint-08);
   color: var(--muted);
 }
 
 /* Étiquette de thème (Travaux, Vie associative...) — distincte du badge de
    statut ci-dessus par construction : contour plutôt que fond plein, pour
-   qu'on ne confonde jamais "à venir/terminé" (un état, toujours vert) avec
+   qu'on ne confonde jamais "à venir/terminé" (un état, toujours en bleu marine) avec
    la thématique (une catégorie, neutre). */
 .event-card__tag {
   display: inline-flex;
@@ -2361,7 +2407,7 @@ html {
   min-height: calc(2 * 1.45em);
   letter-spacing: var(--tracking-kicker);
   text-transform: uppercase;
-  color: var(--green-ink);
+  color: var(--navy-ink);
   margin: 0 0 var(--space-3xs);
 }
 .event-card__title {
@@ -2384,7 +2430,7 @@ html {
 .event-card__link {
   font-family: var(--font-title);
   font-size: 1.05rem;
-  color: var(--green-ink);
+  color: var(--navy-ink);
   text-decoration: none;
 }
 .event-card__link::before {
@@ -2459,16 +2505,16 @@ html {
   object-fit: cover;
   border-radius: var(--r-m);
   /* Un filet à 1px se perdait contre les photos claires (mer de nuages,
-     papier blanc) : la vignette semblait flotter sans cadre. Le même vert
+     papier blanc) : la vignette semblait flotter sans cadre. Le même bleu marine
      que .icon-badge, en plus épais, la rattache visuellement à l'icône
      juste à côté. */
-  border: 2px solid var(--green-tint-16);
+  border: 2px solid var(--navy-tint-16);
 }
 .value-card h3 {
   font-family: var(--font-title);
   font-size: var(--fs-h3);
   margin: 0 0 var(--space-3xs);
-  color: var(--green-ink);
+  color: var(--navy-ink);
 }
 .value-card p {
   margin: 0;
@@ -2523,7 +2569,7 @@ html {
   font-size: var(--fs-xs);
   letter-spacing: var(--tracking-kicker);
   text-transform: uppercase;
-  color: var(--green-ink);
+  color: var(--navy-ink);
   margin: 0 0 var(--space-3xs);
 }
 .member__name {
@@ -2592,7 +2638,7 @@ html {
   font-family: var(--font-title);
   font-size: var(--fs-h3);
   margin: 0 0 var(--space-3xs);
-  color: var(--green-ink);
+  color: var(--navy-ink);
 }
 .contact-card p {
   flex: 1;
@@ -2604,7 +2650,7 @@ html {
 .contact-card a {
   font-family: var(--font-title);
   font-size: 1.05rem;
-  color: var(--green-ink);
+  color: var(--navy-ink);
   overflow-wrap: anywhere;   /* une adresse e-mail ne doit pas élargir la carte */
 }
 
@@ -2643,15 +2689,15 @@ html {
   max-width: 26rem;   /* un seul bloc (Luglon) ne doit pas s'étirer sur
                          toute la largeur maintenant que Sabres est parti */
   padding: var(--space-m);
-  background: var(--green-050);
-  border: 1px solid var(--green-tint-16);
+  background: var(--navy-050);
+  border: 1px solid var(--navy-tint-16);
   border-radius: var(--r-xl);
 }
 .stats-block h3 {
   margin: 0 0 var(--space-s);
   font-family: var(--font-title);
   font-size: var(--fs-h3);
-  color: var(--green-ink);
+  color: var(--navy-ink);
 }
 .stats-grid {
   display: grid;
@@ -2701,7 +2747,7 @@ html {
 .week-hours__label {
   font-family: var(--font-title);
   font-size: var(--fs-sm);
-  color: var(--green-ink);
+  color: var(--navy-ink);
 }
 .week-hours__value {
   font-size: var(--fs-sm);
@@ -2757,7 +2803,7 @@ html {
 }
 .closed-message h3 {
   margin: 0 0 12px;
-  color: var(--green-ink);
+  color: var(--navy-ink);
   font-family: var(--font-title);
   font-size: 1.6rem;
   text-transform: uppercase;
@@ -2769,7 +2815,7 @@ html {
   line-height: 1.6;
 }
 .closed-message a {
-  color: var(--green-ink);
+  color: var(--navy-ink);
   font-weight: 600;
 }
 
@@ -2780,7 +2826,7 @@ html {
   border-radius: 8px;
   margin-bottom: 20px;
   text-align: center;
-  border: 1px solid var(--luglon-green);
+  border: 1px solid var(--luglon-navy);
   color: var(--text);
   position: relative;
   overflow: hidden;
@@ -2808,10 +2854,10 @@ html {
   animation: blistersheen 0.7s ease forwards;
 }
 .price-plaque:hover {
-  box-shadow: 0 6px 22px rgba(22, 97, 54, 0.22);
+  box-shadow: 0 6px 22px rgba(27, 42, 74, 0.22);
 }
 .price-plaque h3 {
-  color: var(--green-ink);
+  color: var(--navy-ink);
   margin-top: 0;
   font-size: 18px;
 }
@@ -2880,7 +2926,7 @@ html {
 .res-calendar__label {
   font-family: var(--font-title);
   font-size: 1rem;
-  color: var(--green-ink);
+  color: var(--navy-ink);
   text-transform: uppercase;
 }
 .res-calendar__nav {
@@ -2890,7 +2936,7 @@ html {
   border: 1px solid var(--tab-border);
   border-radius: 50%;
   background: var(--bg);
-  color: var(--green-ink);
+  color: var(--navy-ink);
   font-size: 1.1rem;
   line-height: 1;
   cursor: pointer;
@@ -2898,7 +2944,7 @@ html {
               transform  var(--dur-fast) var(--ease-standard);
 }
 .res-calendar__nav:hover:not(:disabled) {
-  background: var(--green-tint-08);
+  background: var(--navy-tint-08);
   transform: translateY(-1px);
 }
 .res-calendar__nav:disabled {
@@ -2941,8 +2987,8 @@ html {
               transform var(--dur-fast) var(--ease-standard);
 }
 .res-calendar__day--available:hover {
-  border-color: var(--luglon-green);
-  background: var(--green-tint-08);
+  border-color: var(--luglon-navy);
+  background: var(--navy-tint-08);
   transform: translateY(-1px);
 }
 .res-calendar__day--unavailable {
@@ -2954,8 +3000,8 @@ html {
   text-decoration-color: var(--tab-border);
 }
 .res-calendar__day--selected {
-  border: 1px solid var(--luglon-green);
-  background: var(--luglon-green);
+  border: 1px solid var(--luglon-navy);
+  background: var(--luglon-navy);
   color: #fff;
   font-weight: 700;
 }
@@ -2987,7 +3033,7 @@ html {
   background: var(--card);
 }
 .res-calendar__swatch--selected {
-  background: var(--luglon-green);
+  background: var(--luglon-navy);
 }
 
 .res-reserve-row {
@@ -3048,7 +3094,7 @@ input, textarea, select {
 }
 input:focus, textarea:focus, select:focus {
   outline: none;
-  border-color: var(--luglon-green) !important;
+  border-color: var(--luglon-navy) !important;
   box-shadow: var(--shadow-focus);
   transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
 }
@@ -3156,7 +3202,7 @@ input[type="number"] {
 .submit-button:hover {
   transform: translateY(-3px) scale(1.03);
   filter: brightness(1.12);
-  box-shadow: 0 8px 20px rgba(22, 97, 54, 0.35);
+  box-shadow: 0 8px 20px rgba(27, 42, 74, 0.35);
 }
 .submit-button:hover::after {
   left: 150%;
@@ -3300,7 +3346,7 @@ input[type="number"] {
 }
 .modal-btn-cancel,
 .modal-btn-confirm,
-.modal-btn-confirm-green {
+.modal-btn-confirm-brand {
   flex: 1;
   color: white;
   padding: 12px;
@@ -3311,10 +3357,10 @@ input[type="number"] {
   font-family: var(--font-title);
 }
 .modal-btn-cancel        { background: var(--muted); }
-.modal-btn-confirm-green { background: var(--luglon-green); }
+.modal-btn-confirm-brand { background: var(--luglon-navy); }
 
 .modal-btn-cancel:hover,
-.modal-btn-confirm-green:hover { filter: brightness(1.1); }
+.modal-btn-confirm-brand:hover { filter: brightness(1.1); }
 
 /* --- Modale de demande de réservation ---
    Réutilise .modal-box (contrat display:flex/none avec script.js, voir
@@ -3325,10 +3371,10 @@ input[type="number"] {
   overflow-y: auto;
 }
 .recap-modal-box h3 {
-  color: var(--green-ink);
+  color: var(--navy-ink);
 }
 .recap-event-block {
-  background: rgba(22, 97, 54, 0.07);
+  background: rgba(27, 42, 74, 0.07);
   border-radius: 10px;
   padding: 12px 16px;
   margin-bottom: 14px;
@@ -3336,7 +3382,7 @@ input[type="number"] {
 .recap-event-day {
   font-family: var(--font-title);
   font-size: 1.15rem;
-  color: var(--green-ink);
+  color: var(--navy-ink);
 }
 
 
@@ -3368,7 +3414,7 @@ input[type="number"] {
   font-family: var(--font-title);
   font-size: 1.8rem;
   margin: 0 0 8px;
-  color: var(--green-ink);
+  color: var(--navy-ink);
 }
 .confirmation-subtitle {
   color: var(--muted);
@@ -3409,7 +3455,7 @@ input[type="number"] {
   font-size: 16px;
 }
 .confirmation-total-row strong {
-  color: var(--green-ink);
+  color: var(--navy-ink);
 }
 .confirmation-other-day {
   max-width: 440px;
@@ -3459,7 +3505,7 @@ input[type="number"] {
 }
 .legal-card h2 {
   font-family: var(--font-title);
-  color: var(--green-ink);
+  color: var(--navy-ink);
   font-size: 1.4rem;
   margin: 28px 0 8px;
 }
@@ -3477,7 +3523,7 @@ input[type="number"] {
 /* :not(.nav-button) : les boutons de bas de page sont aussi des liens, mais
    doivent garder leur style de bouton (texte blanc, sans soulignement) */
 .legal-card a:not(.nav-button) {
-  color: var(--green-ink);
+  color: var(--navy-ink);
   text-decoration: underline;
 }
 .legal-updated {
@@ -3571,12 +3617,12 @@ main:has(> .page-section--footer-band:last-child) + .site-footer {
 .footer-social-link.footer-instagram:hover {
   box-shadow: 0 4px 14px rgba(221, 42, 123, 0.4);
 }
-/* E-mail : vert de la charte */
+/* E-mail : bleu marine de la charte */
 .footer-social-link.footer-mail {
-  background: var(--luglon-green);
+  background: var(--luglon-navy);
 }
 .footer-social-link.footer-mail:hover {
-  box-shadow: 0 4px 14px rgba(22, 97, 54, 0.4);
+  box-shadow: 0 4px 14px rgba(27, 42, 74, 0.4);
 }
 .footer-icon {
   width: 17px;
@@ -3592,8 +3638,8 @@ main:has(> .page-section--footer-band:last-child) + .site-footer {
 }
 
 .footer-legal-link:hover {
-  color: var(--green-ink);
-  border-color: var(--luglon-green);
+  color: var(--navy-ink);
+  border-color: var(--luglon-navy);
 }
 
 @media (max-width: 640px) {
@@ -3838,7 +3884,7 @@ main:has(> .page-section--footer-band:last-child) + .site-footer {
 
      .decor-vine__ink   porte le DESSIN. images/decor-fougere.svg n'est pas
                         une image mais un MASQUE : la couleur vient donc de
-                        --green-ink et suit le thème sombre toute seule, ce
+                        --navy-ink et suit le thème sombre toute seule, ce
                         qu'un <img> n'aurait pas su faire. La tuile est
                         raccordable verticalement (mask-repeat: repeat-y).
 
@@ -3849,7 +3895,7 @@ main:has(> .page-section--footer-band:last-child) + .site-footer {
 
    Deux masques sur DEUX éléments, et non deux couches sur un seul : sans
    mask-composite, deux couches s'ADDITIONNENT — le navigateur qui ne le
-   comprend pas afficherait une barre verte pleine hauteur.
+   comprend pas afficherait une barre marine pleine hauteur.
 
    DÉGRADATION. Le dessin est visible en entier par défaut ; le dégradé
    d'apparition n'est ajouté que dans le @supports plus bas. Firefox, qui ne
@@ -3905,8 +3951,8 @@ main:has(> .page-section--footer-band:last-child) + .site-footer {
 
     /* Plein trait, sur demande (août 2026). Le décor n'est plus un filigrane
        mais un élément graphique à part entière.
-       À savoir si on revient dessus : --green-ink vaut #6bd698 en thème
-       sombre, nettement plus clair que le #166136 du thème clair, et un trait
+       À savoir si on revient dessus : --navy-ink vaut #a9c1e0 en thème
+       sombre, nettement plus clair que le #1b2a4a du thème clair, et un trait
        clair sur fond foncé « pèse » davantage. Une opacité unique ne donne
        donc PAS la même présence dans les deux thèmes. */
     opacity: 1;
@@ -3921,7 +3967,7 @@ main:has(> .page-section--footer-band:last-child) + .site-footer {
   .decor-vine__ink {
     display: block;
     height: 100%;
-    background-color: var(--green-ink);
+    background-color: var(--navy-ink);
 
     -webkit-mask: url("/mairie-luglon/images/decor-fougere.svg") repeat-y 0 0 / 100% auto;
             mask: url("/mairie-luglon/images/decor-fougere.svg") repeat-y 0 0 / 100% auto;

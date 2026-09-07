@@ -222,6 +222,19 @@ Each HTML page manually includes only the scripts it needs, always after `config
   Fails open: the accordion only arms (`.nav-accordion-armed` on `.site-nav`) once the
   listeners are attached; if this block doesn't run at all, mobile submenus fall back to
   their original always-expanded indented list — never a submenu stuck invisible.
+- `hero-fit.js` — every hero (all pages): shrinks `.main-title` in JS-measured steps until
+  it fits within 2 lines (there's no CSS-only way to say "reduce font-size until this wraps
+  at most twice" — it depends on the actual rendered text/width, not a breakpoint), then
+  shrinks `.main-subtitle` in proportion to how much the title itself shrank, capped at its
+  own CSS default. That second step matters: `.main-subtitle` is superposed over the
+  title's own top edge by a negative margin (see its definition in `styles.css`, section
+  4) sized for a title at its normal, un-shrunk size — left at that fixed size against a
+  title heavily shrunk for an unusually long page name, the two end up rendered at the same
+  size, overlapping edge-to-edge as illegible double-exposed text. Re-run on
+  `document.fonts.ready` (the self-hosted title font can finish loading, and therefore
+  change the text's rendered width, after the first measurement) and on resize (debounced).
+  Fails open: without this script, `.main-title` just keeps its CSS breakpoint size — a
+  long title wraps onto more than 2 lines, never invisible or clipped.
 - `events.js` — actualité card badges ("À venir"/"Terminé") computed from `data-date` on
   `.event-card` elements. Content lives in HTML, not JS, so search engines see it without
   JS. Fail-open: on failure, hardcoded HTML badges remain visible.
@@ -338,9 +351,125 @@ bottom of a page) get `style="justify-content: center"` inline in the HTML, on p
 so that a global mobile override can't silently pull in a `cta-row` that was never meant
 to center (exactly what happened to the hero's back-button — see above).
 
+### Brand color is navy blue (`--luglon-navy`), not the old green
+
+The site's brand color was switched from green (`#166136`) to navy blue (`#1b2a4a`,
+"marine classique") after the site owner reviewed five navy mockups and picked this one —
+it's a deliberate identity change, not a placeholder or a mistake to revert. Every token
+was renamed to match, not just recolored, so a stray `--luglon-green` never resurfaces:
+`--luglon-green` → `--luglon-navy`, `--green-ink` → `--navy-ink`, `--green-050/100/700` →
+`--navy-050/100/700`, `--green-tint-08/16/24` → `--navy-tint-08/16/24`. `--accent` still
+aliases the primary token, now `var(--luglon-navy)`. The `.modal-btn-confirm-green`
+reservation-form button class was renamed to `.modal-btn-confirm-brand` for the same
+reason (its one HTML usage was updated too). If new UI needs the brand color, reach for
+these tokens — never hardcode `#1b2a4a` or a green hex, and never reintroduce a `-green`
+suffixed token name even for something that happens to render green today.
+
+`--luglon-navy` and `--navy-700` are **surface** colors: built to always carry white text,
+so they don't change between light/dark theme (see the comment on `--navy-ink` in the
+tokens section). `--navy-ink` is the **text-safe** version for writing brand-colored
+titles/links directly on the page background — it's `--luglon-navy` itself in light mode
+(plenty of contrast on white), but a lighter blue (`#a9c1e0`) in dark mode, the same way
+the old `--green-ink` swapped to a lighter green in dark mode. Don't use `--luglon-navy`
+as a text color outside a hardcoded-white surface (buttons, badges, the hero) — that's
+exactly the contrast bug `--navy-ink` exists to avoid.
+
+### Hero has a fixed navy background; the nav's white glass is opaque from load, not just on scroll
+
+`.main-hero` used to sit on `--card` (a neutral grey/dark grey that followed the theme).
+It now always uses a navy gradient (`linear-gradient(155deg, var(--luglon-navy),
+var(--navy-700))`), in both themes — a deliberate choice, paired with the color rebrand
+above, not something that should start following `--card` again. Because that background
+is fixed-dark, `.main-title`, `.main-subtitle` and the hero's `.cta-row .btn--ghost` are
+hardcoded white rather than `var(--text)` (which flips dark/light with the theme and would
+go unreadable on a background that never does) — see the comment at `.main-title`'s
+definition (section 4) before changing either back to a token color.
+
+This forced a second change to the nav bar. Before, `.site-nav__glass` (the barre's actual
+visible surface) stayed at `opacity: 0` until `.is-scrolled`/`.is-open`, because the
+transparent bar sat on a light hero and dark nav text (`var(--text)`) read fine either way.
+On a navy hero that no longer works — dark nav text on a transparent bar over a dark hero
+is invisible until the visitor scrolls. So `.site-nav__glass` now has a background from the
+very first frame, on every page. Two details worth knowing if this is touched again:
+
+- It's **opaque, not translucent, at rest** — `var(--glass-opaque)` (a flat white in light
+  mode, `#1c1c1e` in dark), not `var(--glass-bg-strong)`. A 78%-opacity white blurred over
+  a navy hero reads as a pale blue-grey wash, not the "blanc" the site owner asked for —
+  only a flat opaque fill gives a genuinely white bar regardless of what's behind it.
+- The frosted **glass** look (`var(--glass-bg-strong)` + `backdrop-filter`) only kicks in
+  under `.is-scrolled`/`.is-open`. This isn't just cosmetic restraint: it means the blur —
+  the expensive GPU pass the file's own rule A warns about — never runs while the bar is at
+  rest, only once it's already shrinking to its compact size. `.is-scrolled` therefore now
+  changes three things together (size, texture, and the brand panel/wave, see below), never
+  just one — but the bar's *presence* is constant, so the scroll transition reads as a
+  shrink into a nicer material, not an appear-from-nothing.
+
+The brand panel/wave (the decorative gradient and wave behind "Mairie de Luglon") still
+only appear on `.is-scrolled` — that part didn't change, it's still exclusive to the
+compact scrolled state, not something to make permanent alongside the opaque background.
+
+### `.main-title` auto-shrinks to fit 2 lines; `.main-subtitle` is superposed over it, never stacked below
+
+Two related but separate mechanisms:
+
+- **The title never wraps past 2 lines.** `hero-fit.js` (see "Per-page script includes")
+  measures the rendered height and steps the font-size down until it fits, since there's no
+  CSS-only way to express "shrink until this wraps at most twice" — it depends on the
+  actual text and the actual viewport, not a breakpoint. This replaced a manual
+  `.main-title--long` modifier that had to be hand-added to any page whose title ran long
+  (and had gone stale — it was defined in `styles.css` but wasn't actually used on any page
+  by the time this changed). Don't reintroduce a per-page CSS size override for a long
+  title; let the script handle it.
+- **The subtitle sits on top of the title's own top edge, not above or below it in the
+  flow.** The HTML places `<p class="main-subtitle">` **before** `<h1 class="main-title">`
+  (like a `.kicker` before an `<h2>` elsewhere on the site), but `.main-subtitle` has
+  `margin-bottom: -1.4em` exactly matching its own `line-height: 1.4` — its box collapses
+  to nothing, so `.main-title` renders at exactly the position it would have without a
+  subtitle at all, and the subtitle (painted above it via `z-index`) ends up superposed on
+  the title's own first line. That's deliberate, not a bug to "fix" by adding normal
+  spacing: the site owner asked for the subtitle to sit "par-dessus" the title specifically
+  so it never adds height to the navy hero band, present or not.
+
+  A first version used `position: absolute` on `.main-subtitle` with
+  `transform: translateY(-100%)`, anchored on `.hero-content`, to push it entirely above
+  the title. That worked on desktop, where the hero's top padding leaves a large margin
+  above `.hero-content` — but on mobile that padding is only 10px, and the subtitle ended
+  up rendered partly *underneath the fixed nav bar*. The margin-collapse technique above
+  can't do that: it never leaves the title's own box, so it can never climb higher than the
+  title itself regardless of how tight the surrounding padding is. If this is touched again,
+  don't go back to the absolute+translateY version without re-checking mobile.
+
+  Because the overlap only works cleanly when the subtitle is meaningfully smaller than the
+  title, `hero-fit.js` also shrinks `.main-subtitle` (capped at its own CSS default,
+  `--fs-sm`) in proportion to how much it had to shrink the title — see that script's own
+  comment. Without this, a very long page title shrunk small by the 2-line rule would end
+  up nearly the same rendered size as the fixed-size subtitle superposed on it, and the two
+  would blend into unreadable overlapping text instead of "small label over big title".
+
+### Nav bar is a rectangle, and its top-level tabs fill solid on hover/active — not a pill with an underline
+
+The bar (`.site-nav__bar`, its glass, the brand panel, and the mobile dropdown panel) used
+to carry a rounded corner at every width — `--r-l` expanded, `--r-pill` (a true pill) once
+`.is-scrolled`. On demand (2027) it's a rectangle in both states: `border-radius: 0`,
+explicit rather than omitted, so it reads as a choice. `.site-nav__glass` still inherits
+this via `border-radius: inherit`, so squaring the bar is enough to square the glass too —
+don't set a radius on the glass directly. The bar still shrinks in size on scroll (that's a
+separate, still-valid feature — more room once you've started reading a page); only the
+rounding was tied to the "bulle" identity and went with it.
+
+The active page's top-level tab, and whichever tab is under the pointer, now fill solid
+`var(--luglon-navy)` with white text — a tile, not the thin 2px underline
+(`.site-nav__links a::after`) that used to slide in under the active tab. The selector is
+`.site-nav__links > li > a` (a **direct child** of the top `<li>`) specifically so it
+excludes the nested `.site-nav__submenu` links one level down — those keep the older,
+lighter `--navy-tint-08` hover inherited from the general `.site-nav__links a:hover` rule;
+a solid navy block would be too heavy inside a small dropdown list. If a fifth top-level
+tab is ever added, it gets the tile automatically through that selector — nothing to wire
+up per tab.
+
 ### Footer's mail icon links to `/contact/`, not `mailto:`
 
-`.footer-social-link.footer-mail` (the green circular icon in `.footer-social`) is an
+`.footer-social-link.footer-mail` (the navy circular icon in `.footer-social`) is an
 `<a href="/contact/">`, and there is no longer a plain-text `mairie@luglon.fr` link next
 to it — that was removed on purpose so the footer funnels people to the Contact page's
 own form/info instead of popping their mail client directly. `mailto:mairie@luglon.fr`
