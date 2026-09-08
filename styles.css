@@ -96,6 +96,13 @@
   --navy-tint-16: rgba(27, 42, 74, 0.16);
   --navy-tint-24: rgba(27, 42, 74, 0.24);
 
+  /* Bleu franc, nettement plus « bleu » que le marine de marque (qui tire au
+     noir) : survol d'une case DÉJÀ SÉLECTIONNÉE dans le calendrier de
+     réservation, et rien d'autre pour l'instant. C'est une SURFACE au même
+     titre que --luglon-navy — elle porte toujours du texte blanc (6,3:1),
+     donc pas de variante en thème sombre et jamais utilisée comme encre. */
+  --navy-vivid: #2f5bb7;
+
   /* --- Polices --- */
   --font-body: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   --font-title: "Special Gothic Condensed One", sans-serif;
@@ -134,12 +141,25 @@
   --content-max: 1180px;
   --measure:     68ch;
 
-  /* --- Rayons --- */
-  --r-xs: 6px;
-  --r-s: 10px;
-  --r-m: 14px;
-  --r-l: 20px;
-  --r-xl: 28px;
+  /* --- Rayons ---
+     TOUT EST À ANGLES DROITS (2027). La barre de nav est passée en rectangle
+     (voir .site-nav__bar) ; garder des cartes et des panneaux arrondis en
+     dessous faisait cohabiter deux langages de forme. Les cinq rayons de
+     boîte sont donc à 0 — valeurs conservées comme jetons plutôt que
+     supprimées, pour que les ~30 `border-radius: var(--r-…)` du fichier
+     restent un seul point de réglage si la décision est un jour revue.
+     `--r-pill` est la SEULE exception et n'est pas concernée : elle ne sert
+     qu'à des formes qui ne sont pas des cartes (pastilles d'état des
+     actualités, étiquettes .tag-list, points du carrousel .rail-dots, pilule
+     tél/e-mail au-dessus du nav) — un badge carré se lirait comme un bouton.
+     Les `border-radius: 50%` codés en dur (logo, icônes du pied de page,
+     rond de confirmation, flèches du calendrier) sont dans le même cas :
+     ce sont des cercles, pas des boîtes arrondies. */
+  --r-xs: 0;
+  --r-s: 0;
+  --r-m: 0;
+  --r-l: 0;
+  --r-xl: 0;
   --r-pill: 999px;
 
   /* --- Ombres (contact serré + ambiant large + liseré intérieur) --- */
@@ -335,11 +355,24 @@ body {
    minime (.main-hero n'ajoute que 10px) et le sous-titre débordait SOUS la
    barre de nav fixe. La technique margin négative ne sort jamais du bloc du
    titre lui-même : elle ne peut donc jamais remonter plus haut que lui, quel
-   que soit le padding au-dessus — d'où le changement. */
+   que soit le padding au-dessus — d'où le changement.
+
+   LA MARGE N'ANNULE PLUS TOUTE LA BOÎTE (-0,6em et non -1,4em). Annuler
+   exactement la line-height posait le sous-titre sur le haut de la boîte de
+   ligne du titre, où se logent justement les accents des capitales : sur
+   « ARRÊTÉS ET PUBLICATIONS » le circonflexe du Ê venait toucher le mot
+   « MAIRIE » au-dessus. Les 0,8em restants (~11px) laissent le titre
+   descendre juste assez pour dégager la zone des accents. La valeur est
+   volontairement en em du SOUS-TITRE, pas en px : hero-fit.js réduit le
+   sous-titre en même temps que le titre sur les pages à titre très long, et
+   l'écart suit donc tout seul au lieu de devenir énorme à petite taille.
+   Le sous-titre reste superposé (il mord encore 0,6em dans la boîte du
+   titre) : le héros ne grandit que d'une dizaine de pixels, ce qui était
+   l'intention d'origine. */
 .main-subtitle {
   position: relative;
   z-index: 1;
-  margin: 0 0 -1.4em;
+  margin: 0 0 -0.6em;
   line-height: 1.4;
   font-family: var(--font-kicker);
   font-size: var(--fs-sm);
@@ -552,7 +585,7 @@ form .row {
 .nav-button {
   color: white;
   background: var(--luglon-navy);
-  border-radius: 10px;
+  border-radius: 0;
   padding: 15px;
   display: block;
   width: 100%;
@@ -588,7 +621,7 @@ form .row {
   margin-top: 6px;
   padding: 6px 14px;
   border: 1px solid var(--luglon-navy);
-  border-radius: 20px;
+  border-radius: 0;
   background: var(--luglon-navy);
   color: #ffffff;
   font-size: 0.8rem;
@@ -977,6 +1010,38 @@ form .row {
 }
 
 @media (min-width: 860px) {
+  /* Les onglets occupent TOUTE la hauteur utile de la barre (align-self /
+     align-items: stretch), et non plus seulement la hauteur de leur texte.
+     C'est ce qui permet à la règle suivante d'accrocher le sous-menu pile
+     sous la barre : le <li> positionné descend maintenant jusqu'au bord
+     intérieur de .site-nav__bar, donc `100% + son padding vertical` tombe
+     exactement sur son bord extérieur. Sans ce stretch, `100%` désignerait
+     le bas du texte du lien et le panneau flotterait quelque part au milieu
+     de la barre. Le <a> redevient un flex centré pour que son libellé reste
+     au milieu de la case malgré la hauteur imposée — c'est aussi ce qui
+     donne à la tuile marine du survol (voir .site-nav__links > li > a) la
+     hauteur pleine d'un vrai onglet plutôt qu'une pastille flottante. */
+  .site-nav__links {
+    align-self: stretch;
+    align-items: stretch;
+  }
+  .site-nav__links > li {
+    display: flex;
+  }
+  .site-nav__links > li > a {
+    display: flex;
+    align-items: center;
+  }
+
+  /* Rectangulaire et COLLÉ à la barre, pas une bulle flottante : depuis que
+     .site-nav__bar est à angles droits, un panneau arrondi séparé par une
+     gouttière lisait comme un objet sans rapport posé par-dessus la page.
+     Le haut du panneau coïncide donc pile avec le bas de la barre
+     (var(--space-2xs) = le padding vertical de .site-nav__bar, voir plus
+     haut) et son rayon est explicitement 0. Le pont de survol ::before juste
+     en dessous reste indispensable : cette gouttière appartient au padding
+     de la barre, pas au <li>, donc sans lui le :hover retombe pendant que le
+     curseur la traverse. */
   .site-nav__submenu {
     position: absolute;
     top: calc(100% + var(--space-2xs));
@@ -984,7 +1049,7 @@ form .row {
     z-index: var(--z-sheet);
     min-width: max-content;
     padding: var(--space-2xs);
-    border-radius: var(--r-m);
+    border-radius: 0;
     background: var(--bg);
     border: 1px solid var(--tab-border);
     box-shadow: var(--shadow-l);
@@ -1030,7 +1095,7 @@ form .row {
     display: block;
     white-space: nowrap;
     padding: var(--space-2xs) var(--space-s);
-    border-radius: var(--r-s);
+    border-radius: 0;
     font-size: 1rem;
     text-transform: none;
   }
@@ -1420,7 +1485,7 @@ html {
   display: block;
   max-width: 30%;
   height: auto;
-  border-radius: 12px;
+  border-radius: 0;
   overflow: hidden;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
@@ -1477,7 +1542,7 @@ html {
 }
 .history-image-placeholder {
   width: 200px;
-  border-radius: 12px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1608,7 +1673,7 @@ html {
 }
 .activity-line {
   transition: background var(--dur-fast), padding-left var(--dur-fast);
-  border-radius: 6px;
+  border-radius: 0;
   padding-left: 4px;
 }
 .activity-line:hover {
@@ -2776,7 +2841,7 @@ html {
 }
 .res-wrap .card {
   background: var(--bg);
-  border-radius: 12px;
+  border-radius: 0;
   box-shadow: 0 6px 18px var(--resa-shadow);
 }
 
@@ -2795,7 +2860,7 @@ html {
   max-width: 720px;
   margin: 0 auto 30px;
   padding: 26px 30px;
-  border-radius: 14px;
+  border-radius: 0;
   background: var(--card);
   border: 1px solid var(--tab-border);
   box-shadow: 0 6px 18px var(--resa-shadow);
@@ -2823,7 +2888,7 @@ html {
 .price-plaque {
   padding: 15px;
   background: var(--tab-font);
-  border-radius: 8px;
+  border-radius: 0;
   margin-bottom: 20px;
   text-align: center;
   border: 1px solid var(--luglon-navy);
@@ -2869,7 +2934,7 @@ html {
 /* --- Note d'avertissement --- */
 .warning-note {
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: 0;
   background-color: var(--warning-orange-font);
   border: 1px solid var(--warning-orange-border);
   font-size: 13px;
@@ -3005,6 +3070,19 @@ html {
   color: #fff;
   font-weight: 700;
 }
+/* Le survol DÉPEND de l'état, il ne l'écrase pas. Une case sélectionnée
+   porte aussi --available : sans cette règle, `.res-calendar__day--available:hover`
+   (deux sélecteurs, donc plus spécifique que `--selected` tout seul) lui
+   repeignait un fond clair --navy-tint-08 par-dessus son texte blanc — le
+   chiffre disparaissait dès qu'on repassait sur un jour qu'on venait de
+   choisir. La réponse au survol reste donc « encore plus bleu », jamais
+   « redevient clair », et le chiffre est réaffirmé en blanc ici même pour
+   qu'aucune règle de survol future ne puisse le reprendre. */
+.res-calendar__day--selected:hover {
+  border-color: var(--navy-vivid);
+  background: var(--navy-vivid);
+  color: #fff;
+}
 
 .res-calendar__legend {
   display: flex;
@@ -3022,7 +3100,7 @@ html {
 .res-calendar__swatch {
   width: 12px;
   height: 12px;
-  border-radius: 3px;
+  border-radius: 0;
   flex: none;
 }
 .res-calendar__swatch--available {
@@ -3084,7 +3162,7 @@ label {
 input, textarea, select {
   width: 100%;
   padding: 10px;
-  border-radius: 8px;
+  border-radius: 0;
   color: var(--text);
   font-size: 14px;
   background-color: var(--form-bg);
@@ -3121,7 +3199,7 @@ input[type="number"] {
   flex: 0 0 calc(25% - 7.5px);   /* 4 colonnes, ajusté pour le gap */
   min-width: 120px;
   padding: 10px;
-  border-radius: 8px;
+  border-radius: 0;
   border: 1px solid var(--tab-border);
   animation: cardSlideUp var(--dur-slow) var(--ease-expo-out) both;
 }
@@ -3158,12 +3236,12 @@ input[type="number"] {
   margin-top: 15px;
   font-weight: bold;
   color: var(--accent);
-  border-radius: 6px;
+  border-radius: 0;
   padding: 2px 6px;
 }
 #final-total {
   transition: all 0.3s ease;
-  border-radius: 8px;
+  border-radius: 0;
   padding: 10px 12px;
 }
 #total-amount {
@@ -3176,7 +3254,7 @@ input[type="number"] {
   display: inline-block;
   padding: 15px;
   margin-top: 15px; margin-bottom: 15px;
-  border-radius: 10px;
+  border-radius: 0;
   background: var(--accent);
   color: white;
   cursor: pointer;
@@ -3246,7 +3324,7 @@ input[type="number"] {
   margin-left: auto;
   font-size: 14px;
   padding: 5px 10px;
-  border-radius: 6px;
+  border-radius: 0;
   background-color: var(--muted);
   color: var(--text);
   display: none;
@@ -3324,7 +3402,7 @@ input[type="number"] {
   max-width: 480px;
   width: 100%;
   padding: 28px;
-  border-radius: 16px;
+  border-radius: 0;
   border: 2px solid var(--alert);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: scaleIn 0.25s var(--ease-expo-out) both;
@@ -3350,7 +3428,7 @@ input[type="number"] {
   flex: 1;
   color: white;
   padding: 12px;
-  border-radius: 10px;
+  border-radius: 0;
   border: none;
   cursor: pointer;
   font-size: 1rem;
@@ -3375,7 +3453,7 @@ input[type="number"] {
 }
 .recap-event-block {
   background: rgba(27, 42, 74, 0.07);
-  border-radius: 10px;
+  border-radius: 0;
   padding: 12px 16px;
   margin-bottom: 14px;
 }
@@ -3423,7 +3501,7 @@ input[type="number"] {
 .confirmation-details {
   text-align: left;
   background: var(--card);
-  border-radius: 12px;
+  border-radius: 0;
   padding: 18px 22px;
   margin: 0 auto 18px;
   max-width: 440px;
@@ -3498,7 +3576,7 @@ input[type="number"] {
 
 .legal-card {
   background: var(--bg);
-  border-radius: 12px;
+  border-radius: 0;
   box-shadow: 0 6px 18px var(--resa-shadow);
   padding: 28px 32px;
   line-height: 1.65;

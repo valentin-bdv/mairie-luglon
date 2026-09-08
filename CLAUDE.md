@@ -9,15 +9,15 @@ website for the commune of Luglon (Landes, 40630), meant to be shown to the mayo
 proposal. It reuses the visual/interactive system originally built for a *different* site
 — the Comité des Fêtes de Luglon (a local festival association) — and its content has
 since been fully replaced with generic mairie content (pages, nav, copy, forms). Do not
-reintroduce Comité des Fêtes / `cdf-luglon.fr` content or branding; `Arengosse.html` at
-the repo root is a real real-world mairie site kept only as a reference/inspiration file
-— it is not part of this site and uses none of this repo's CSS/JS.
+reintroduce Comité des Fêtes / `cdf-luglon.fr` content or branding. (A reference copy of
+a real mairie site, `Arengosse.html`, used to sit at the repo root as inspiration; it was
+deleted once the design had settled and should not come back.)
 
 Addresses, phone numbers, opening hours, and the municipal team listed on
 `mairie/equipe-municipale/` are **plausible placeholders**, not real facts about Luglon —
 flag this if asked to treat them as authoritative.
 
-`enfance-jeunesse/`, the waste-management part of `vie-pratique/dechets/`,
+`vie-pratique/enfance-jeunesse/`, the waste-management part of `vie-pratique/dechets/`,
 `vie-pratique/associations/`, `vie-pratique/entreprises/`, the homepage "chiffres" stat
 blocks, the "commerces de proximité" section on `vie-pratique/`, and the "Portage de
 repas" card on `vie-pratique/ccas-et-seniors/` (see below) are the exceptions: their
@@ -60,7 +60,7 @@ altitude range from published commune fact sheets, coordinates rounded from the 
 hand-editing — a stale population figure quietly becomes a wrong one after the next census
 update lands there.
 
-The RPI map on `enfance-jeunesse/` (`.rpi-map`) draws real roads (D327/D626/D45,
+The RPI map on `vie-pratique/enfance-jeunesse/` (`.rpi-map`) draws real roads (D327/D626/D45,
 simplified from OpenStreetMap into single-control-point quadratic curves for a constant
 stroke width) between the 4 real commune centers (geo.api.gouv.fr), plus a handful of
 unlabeled grey `.rpi-map__road-minor` roads for context. If a label and a road ever
@@ -128,20 +128,22 @@ non-obvious logic.
   `mairie/`'s own (see below) are two separate copies of the same markup, not one shared
   include (there's no templating in this repo) — if the hours change, update both by
   hand.
-- `mairie/` — The mairie: équipe municipale, conseils municipaux, arrêtés, agence
-  postale, sécurité et prévention, signalement, and `vos-demarches/` (état civil: actes,
-  listes électorales, recensement citoyen — moved here from `vie-pratique/etat-civil/`,
-  see below).
-- `vie-municipale/` — Budget, commissions, communauté de communes. Linked from
-  `mairie/index.html` ("Retrouvez aussi...") rather than from the nav; treat it as part
-  of the mairie domain (same placeholder photo, same plausibility caveats).
+- `mairie/` — The mairie: équipe municipale, conseils municipaux,
+  `arretes-et-publications/`, agence postale, sécurité et prévention, signalement,
+  `urbanisme/`, `vos-demarches/` (état civil: actes, listes électorales, recensement
+  citoyen — moved here from `vie-pratique/etat-civil/`), plus `budget/`, `commissions/`
+  and `communaute-de-communes/`. Those last three are the only pages in `mairie/` that
+  are **not** in the nav's Mairie submenu: they're reached from `mairie/index.html`
+  ("Retrouvez aussi…") only, which is deliberate — the submenu already carries eight
+  entries. They used to live under a top-level `vie-municipale/` directory that had no
+  `index.html` of its own, so `/vie-municipale/` itself 404'd while its three children
+  worked; flattening them into `mairie/` (2026-09) removed the orphan path rather than
+  papering over it with a hub page nobody linked to.
 - `vie-pratique/` — Administrative procedures that aren't état civil or urbanisme
-  (déchets, CCAS et seniors), opening hours, and a "commerces de proximité" section.
-  État civil and urbanisme conceptually belong to `mairie/`, not here: état civil lives at
-  `mairie/vos-demarches/` (see above) and urbanisme at `vie-pratique/urbanisme/` (its URL
-  didn't move, only its card was dropped from this page's own grid — it's still reachable
-  from the nav's Mairie submenu). The "commerces de proximité" section is **real**, not a
-  placeholder: Luglon has no shops of its own, so it lists the actual nearest ones —
+  (déchets, CCAS et seniors, enfance-jeunesse), opening hours, and a "commerces de
+  proximité" section. État civil and urbanisme belong to `mairie/`, and both now live
+  there in the URL too — `mairie/vos-demarches/` and `mairie/urbanisme/`. The "commerces
+  de proximité" section is **real**, not a placeholder: Luglon has no shops of its own, so it lists the actual nearest ones —
   Boulangerie Suzanne and Proxi (alimentation générale), both in Sabres — plus the
   Écomusée de Marquèze (real open-air museum, reached by the heritage train from Sabres'
   old station, official site marqueze.fr). Earlier drafts of this section used fictional
@@ -165,7 +167,14 @@ non-obvious logic.
   below, but if the site owner wants the association's name kept out of print entirely,
   drop that one `<li>`, not the whole page.
 - `vie-pratique/reservation-salle/` (+ `.../confirmation/`) — Room-booking request form.
-- `enfance-jeunesse/` — École, périscolaire, transport scolaire, centre de loisirs.
+- `vie-pratique/enfance-jeunesse/` — École, périscolaire, transport scolaire, centre de
+  loisirs. Everything on this page is sourced fact **except** the "Les projets de l'école"
+  section, which is an explicitly-labelled empty template: no public source (mairie-sabres.fr,
+  coeurhautelande.fr, the Éducation nationale directory) documents the school's projects,
+  so three placeholder cards carry the layout and an italic note tells the visitor so —
+  the same honest-placeholder device as `mairie/arretes-et-publications/`. Do not fill
+  those cards with plausible-sounding projects; wait for the school's own list. An HTML
+  comment above the section spells out what to change when it arrives.
 - `actualites/` — News listing. No detail pages exist anymore (the last one,
   `nouveau-commercant/`, was removed — fictional, "n'existe pas") — every actualité is
   now just a card. "Incendie à Luglon", "Fêtes de Luglon" and "Concours de belote" are
@@ -319,20 +328,35 @@ weight, not a convenience. If a submenu ever gets its own catch-all urge again, 
 instead — this was fixed once already (2026) after Vie pratique and Actualités had
 accumulated exactly this redundant row each.
 
-### Every subpage's "back" button points at its real nav category, not a stale one
+### A page's URL path mirrors its nav category — and every directory has an `index.html`
 
-The `← <Category>` ghost button in a subpage's hero (`main-subtitle` + `cta-row`), and
-the matching button in its `page-section--footer-band`, must target the category the
-page is actually filed under **in the nav submenu right now** — not wherever it used to
-live. This repo has moved pages between categories more than once (état civil →
-`mairie/vos-demarches/`, Urbanisme's nav entry moved from Vie pratique's submenu to
-Mairie's while its URL stayed at `/vie-pratique/urbanisme/`, contact/ promoted out of
-Mairie into its own top-level item) and each time it's easy to update the nav `<li>` but
-forget the page's own back-button, leaving it pointing at the old section. When you move
-a page between categories, grep for its own back button and footer-band button in the
-same edit — don't treat the nav `<li>` as the only place the category lives. Urbanisme is
-the cautionary example: it sat for a while with `← Vie pratique` even after its nav entry
-had already moved to Mairie.
+Two invariants, both established by an arborescence audit (2026-09) after the tree had
+drifted:
+
+1. **A page lives at the URL its nav category implies.** If it sits in the Mairie
+   submenu, its path starts with `/mairie/`; Vie pratique's pages start with
+   `/vie-pratique/`. Before the audit, `enfance-jeunesse/` sat at the repo root while
+   being filed under Vie pratique, `urbanisme/` sat under `vie-pratique/` while being
+   filed under Mairie, and `vie-municipale/` was a top-level directory in no nav category
+   at all. All three were moved (`vie-pratique/enfance-jeunesse/`, `mairie/urbanisme/`,
+   and `mairie/{budget,commissions,communaute-de-communes}/`). The two hub grids —
+   `mairie/index.html` and `vie-pratique/index.html` — now list exactly what their own
+   submenu lists, which is the cheapest way to spot the next drift.
+2. **Every directory that is a URL has an `index.html`.** `vie-municipale/` had none, so
+   `/vie-municipale/` 404'd while its three child pages worked — a broken path nobody
+   linked to and nothing tested. If a new grouping directory is ever introduced, it gets
+   a hub page or it doesn't get to be a directory.
+
+Moving a page means touching more than the nav `<li>`: the `← <Category>` ghost button in
+its hero (`main-subtitle` + `cta-row`), the matching button in its
+`page-section--footer-band`, its `<link rel="canonical">`, its entry in `sitemap.xml`, its
+card on the hub page, and every other page's copy of the nav submenu (there's no
+templating — the nav is duplicated in all 26 files). Two greps catch almost everything
+afterwards: one resolving every `href="/mairie-luglon/…"` to a real file, one comparing
+each page's canonical to its own directory.
+
+Urbanisme is the cautionary example for the back-button half of this: it sat for a while
+with `← Vie pratique` even after its nav entry had already moved to Mairie.
 
 ### Hero text is left-aligned on mobile, never centered
 
@@ -422,13 +446,22 @@ Two related but separate mechanisms:
   title; let the script handle it.
 - **The subtitle sits on top of the title's own top edge, not above or below it in the
   flow.** The HTML places `<p class="main-subtitle">` **before** `<h1 class="main-title">`
-  (like a `.kicker` before an `<h2>` elsewhere on the site), but `.main-subtitle` has
-  `margin-bottom: -1.4em` exactly matching its own `line-height: 1.4` — its box collapses
-  to nothing, so `.main-title` renders at exactly the position it would have without a
-  subtitle at all, and the subtitle (painted above it via `z-index`) ends up superposed on
-  the title's own first line. That's deliberate, not a bug to "fix" by adding normal
-  spacing: the site owner asked for the subtitle to sit "par-dessus" the title specifically
-  so it never adds height to the navy hero band, present or not.
+  (like a `.kicker` before an `<h2>` elsewhere on the site), but `.main-subtitle` carries a
+  negative `margin-bottom` that eats most of its own box, so `.main-title` renders almost
+  exactly where it would with no subtitle at all and the subtitle (painted above it via
+  `z-index`) ends up superposed on the title's own first line. That's deliberate, not a bug
+  to "fix" by adding normal spacing: the site owner asked for the subtitle to sit
+  "par-dessus" the title specifically so it never adds height to the navy hero band.
+
+  The margin is `-0.6em`, **not** `-1.4em` (its full `line-height`). Cancelling the box
+  exactly — which is what it did until 2026-09 — dropped the subtitle onto the very top of
+  the title's line box, which is precisely where the accents of capitals live: on
+  "ARRÊTÉS ET PUBLICATIONS" the circumflex of the Ê collided with "MAIRIE" above it. The
+  remaining 0.8em (~11px) lets the title fall just far enough to clear the accent zone,
+  and the subtitle still bites 0.6em into the title's box, so the hero grows by ten-odd
+  pixels rather than by a whole line. Keep the value in **em of the subtitle**, never px:
+  `hero-fit.js` shrinks the subtitle along with a very long title, and an em keeps the gap
+  proportional instead of leaving a fixed hole at small sizes.
 
   A first version used `position: absolute` on `.main-subtitle` with
   `transform: translateY(-100%)`, anchored on `.hero-content`, to push it entirely above
@@ -467,6 +500,33 @@ a solid navy block would be too heavy inside a small dropdown list. If a fifth t
 tab is ever added, it gets the tile automatically through that selector — nothing to wire
 up per tab.
 
+The dropdowns follow the same rule (2026-09): `border-radius: 0`, and their top edge sits
+**flush with the bottom of the bar** instead of floating 8px below it. Making that flush
+edge work needed the tabs themselves to fill the bar's full inner height — hence
+`align-self/align-items: stretch` on `.site-nav__links` and `display: flex` on the `<li>`
+and its `<a>`, all inside the `@media (min-width: 860px)` block. Without the stretch, the
+`<li>`'s `100%` is the bottom of the link's *text*, and the panel lands somewhere in the
+middle of the bar. Do **not** delete `.site-nav__submenu::before` now that the visible gap
+is gone: the 8px the cursor crosses is `.site-nav__bar`'s own padding, which belongs to
+the bar and not to the `<li>`, so without that invisible bridge the `:hover` still drops
+on the way down and the menu closes under the pointer.
+
+### Everything is square: the five box-radius tokens are `0`
+
+`--r-xs`/`--r-s`/`--r-m`/`--r-l`/`--r-xl` are all `0` (2026-09), extending the rectangle
+identity from the nav bar to every card, panel, input, modal and button on the site. They
+were zeroed **as tokens**, not deleted, so the ~30 `border-radius: var(--r-…)` call sites
+stay a single point of adjustment if the decision is ever revisited; the two dozen
+hardcoded `border-radius: <n>px` declarations were set to `0` in place at the same time.
+
+Two deliberate exceptions, neither of which is an oversight to "finish squaring":
+`--r-pill` (999px) still rounds things that aren't cards — the actualité "À venir"/"Terminé"
+badges, `.tag-list` labels, `.rail-dots` carousel dots, the tel/e-mail pill above the nav —
+because a square badge reads as a button; and the hardcoded `border-radius: 50%` circles
+(nav logo, footer social icons, the confirmation checkmark, the calendar's prev/next
+arrows) are circles, not rounded boxes. The 2px decorative bars (`.site-nav__burger`,
+`.day-title::after`) were left alone for the same reason.
+
 ### Footer's mail icon links to `/contact/`, not `mailto:`
 
 `.footer-social-link.footer-mail` (the navy circular icon in `.footer-social`) is an
@@ -475,6 +535,21 @@ to it — that was removed on purpose so the footer funnels people to the Contac
 own form/info instead of popping their mail client directly. `mailto:mairie@luglon.fr`
 is still used elsewhere (the utility strip above the nav, `.contact-card` links) — this
 is the one deliberate exception, not a mistake to "fix" back to a mailto.
+
+### The reservation calendar's hover depends on the day's state, it doesn't override it
+
+A selected day in `.res-calendar` carries **both** `--available` and `--selected`.
+`.res-calendar__day--available:hover` is two selectors and therefore beats
+`.res-calendar__day--selected` on its own, so hovering a day you had just picked repainted
+it with the pale `--navy-tint-08` hover fill *under its white text* and the number
+vanished. The fix is `.res-calendar__day--selected:hover`, placed after both: a selected
+day answers the pointer by going **more** blue (`--navy-vivid`, a genuinely saturated blue
+rather than the near-black brand navy), never by going pale, and it re-asserts
+`color: #fff` on the spot so no future hover rule can take the number back.
+
+`--navy-vivid` (`#2f5bb7`) is a **surface** token like `--luglon-navy`: it always carries
+white text (6.3:1), so it has no dark-theme variant and must never be used as ink. It is
+currently used by that one rule only.
 
 ### Reservation form has no real backend
 

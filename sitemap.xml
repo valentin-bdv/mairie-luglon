@@ -21,7 +21,7 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://mairie-luglon.fr/mairie/arretes-municipaux/</loc>
+    <loc>https://mairie-luglon.fr/mairie/arretes-et-publications/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -46,17 +46,17 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://mairie-luglon.fr/vie-municipale/budget/</loc>
+    <loc>https://mairie-luglon.fr/mairie/budget/</loc>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://mairie-luglon.fr/vie-municipale/commissions/</loc>
+    <loc>https://mairie-luglon.fr/mairie/commissions/</loc>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://mairie-luglon.fr/vie-municipale/communaute-de-communes/</loc>
+    <loc>https://mairie-luglon.fr/mairie/communaute-de-communes/</loc>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
@@ -66,7 +66,7 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://mairie-luglon.fr/vie-pratique/urbanisme/</loc>
+    <loc>https://mairie-luglon.fr/mairie/urbanisme/</loc>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -96,7 +96,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://mairie-luglon.fr/enfance-jeunesse/</loc>
+    <loc>https://mairie-luglon.fr/vie-pratique/enfance-jeunesse/</loc>
     <changefreq>yearly</changefreq>
     <priority>0.6</priority>
   </url>
