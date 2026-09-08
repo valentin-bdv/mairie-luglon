@@ -2276,6 +2276,17 @@ html {
   display: block;
   color: var(--muted);
   font-size: var(--fs-sm);
+  /* Interligne explicite : sur associations/ et entreprises/ chaque <span> tient
+     sur une ligne et l'interligne par défaut du navigateur passait inaperçu. Les
+     fiches de mairie/vos-demarches/ y mettent un paragraphe de conditions ou de
+     pièces à fournir, et sans cette ligne les phrases se tassent. */
+  line-height: var(--lh-body);
+}
+/* Un .prose peut ouvrir le corps d'un accordéon (le contexte d'une démarche avant
+   la liste de ses règles). .accordion__list porte son propre padding-top, pas lui :
+   sans cette règle le paragraphe colle au filet du <summary>. */
+.accordion__body > .prose {
+  padding-top: var(--space-m);
 }
 
 /* Chapô — la première phrase d'une section, sortie du pavé.

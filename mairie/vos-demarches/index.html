@@ -103,47 +103,213 @@
                 <p class="kicker">Démarches courantes</p>
                 <h2>Ce que traite le service état civil</h2>
             </div>
-            <div class="rail value-grid" tabindex="0"
-                 role="group" aria-label="Démarches d'état civil">
-                <div class="value-card" data-reveal style="--i:0">
-                    <span class="value-card__icon icon-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="3.4" width="11" height="14" rx="2"/><path d="M6 7a2 2 0 0 0-2 2v8.6a3 3 0 0 0 3 3h8.6"/></svg></span>
-                    <h3>Actes d'état civil</h3>
-                    <p>Naissance, mariage, décès : copies et extraits d'actes, à demander en mairie du lieu de l'évènement.</p>
-                </div>
-                <div class="value-card" data-reveal style="--i:1">
-                    <span class="value-card__icon icon-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 12.6 11.2 15 15.5 9.5"/><circle cx="12" cy="12" r="9"/></svg></span>
-                    <h3>Listes électorales</h3>
-                    <p>Inscription sur les listes électorales de la commune, notamment lors d'un déménagement.</p>
-                </div>
-                <div class="value-card" data-reveal style="--i:2">
-                    <span class="value-card__icon icon-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="9" cy="7.8" r="3.3"/><path d="M2.6 20a6.4 6.4 0 0 1 12.8 0"/><path d="M16.4 5a3.3 3.3 0 0 1 0 6.1"/><path d="M17.8 14.3A6.4 6.4 0 0 1 21.4 20"/></svg></span>
-                    <h3>Recensement citoyen</h3>
-                    <p>Obligatoire dès 16 ans, condition pour passer certains examens et concours et pour la Journée Défense et Citoyenneté.</p>
-                </div>
-                <div class="value-card" data-reveal style="--i:3">
-                    <span class="value-card__icon icon-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 21.4s7-6.1 7-11.1a7 7 0 1 0-14 0c0 5 7 11.1 7 11.1Z"/><circle cx="12" cy="10.3" r="2.6"/></svg></span>
-                    <h3>Changement d'adresse</h3>
-                    <p>Pensez à signaler votre nouvelle adresse à la mairie après un déménagement
-                       dans la commune. La déclaration de changement d'adresse auprès des
-                       administrations se fait en ligne sur
-                       <a href="https://www.service-public.gouv.fr/particuliers/vosdroits/R11193" target="_blank" rel="noopener noreferrer">service-public.gouv.fr</a>.</p>
-                </div>
+            <div class="prose" data-reveal>
+                <p>
+                    Dépliez la démarche qui vous concerne : chaque fiche indique qui peut
+                    la faire, les pièces à apporter, le coût et le délai, ainsi que la
+                    démarche en ligne lorsqu'elle existe.
+                </p>
             </div>
-            <div class="rail-dots" role="group" aria-label="Aller à une démarche"></div>
+
+            <!-- Fiches dépliables plutôt que des .value-card : une carte tient une
+                 phrase, pas les cinq lignes de conditions et de pièces à fournir que
+                 demande vraiment chaque démarche. Le <details> garde la page courte
+                 (quatre titres lisibles d'un coup d'œil) tout en laissant la place
+                 d'être précis, sans nouveau composant : c'est celui d'associations/
+                 et entreprises/, animé par accordion.js. -->
+            <div class="accordion-group" data-reveal>
+                <details class="accordion">
+                    <summary>Actes d'état civil : naissance, mariage, décès<span class="accordion__chevron" aria-hidden="true"></span></summary>
+                    <div class="accordion__body">
+                        <div class="prose">
+                            <p>
+                                Un acte est toujours délivré par la mairie du lieu de
+                                l'évènement, jamais par celle du domicile : la mairie de
+                                Luglon délivre les actes des naissances, mariages et décès
+                                survenus sur la commune. Pour un évènement survenu ailleurs,
+                                adressez-vous à la mairie concernée — ou, pour une naissance
+                                à l'étranger, au Service central d'état civil de Nantes.
+                            </p>
+                        </div>
+                        <ul class="accordion__list">
+                            <li>
+                                <strong>Qui peut la demander</strong>
+                                <span>La copie intégrale et l'extrait avec filiation sont réservés
+                                      à la personne concernée majeure, à son conjoint ou partenaire
+                                      de Pacs, à ses ascendants et descendants et à son représentant
+                                      légal. L'extrait sans filiation et les actes de décès sont
+                                      délivrés à toute personne, sans justification.</span>
+                            </li>
+                            <li>
+                                <strong>Pièces à fournir</strong>
+                                <span>Une pièce d'identité, et le livret de famille si vous demandez
+                                      l'acte d'un proche. Précisez les nom, prénoms et date de
+                                      l'évènement, ainsi que les nom et prénoms des parents.</span>
+                            </li>
+                            <li>
+                                <strong>Coût et délai</strong>
+                                <span>Gratuit dans tous les cas. L'acte est remis au guichet ou
+                                      envoyé par courrier sous quelques jours.</span>
+                            </li>
+                            <li>
+                                <strong>En ligne</strong>
+                                <span>La demande se fait aussi depuis
+                                      <a href="https://www.service-public.gouv.fr/particuliers/vosdroits/F1427" target="_blank" rel="noopener noreferrer">service-public.gouv.fr</a>.
+                                      Les sites qui facturent ce service ne sont pas officiels.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details class="accordion">
+                    <summary>Listes électorales<span class="accordion__chevron" aria-hidden="true"></span></summary>
+                    <div class="accordion__body">
+                        <div class="prose">
+                            <p>
+                                L'inscription est nécessaire pour voter à Luglon, et elle
+                                n'est pas automatique quand on emménage : changer de commune
+                                suppose une nouvelle inscription, même si l'on était déjà
+                                inscrit ailleurs.
+                            </p>
+                        </div>
+                        <ul class="accordion__list">
+                            <li>
+                                <strong>Qui peut s'inscrire</strong>
+                                <span>Tout Français de 18 ans et plus ayant une attache avec la
+                                      commune : y être domicilié, y résider depuis au moins six mois,
+                                      y payer des impôts locaux depuis au moins deux ans, ou y diriger
+                                      une société dans le même cas. Les ressortissants de l'Union
+                                      européenne s'inscrivent sur les listes complémentaires, pour les
+                                      élections municipales et européennes.</span>
+                            </li>
+                            <li>
+                                <strong>Quand</strong>
+                                <span>À tout moment de l'année. Pour voter à un scrutin donné, la
+                                      demande doit être déposée au plus tard le sixième vendredi qui
+                                      le précède.</span>
+                            </li>
+                            <li>
+                                <strong>Pièces à fournir</strong>
+                                <span>Une pièce d'identité en cours de validité (ou périmée depuis
+                                      moins de cinq ans), un justificatif de domicile de moins de
+                                      trois mois, et le formulaire Cerfa n°12669 remis au
+                                      secrétariat.</span>
+                            </li>
+                            <li>
+                                <strong>Inscription d'office à 18 ans</strong>
+                                <span>Les jeunes recensés à 16 ans sont inscrits automatiquement à
+                                      leur majorité. Cette inscription mérite tout de même une
+                                      vérification, en particulier après un déménagement.</span>
+                            </li>
+                            <li>
+                                <strong>En ligne</strong>
+                                <span>Inscription et vérification de sa situation électorale sur
+                                      <a href="https://www.service-public.gouv.fr/particuliers/vosdroits/F1367" target="_blank" rel="noopener noreferrer">service-public.gouv.fr</a>.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details class="accordion">
+                    <summary>Recensement citoyen à 16 ans<span class="accordion__chevron" aria-hidden="true"></span></summary>
+                    <div class="accordion__body">
+                        <div class="prose">
+                            <p>
+                                Le recensement citoyen est obligatoire pour tous les jeunes
+                                Français, filles et garçons, dans les trois mois qui suivent
+                                leur seizième anniversaire. Un oubli se régularise ensuite,
+                                jusqu'à 25 ans.
+                            </p>
+                        </div>
+                        <ul class="accordion__list">
+                            <li>
+                                <strong>Où le faire</strong>
+                                <span>Au secrétariat de la mairie du domicile, ou en ligne sur
+                                      <a href="https://www.service-public.gouv.fr/particuliers/vosdroits/F870" target="_blank" rel="noopener noreferrer">service-public.gouv.fr</a>.</span>
+                            </li>
+                            <li>
+                                <strong>Pièces à fournir</strong>
+                                <span>Une pièce d'identité française (carte nationale d'identité ou
+                                      passeport), le livret de famille des parents et un justificatif
+                                      de domicile.</span>
+                            </li>
+                            <li>
+                                <strong>Ce que le jeune obtient</strong>
+                                <span>Une attestation de recensement, à conserver : elle est exigée
+                                      pour s'inscrire avant 18 ans à un examen (brevet, CAP,
+                                      baccalauréat) ou au permis de conduire. La mairie n'en délivre
+                                      pas de duplicata ; en cas de perte, c'est le centre du service
+                                      national qui fournit une attestation de situation
+                                      administrative.</span>
+                            </li>
+                            <li>
+                                <strong>Ce qui suit</strong>
+                                <span>Le recensement déclenche la convocation à la Journée défense
+                                      et citoyenneté (JDC), puis l'inscription d'office sur les
+                                      listes électorales à 18 ans.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </details>
+
+                <details class="accordion">
+                    <summary>Changement d'adresse<span class="accordion__chevron" aria-hidden="true"></span></summary>
+                    <div class="accordion__body">
+                        <div class="prose">
+                            <p>
+                                Prévenir la mairie de son déménagement n'est pas une
+                                obligation légale, mais cela permet de tenir à jour le
+                                fichier électoral et de pouvoir vous joindre. D'autres
+                                démarches, elles, sont obligatoires.
+                            </p>
+                        </div>
+                        <ul class="accordion__list">
+                            <li>
+                                <strong>Au secrétariat</strong>
+                                <span>Signalez votre nouvelle adresse, que vous arriviez à Luglon ou
+                                      que vous déménagiez à l'intérieur de la commune. Si vous venez
+                                      d'une autre commune, demandez en même temps votre inscription
+                                      sur les listes électorales.</span>
+                            </li>
+                            <li>
+                                <strong>Toutes les administrations en une fois</strong>
+                                <span>La déclaration de changement d'adresse auprès des caisses
+                                      d'allocations familiales, de l'assurance maladie, des impôts,
+                                      de France Travail, des caisses de retraite et des fournisseurs
+                                      d'énergie se fait en une seule démarche sur
+                                      <a href="https://www.service-public.gouv.fr/particuliers/vosdroits/R11193" target="_blank" rel="noopener noreferrer">service-public.gouv.fr</a>.</span>
+                            </li>
+                            <li>
+                                <strong>Carte grise</strong>
+                                <span>Le changement d'adresse sur le certificat d'immatriculation est
+                                      obligatoire dans le mois qui suit le déménagement. Il se fait
+                                      <a href="https://www.service-public.gouv.fr/particuliers/vosdroits/F12118" target="_blank" rel="noopener noreferrer">en ligne</a>,
+                                      gratuitement pour les trois premiers changements.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </details>
+            </div>
         </section>
 
         <section class="page-section">
             <div class="panel">
                 <div class="section-head" data-reveal>
                     <p class="kicker">Bon à savoir</p>
-                    <h2>Pièces à fournir</h2>
+                    <h2>Gratuit, et sans intermédiaire</h2>
                 </div>
                 <div class="prose" data-reveal>
                     <p>
-                        Selon la démarche, une pièce d'identité et un justificatif de domicile
-                        sont généralement demandés. Le secrétariat de mairie vous indique la
-                        liste précise des pièces nécessaires avant votre venue, pour éviter un
-                        second déplacement.
+                        Aucune de ces démarches n'est payante, ni au guichet ni en ligne. Les
+                        sites privés qui proposent d'obtenir un acte ou une attestation contre
+                        quelques euros ne sont pas des services publics : ils facturent une
+                        démarche gratuite. L'adresse officielle se termine toujours par
+                        <strong>.gouv.fr</strong>.
+                    </p>
+                    <p>
+                        Avant de vous déplacer, un appel au secrétariat évite un second
+                        passage : il vous confirme la liste exacte des pièces à apporter dans
+                        votre situation.
                     </p>
                 </div>
             </div>
@@ -178,7 +344,7 @@
     </footer>
 
     <script src="/mairie-luglon/scroll-animations.js"></script>
-    <script src="/mairie-luglon/rail-dots.js"></script>
+    <script src="/mairie-luglon/accordion.js"></script>
     <script src="/mairie-luglon/hero-fit.js"></script>
     <script src="/mairie-luglon/nav.js"></script>
 </body>
