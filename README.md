@@ -36,6 +36,23 @@ Le chemin d'une page suit toujours sa rubrique dans le menu, et tout dossier qui
 URL possède son `index.html` — c'est ce qui évite qu'une adresse comme `/vie-municipale/`
 renvoie une 404 alors que ses pages filles fonctionnent.
 
+## Pourquoi un fichier `.nojekyll` à la racine
+
+GitHub Pages fait tourner Jekyll par défaut, qui interprète chaque `.html` comme
+un gabarit Liquid. Les gabarits Jinja de `backoffice/templates/` contiennent
+`{% raw %}{% extends %}{% endraw %}` et `{% raw %}{% block %}{% endraw %}`, que
+Liquid ne connaît pas : le déploiement échouait avec une erreur de build, et
+**plus rien n'était publié** — le site restait figé sur sa version précédente.
+
+`.nojekyll` désactive complètement ce traitement : les fichiers sont publiés
+tels quels. C'est de toute façon ce que veut ce dépôt, qui n'utilise pas Jekyll,
+et ça met à l'abri de toute interprétation surprise d'accolades dans un contenu
+futur.
+
+Conséquence : `backoffice/` est publié comme le reste et son code est lisible
+publiquement. Il ne contient aucun secret — le mot de passe n'existe que sous
+forme de condensat, dans l'environnement du serveur, jamais dans le dépôt.
+
 ## À savoir avant une mise en ligne réelle
 
 - Les contenus (adresse, horaires, actualités) sont des **exemples plausibles à valider
