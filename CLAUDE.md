@@ -578,29 +578,43 @@ rather than the near-black brand navy), never by going pale, and it re-asserts
 white text (6.3:1), so it has no dark-theme variant and must never be used as ink. It is
 currently used by that one rule only.
 
-### The reservation form has two modes, chosen by one line in `config.js`
+### The reservation form has two modes, and it picks one by itself
 
-`LUGLON.API_BASE` decides where a booking request goes, and `submitReservationOnServer()`
-in `script.js` reads it:
+`LUGLON.API_BASE` in `config.js` decides where a booking request goes, and it is
+**computed from the page's own hostname** — nothing to edit, nothing to remember:
 
-- **empty (the committed value)** — no backend. The request stays in the browser and a
-  short delay is simulated. This is what GitHub Pages serves, and it is **not a leftover
-  to delete**: it's what keeps the public demo link presentable at all times while a
-  backend only runs intermittently. The mayor's copy has nothing to demonstrate
-  server-side.
-- **`'/api'`** — one app serves the site *and* the API from the same origin. Today that's
-  `tools/dev-server.py` behind a tunnel; later it's OVH.
+```js
+API_BASE: location.hostname.endsWith('.github.io') ? '' : '/api',
+```
 
-Two rules that keep this from becoming a maintenance problem:
+- **On GitHub Pages** → `''`. No backend can run there (it serves files, it executes
+  nothing), so `submitReservationOnServer()` simulates the send and the request never
+  leaves the browser. This is the permanently-showable link, and it is structurally
+  incapable of erroring.
+- **Anywhere else** → `'/api'`. Something is running that serves the site *and* the API
+  from the same origin: `tools/dev-server.py` behind a Cloudflare tunnel today, OVH
+  later. The request goes out as `POST /api/reservation`.
 
-- **Keep `API_BASE` a relative path, never an absolute URL.** Same origin is what lets the
-  CSP stay identical in all three environments (`connect-src 'self'`). An API on its own
-  domain would mean reopening the policy on all 26 pages — and with a dev tunnel whose URL
-  changes every session, reopening it constantly. A backend hosted apart from the site is
-  deliberately not supported.
-- **Never commit `API_BASE` non-empty.** GitHub Pages has no API; the form would fail
-  there instead of falling back to demo mode. It's a value you flip locally while
-  developing.
+The point of deriving it rather than setting it: **the repo always contains everything
+and every commit pushes everything.** There is no file to edit before committing, none to
+keep out of a commit, no branch per environment. What differs between environments isn't
+the code, it's what happens to be *running* where the page is served from. An earlier
+version of this used a hand-flipped constant and that advice was wrong — it made the
+public site one forgotten `git checkout` away from showing visitors a failed send.
+
+Three consequences worth knowing:
+
+- **No allowlist to maintain.** Everything that isn't GitHub Pages is assumed to have a
+  backend. The one casualty: serving the site as pure static on localhost
+  (`python3 -m http.server`, used for checking a page) will attempt a send and show an
+  error. Harmless, and the price of having no list to keep in sync.
+- **A custom domain on GitHub Pages would break the rule** — the test wouldn't recognise
+  it and the form would attempt an impossible send. Not the plan (production goes to
+  OVH), but it's the one way to break this.
+- **Keep it a relative path, never an absolute URL.** Same origin is what lets the CSP
+  stay identical everywhere (`connect-src 'self'`), including behind a tunnel whose URL
+  changes every session. An API on its own domain would mean reopening the policy on all
+  26 pages.
 
 A network failure must stay a failure — `submitReservationOnServer()` resolves
 `{success: false}` rather than falling back to demo mode, so nobody is told their request

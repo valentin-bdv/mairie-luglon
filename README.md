@@ -48,10 +48,11 @@ renvoie une 404 alors que ses pages filles fonctionnent.
   demandes ne sont enregistrées que dans le navigateur de la personne qui les envoie. Un
   circuit de traitement réel (e-mail, tableur partagé, etc.) reste à brancher.
 
-  Le point de bascule existe déjà : `API_BASE` dans `config.js`. Vide (valeur commitée),
-  le formulaire reste en démonstration — c'est ce que sert GitHub Pages en permanence.
-  Renseigné à `/api`, il poste vers un backend qui sert le site depuis la même origine.
-  Ne jamais commiter une valeur non vide : GitHub Pages n'a pas d'API.
+  Le point de bascule existe déjà, et il se règle tout seul : `API_BASE` dans
+  `config.js` est déduit de l'adresse de la page. Servi depuis `github.io`, le
+  formulaire reste une démonstration ; servi depuis n'importe où ailleurs (tunnel,
+  OVH), il poste vers le backend qui sert le site à la même adresse. On commite donc
+  toujours tout, il n'y a rien à modifier ni à exclure d'un commit.
 
   Pour développer ce backend et le tester depuis un téléphone, `tools/dev-server.py`
   (FastAPI) sert le site et l'API à la même adresse, à exposer au besoin par un tunnel
