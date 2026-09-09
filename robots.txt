@@ -1,4 +1,11 @@
 User-agent: *
 Allow: /
 
+# L'administration n'a rien à faire dans un moteur de recherche. Le chemin réel
+# est réglable (backoffice/config.py) : on interdit les deux formes, celle par
+# défaut et l'ancienne, plutôt que de révéler ici l'adresse exacte — un
+# robots.txt est public, il ne cache rien, il demande poliment.
+Disallow: /gestion/
+Disallow: /admin/
+
 Sitemap: https://mairie-luglon.fr/sitemap.xml

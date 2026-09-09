@@ -43,6 +43,23 @@ SITE_URL = "https://mairie-luglon.fr"   # sert aux <link rel="canonical">
 # de basculer sans toucher au HTML.
 PREFIXE_URL = os.environ.get("BO_PREFIXE_URL", "/mairie-luglon")
 
+# --- Emplacement de l'administration ---------------------------------------
+# « /admin » est une adresse devinable : les robots la testent en permanence,
+# comme /wp-admin ou /administrator. Ce n'est pas une faille — le mot de passe
+# reste la vraie barrière — mais c'est du bruit constant dans les journaux et
+# des tentatives automatisées gratuites. Un chemin non deviné les fait taire.
+#
+# Ce n'est PAS un secret : ne comptez jamais dessus pour protéger quoi que ce
+# soit, c'est une commodité, pas une serrure.
+#
+# Autre option au déploiement : servir l'administration sur un sous-domaine
+# (admin.mairie-luglon.fr) plutôt que sur un chemin. L'app d'admin ne parle
+# qu'à sa propre API, donc les deux vivent ensemble sur ce sous-domaine et il
+# n'y a aucun CORS à configurer — c'est nginx qui route. À savoir : un
+# sous-domaine ne cache rien, les journaux de transparence des certificats les
+# listent publiquement.
+ADMIN_CHEMIN = os.environ.get("BO_ADMIN_CHEMIN", "/gestion").rstrip("/")
+
 # --- Règles d'affichage ----------------------------------------------------
 # Combien d'actualités restent « en une » sur /actualites/. Au-delà, elles
 # basculent automatiquement vers /actualites/autres/ — c'est toute

@@ -73,7 +73,7 @@ fi
 # --- Démarrage -------------------------------------------------------------
 echo
 echo "  Site           http://localhost:$PORT/mairie-luglon/"
-echo "  Administration http://localhost:$PORT/mairie-luglon/admin/"
+echo "  Administration http://localhost:$PORT/mairie-luglon${BO_ADMIN_CHEMIN:-/gestion}/"
 echo
 echo "  Depuis un téléphone, dans un autre terminal :"
 echo "      cloudflared tunnel --url http://localhost:$PORT"

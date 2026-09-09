@@ -46,6 +46,9 @@ app = FastAPI(title=f"{config.SITE_NOM} — site et back-office")
 gabarits = Jinja2Templates(directory=str(config.BASE / "templates"))
 
 P = config.PREFIXE_URL.rstrip("/")   # '' ou '/mairie-luglon'
+# Chemin de l'administration, réglable (voir config.ADMIN_CHEMIN). Toutes les
+# routes et le cookie en dépendent : rien ne doit écrire "/admin" en dur.
+A = P + config.ADMIN_CHEMIN
 
 
 @app.on_event("startup")
@@ -252,21 +255,21 @@ def _exige_session(request: Request):
         raise HTTPException(401, "Session expirée")
 
 
-@app.get(P + "/admin", response_class=HTMLResponse)
+@app.get(A, response_class=HTMLResponse)
 def admin_sans_slash():
     # Le `scope` du manifeste est « …/admin/ » : sans la barre finale,
     # l'application installée se retrouve hors de son propre périmètre et
     # s'ouvre dans le navigateur au lieu de sa fenêtre.
-    return RedirectResponse(P + "/admin/")
+    return RedirectResponse(A + "/")
 
 
-@app.get(P + "/admin/", response_class=HTMLResponse)
+@app.get(A + "/", response_class=HTMLResponse)
 def admin(request: Request):
     return gabarits.TemplateResponse("admin.html", contexte(
         request, rubriques=config.RUBRIQUES, en_une=config.ACTUALITES_EN_UNE))
 
 
-@app.get(P + "/admin/sw.js")
+@app.get(A + "/sw.js")
 def service_worker():
     """Servi depuis /admin/ et NON /admin/static/.
 
@@ -280,13 +283,13 @@ def service_worker():
                         media_type="application/javascript")
 
 
-@app.get(P + "/admin/manifest.webmanifest")
+@app.get(A + "/manifest.webmanifest")
 def manifeste():
     return FileResponse(config.BASE / "static" / "manifest.webmanifest",
                         media_type="application/manifest+json")
 
 
-@app.post(P + "/admin/api/connexion")
+@app.post(A + "/api/connexion")
 async def connexion(request: Request, response: Response):
     corps = await request.json()
     if not auth.verifier_mot_de_passe(corps.get("mot_de_passe", "")):
@@ -305,19 +308,19 @@ async def connexion(request: Request, response: Response):
         secure=(request.url.scheme == "https"),
         samesite="lax",         # bloque l'envoi depuis un site tiers
         max_age=config.SESSION_DUREE_H * 3600,
-        path=P + "/admin/")
+        path=A + "/")
     return reponse
 
 
-@app.post(P + "/admin/api/deconnexion")
+@app.post(A + "/api/deconnexion")
 def deconnexion(request: Request):
     auth.fermer_session(request.cookies.get(config.COOKIE_NOM, ""))
     reponse = JSONResponse({"ok": True})
-    reponse.delete_cookie(config.COOKIE_NOM, path=P + "/admin/")
+    reponse.delete_cookie(config.COOKIE_NOM, path=A + "/")
     return reponse
 
 
-@app.get(P + "/admin/api/etat")
+@app.get(A + "/api/etat")
 def etat(request: Request):
     """Ce que la PWA affiche à l'ouverture : suis-je connecté, et que
     contient le site ?"""
@@ -332,7 +335,7 @@ def etat(request: Request):
     }
 
 
-@app.post(P + "/admin/api/actualites")
+@app.post(A + "/api/actualites")
 async def creer_actualite(request: Request):
     _exige_session(request)
     corps = await request.json()
@@ -349,14 +352,14 @@ async def creer_actualite(request: Request):
     return {"ok": True, "id": db.ajouter_actualite(corps)}
 
 
-@app.delete(P + "/admin/api/actualites/{id_}")
+@app.delete(A + "/api/actualites/{id_}")
 def effacer_actualite(request: Request, id_: int):
     _exige_session(request)
     db.supprimer_actualite(id_)
     return {"ok": True}
 
 
-@app.post(P + "/admin/api/documents")
+@app.post(A + "/api/documents")
 async def deposer_document(
     request: Request,
     titre: str = Form(...),
@@ -395,7 +398,7 @@ async def deposer_document(
     return {"ok": True, "id": id_}
 
 
-@app.delete(P + "/admin/api/documents/{id_}")
+@app.delete(A + "/api/documents/{id_}")
 def effacer_document(request: Request, id_: int):
     _exige_session(request)
     db.supprimer_document(id_)
@@ -411,5 +414,5 @@ def effacer_document(request: Request, id_: int):
 # toutes les routes ci-dessus.
 # ---------------------------------------------------------------------------
 
-app.mount(P + "/admin/static", StaticFiles(directory=str(config.BASE / "static")))
+app.mount(A + "/static", StaticFiles(directory=str(config.BASE / "static")))
 app.mount(P or "/", StaticFiles(directory=str(config.RACINE_SITE), html=True))

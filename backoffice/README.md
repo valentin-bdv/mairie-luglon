@@ -37,8 +37,13 @@ dépendances au besoin, demande un mot de passe à la première exécution, puis
 démarre le serveur.
 
 - Site : `http://localhost:8000/mairie-luglon/`
-- Administration : `http://localhost:8000/mairie-luglon/admin/`
+- Administration : `http://localhost:8000/mairie-luglon/gestion/`
 - Autre port : `PORT=9000 ./backoffice/lancer.sh`
+
+Le chemin de l'administration est réglable (`BO_ADMIN_CHEMIN`, `/gestion` par
+défaut). Il ne vaut pas `/admin` parce que cette adresse-là est testée en
+permanence par les robots — c'est du bruit en moins, pas une serrure : ne
+comptez jamais dessus, le mot de passe reste la seule vraie barrière.
 
 Seul le **condensat** du mot de passe est écrit sur le disque, dans
 `donnees/mot-de-passe.hash`, ignoré par git. Pour en changer, supprimez ce

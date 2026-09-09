@@ -37,7 +37,11 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
 
   // Données : toujours le réseau. Voir l'avertissement en tête de fichier.
-  if (url.pathname.includes('/admin/api/')) return;
+  // Le test porte sur « /api/ » et non « /admin/api/ » : le chemin de
+  // l'administration est réglable (config.ADMIN_CHEMIN), écrire « /admin » ici
+  // remettrait en cache les réponses de l'API dès qu'on le change — exactement
+  // le bug que ce fichier existe pour éviter.
+  if (url.pathname.includes('/api/')) return;
   if (e.request.method !== 'GET') return;
 
   // Coquille : réseau d'abord, cache en secours. Dans ce sens et pas l'inverse
