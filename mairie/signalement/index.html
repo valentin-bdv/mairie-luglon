@@ -122,24 +122,32 @@
                 </p>
             </div>
 
+            <!-- Ces quatre cartes ouvraient un mailto avec un objet pré-rempli
+                 (« Signalement voirie »…). L'adresse de la mairie ne vit plus qu'à un
+                 seul endroit, la page Contact, pour qu'elle n'ait jamais à être
+                 corrigée à vingt endroits — elles y renvoient donc désormais. Le
+                 paramètre ?sujet= conserve l'intention de chaque carte : quand le
+                 formulaire de contact existera, il devra le lire pour pré-sélectionner
+                 le type de signalement. Sans ça, les quatre cartes mènent au même
+                 formulaire vide et la distinction est perdue. -->
             <div class="rail contact-grid" tabindex="0"
                  role="group" aria-label="Types de signalement">
-                <a class="contact-card" href="mailto:accueil@mairie-luglon.fr?subject=Signalement%20voirie" data-reveal style="--i:0; text-decoration:none; color:inherit">
+                <a class="contact-card" href="/mairie-luglon/contact/?sujet=voirie" data-reveal style="--i:0; text-decoration:none; color:inherit">
                     <div class="contact-card__icon icon-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/></svg></div>
                     <h3>Voirie</h3>
                     <p>Nid-de-poule, signalisation dégradée, chaussée endommagée.</p>
                 </a>
-                <a class="contact-card" href="mailto:accueil@mairie-luglon.fr?subject=Signalement%20eclairage" data-reveal style="--i:1; text-decoration:none; color:inherit">
+                <a class="contact-card" href="/mairie-luglon/contact/?sujet=eclairage" data-reveal style="--i:1; text-decoration:none; color:inherit">
                     <div class="contact-card__icon icon-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.4v3M12 17.6V21M4.6 12H3M21 12h-1.6"/><circle cx="12" cy="12" r="5.4"/></svg></div>
                     <h3>Éclairage public</h3>
                     <p>Lampadaire en panne ou horaires d'allumage inhabituels.</p>
                 </a>
-                <a class="contact-card" href="mailto:accueil@mairie-luglon.fr?subject=Signalement%20proprete" data-reveal style="--i:2; text-decoration:none; color:inherit">
+                <a class="contact-card" href="/mairie-luglon/contact/?sujet=proprete" data-reveal style="--i:2; text-decoration:none; color:inherit">
                     <div class="contact-card__icon icon-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 7h13l3 4v6h-3"/><circle cx="7.5" cy="17.5" r="1.6"/><circle cx="16.5" cy="17.5" r="1.6"/><path d="M3 7v7h4"/></svg></div>
                     <h3>Propreté</h3>
                     <p>Dépôt sauvage de déchets ou d'encombrants sur l'espace public.</p>
                 </a>
-                <a class="contact-card" href="mailto:accueil@mairie-luglon.fr?subject=Signalement%20autre" data-reveal style="--i:3; text-decoration:none; color:inherit">
+                <a class="contact-card" href="/mairie-luglon/contact/?sujet=autre" data-reveal style="--i:3; text-decoration:none; color:inherit">
                     <div class="contact-card__icon icon-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 21s-7-4.4-9.3-9.4C1.2 8 3 4.6 6.4 4.1c2-.3 3.8.6 5.6 2.6 1.8-2 3.6-2.9 5.6-2.6 3.4.5 5.2 3.9 3.7 7.5C19 16.6 12 21 12 21Z"/></svg></div>
                     <h3>Autre problème</h3>
                     <p>Arbre dangereux, jeux d'enfants abîmés, ou tout autre sujet.</p>
@@ -149,8 +157,8 @@
 
             <p class="small form-note" data-reveal style="margin-top: var(--space-m)">
                 <em>Exemple de gabarit : un formulaire de signalement en ligne (avec photo et
-                localisation) remplacerait avantageusement ces liens e-mail lors d'une mise
-                en ligne réelle.</em>
+                localisation) remplacerait avantageusement ce renvoi vers la page Contact
+                lors d'une mise en ligne réelle.</em>
             </p>
         </section>
 
