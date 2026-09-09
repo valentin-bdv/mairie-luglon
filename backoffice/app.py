@@ -33,6 +33,7 @@ import mimetypes
 import pathlib
 import re
 import secrets
+import unicodedata
 import urllib.parse
 
 from fastapi import FastAPI, Request, Response, UploadFile, File, Form, HTTPException
@@ -49,6 +50,13 @@ P = config.PREFIXE_URL.rstrip("/")   # '' ou '/mairie-luglon'
 # Chemin de l'administration, réglable (voir config.ADMIN_CHEMIN). Toutes les
 # routes et le cookie en dépendent : rien ne doit écrire "/admin" en dur.
 A = P + config.ADMIN_CHEMIN
+
+# L'API PUBLIQUE vit à la racine de l'origine, PAS sous le préfixe du site.
+# C'est ce que `LUGLON.API_BASE` vaut côté navigateur (« /api ») : un chemin
+# relatif à l'origine, qui reste juste que le site soit servi à la racine d'un
+# domaine ou dans un sous-dossier. Ne pas la préfixer par P, sinon config.js
+# devrait connaître le préfixe et on perdrait cette propriété.
+API = "/api"
 
 
 @app.on_event("startup")
@@ -123,6 +131,12 @@ def contexte(request, **extra):
         "site_url": config.SITE_URL,
         "courant": courant,
         "date_fr": date_fr,
+        # Le sous-menu Actualités se construit depuis la base : créer une
+        # catégorie doit la faire apparaître dans la navigation sans qu'on
+        # touche à un fichier. Attention, ça ne vaut que pour les pages RENDUES
+        # par ce serveur — les 21 pages statiques gardent la liste figée dans
+        # leur HTML (voir CLAUDE.md).
+        "rubriques_nav": db.rubriques("actualites"),
     }
     base.update(extra)
     return base
@@ -159,14 +173,12 @@ def page_actualites(request: Request):
     images vivent sur la page de rubrique.
     """
     sections = []
-    for cle, libelle, description in config.RUBRIQUES_ACTUALITES:
-        recentes = db.actualites(rubrique=cle, limite=config.ACTUALITES_EN_UNE)
+    for r in db.rubriques("actualites"):
+        recentes = db.actualites(rubrique=r["cle"], limite=config.ACTUALITES_EN_UNE)
         sections.append({
-            "cle": cle,
-            "libelle": libelle,
-            "description": description,
+            **r,
             "actualites": recentes,
-            "reste": max(0, db.compter_actualites(cle) - len(recentes)),
+            "reste": max(0, db.compter_actualites(r["cle"]) - len(recentes)),
         })
     return gabarits.TemplateResponse("actualites.html", contexte(
         request, sections=sections, badge=_badge))
@@ -180,11 +192,11 @@ def page_rubrique(request: Request, cle: str):
     images. C'est la conséquence du choix de structure : il n'y a pas de page
     par actualité, donc c'est la page de rubrique qui porte le détail.
     """
-    rubrique = next((r for r in config.RUBRIQUES_ACTUALITES if r[0] == cle), None)
-    if rubrique is None:
+    r = db.rubrique("actualites", cle)
+    if r is None:
         raise HTTPException(404)
     return gabarits.TemplateResponse("rubrique.html", contexte(
-        request, cle=cle, libelle=rubrique[1], description=rubrique[2],
+        request, cle=cle, libelle=r["libelle"], description=r["description"],
         actualites=db.actualites(rubrique=cle), badge=_badge))
 
 
@@ -194,6 +206,33 @@ def page_rubrique(request: Request, cle: str):
 # d'un vrai domaine, où le préfixe disparaît. Comme le site est servi sous un
 # préfixe en développement, on répond aussi à la forme préfixée.
 @app.get("/medias/{fichier}")
+@app.get(API + "/actualites/{id_}")
+def lire_actualite(id_: int):
+    """Lecture publique d'une actualité, pour la modale du site.
+
+    Publique et sans authentification : ces actualités sont déjà affichées en
+    entier sur la page de leur rubrique, il n'y a rien à protéger. On ne renvoie
+    que ce que la page affiche — ni horodatage de publication, ni identifiants
+    internes.
+
+    Sur GitHub Pages cette route n'existe pas : le script du site le détecte et
+    laisse le clic suivre le lien de la carte, qui mène à la page de rubrique.
+    La modale est un confort, jamais le seul chemin vers le contenu.
+    """
+    a = db.actualite(id_)
+    if a is None:
+        raise HTTPException(404)
+    r = db.rubrique("actualites", a["rubrique"])
+    return {
+        "titre": a["titre"],
+        "rubrique": r["libelle"] if r else a["rubrique"],
+        "date": date_fr(a["date_evenement"], jour=True),
+        "lieu": a["lieu"],
+        "contenu": a["contenu"],
+        "lien_url": a["lien_url"],
+    }
+
+
 @app.get(P + "/medias/{fichier}")
 def servir_media(fichier: str):
     """Image jointe à une actualité. Toujours `inline` : c'est une illustration."""
@@ -212,8 +251,8 @@ def servir_media(fichier: str):
 @app.get(P + "/mairie/arretes-et-publications/", response_class=HTMLResponse)
 def page_arretes(request: Request):
     par_rubrique = [
-        (cle, libelle, db.documents(cle))
-        for cle, libelle in config.RUBRIQUES
+        {**r, "documents": db.documents(r["cle"])}
+        for r in db.rubriques("documents")
     ]
     return gabarits.TemplateResponse("arretes.html", contexte(
         request, par_rubrique=par_rubrique))
@@ -274,7 +313,7 @@ def servir_document(fichier: str, telecharger: int = 0):
 # API du site public : la demande de réservation de salle
 # ---------------------------------------------------------------------------
 
-@app.post(P.replace("/mairie-luglon", "") + "/api/reservation")
+@app.post(API + "/reservation")
 async def reservation(request: Request):
     """Reçoit une demande du formulaire de réservation.
 
@@ -307,10 +346,11 @@ def admin_sans_slash():
 
 @app.get(A + "/", response_class=HTMLResponse)
 def admin(request: Request):
+    # Les listes de rubriques ne sont plus passées au gabarit : elles changent
+    # en cours de session (le secrétariat peut en créer une), donc l'interface
+    # les reçoit par l'API et se redessine, plutôt que de figer au chargement.
     return gabarits.TemplateResponse("admin.html", contexte(
-        request, rubriques=config.RUBRIQUES,
-        rubriques_actualites=config.RUBRIQUES_ACTUALITES,
-        en_une=config.ACTUALITES_EN_UNE))
+        request, en_une=config.ACTUALITES_EN_UNE))
 
 
 @app.get(A + "/sw.js")
@@ -376,18 +416,22 @@ def etat(request: Request):
         "en_une": config.ACTUALITES_EN_UNE,
         "actualites": toutes,
         "documents": db.documents(),
+        "rubriques_actualites": db.rubriques("actualites"),
+        "rubriques_documents": db.rubriques("documents"),
     }
 
 
-@app.post(A + "/api/actualites")
-async def creer_actualite(request: Request):
-    _exige_session(request)
-    corps = await request.json()
+def _valider_actualite(corps):
+    """Contrôles communs à la création et à la modification.
 
+    Une fonction partagée et non deux jeux de contrôles jumeaux : sinon le jour
+    où on durcit une règle, on la durcit d'un seul côté, et la modification
+    devient le trou par lequel passe ce que la création refuse.
+    """
     for champ in ("titre", "rubrique", "date_evenement"):
         if not str(corps.get(champ, "")).strip():
             raise HTTPException(400, f"Le champ « {champ} » est obligatoire.")
-    if corps["rubrique"] not in {r[0] for r in config.RUBRIQUES_ACTUALITES}:
+    if db.rubrique("actualites", corps["rubrique"]) is None:
         raise HTTPException(400, "Rubrique inconnue.")
     if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", corps["date_evenement"]):
         raise HTTPException(400, "Date attendue au format AAAA-MM-JJ.")
@@ -406,7 +450,7 @@ async def creer_actualite(request: Request):
         # un lien exécutable sur la page publique.
         raise HTTPException(400, "Le lien doit commencer par https://")
 
-    return {"ok": True, "id": db.ajouter_actualite({
+    return {
         "titre": corps["titre"].strip(),
         "rubrique": corps["rubrique"],
         "date_evenement": corps["date_evenement"],
@@ -414,7 +458,14 @@ async def creer_actualite(request: Request):
         "contenu": html_propre,
         "extrait": contenu.extrait(html_propre),
         "lien_url": lien,
-    })}
+    }
+
+
+@app.post(A + "/api/actualites")
+async def creer_actualite(request: Request):
+    _exige_session(request)
+    corps = await request.json()
+    return {"ok": True, "id": db.ajouter_actualite(_valider_actualite(corps))}
 
 
 @app.post(A + "/api/medias")
@@ -449,6 +500,17 @@ async def deposer_media(request: Request, fichier: UploadFile = File(...)):
     return {"ok": True, "url": f"/medias/{nom}"}
 
 
+@app.put(A + "/api/actualites/{id_}")
+async def modifier_actualite(request: Request, id_: int):
+    _exige_session(request)
+    if db.actualite(id_) is None:
+        raise HTTPException(404, "Cette actualité n'existe plus.")
+    corps = await request.json()
+    données = _valider_actualite(corps)
+    db.modifier_actualite(id_, données)
+    return {"ok": True}
+
+
 @app.delete(A + "/api/actualites/{id_}")
 def effacer_actualite(request: Request, id_: int):
     _exige_session(request)
@@ -466,7 +528,7 @@ async def deposer_document(
 ):
     _exige_session(request)
 
-    if rubrique not in dict(config.RUBRIQUES):
+    if db.rubrique("documents", rubrique) is None:
         raise HTTPException(400, "Rubrique inconnue.")
     if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date_document):
         raise HTTPException(400, "Date attendue au format AAAA-MM-JJ.")
@@ -495,10 +557,94 @@ async def deposer_document(
     return {"ok": True, "id": id_}
 
 
+@app.put(A + "/api/documents/{id_}")
+async def modifier_document(request: Request, id_: int):
+    """Modifie le titre, la rubrique et la date — jamais le fichier lui-même."""
+    _exige_session(request)
+    if db.document(id_) is None:
+        raise HTTPException(404, "Ce document n'existe plus.")
+    corps = await request.json()
+    if db.rubrique("documents", corps.get("rubrique", "")) is None:
+        raise HTTPException(400, "Rubrique inconnue.")
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", corps.get("date_document", "")):
+        raise HTTPException(400, "Date attendue au format AAAA-MM-JJ.")
+    if not corps.get("titre", "").strip():
+        raise HTTPException(400, "Le titre est obligatoire.")
+    db.modifier_document(id_, {
+        "titre": corps["titre"].strip(),
+        "rubrique": corps["rubrique"],
+        "date_document": corps["date_document"],
+    })
+    return {"ok": True}
+
+
 @app.delete(A + "/api/documents/{id_}")
 def effacer_document(request: Request, id_: int):
     _exige_session(request)
     db.supprimer_document(id_)
+    return {"ok": True}
+
+
+# --- Rubriques : le secrétariat crée ses propres catégories -----------------
+
+def _cle_depuis(libelle: str) -> str:
+    """Fabrique une clé d'URL à partir d'un libellé.
+
+    « Travaux du village » → « travaux-du-village ». La clé est l'adresse de la
+    page : elle doit être stable, lisible et sans accent. Le secrétariat ne la
+    saisit pas — la lui demander garantirait des espaces, des majuscules et des
+    apostrophes dans une URL.
+    """
+    base = unicodedata.normalize("NFKD", libelle).encode("ascii", "ignore").decode().lower()
+    base = re.sub(r"[^a-z0-9]+", "-", base).strip("-")
+    return base[:50]
+
+
+@app.post(A + "/api/rubriques/{famille}")
+async def creer_rubrique(request: Request, famille: str):
+    _exige_session(request)
+    if famille not in ("actualites", "documents"):
+        raise HTTPException(404)
+    corps = await request.json()
+    libelle = (corps.get("libelle") or "").strip()
+    if not libelle:
+        raise HTTPException(400, "Le nom de la catégorie est obligatoire.")
+
+    cle = _cle_depuis(libelle)
+    if not cle:
+        raise HTTPException(400, "Ce nom ne donne pas d'adresse utilisable : "
+                                 "utilisez au moins une lettre ou un chiffre.")
+    if db.rubrique(famille, cle) is not None:
+        raise HTTPException(400, "Une catégorie porte déjà ce nom.")
+
+    db.ajouter_rubrique(famille, cle, libelle, (corps.get("description") or "").strip())
+    return {"ok": True, "cle": cle}
+
+
+@app.put(A + "/api/rubriques/{famille}/{cle}")
+async def renommer_rubrique(request: Request, famille: str, cle: str):
+    _exige_session(request)
+    if famille not in ("actualites", "documents") or db.rubrique(famille, cle) is None:
+        raise HTTPException(404)
+    corps = await request.json()
+    libelle = (corps.get("libelle") or "").strip()
+    if not libelle:
+        raise HTTPException(400, "Le nom de la catégorie est obligatoire.")
+    # La CLÉ n'est pas modifiable : c'est l'URL de la page, et la changer
+    # casserait les liens déjà partagés ou imprimés. Voir db.modifier_rubrique.
+    db.modifier_rubrique(famille, cle, libelle, (corps.get("description") or "").strip())
+    return {"ok": True}
+
+
+@app.delete(A + "/api/rubriques/{famille}/{cle}")
+def effacer_rubrique(request: Request, famille: str, cle: str):
+    _exige_session(request)
+    if famille not in ("actualites", "documents") or db.rubrique(famille, cle) is None:
+        raise HTTPException(404)
+    try:
+        db.supprimer_rubrique(famille, cle)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
     return {"ok": True}
 
 

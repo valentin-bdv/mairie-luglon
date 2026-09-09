@@ -28,6 +28,13 @@
 
 * { box-sizing: border-box; }
 
+/* PIÈGE CLASSIQUE, ET IL A MORDU ICI : une règle de classe qui pose `display`
+   (`.panneau { display: flex }`) l'emporte sur le `display: none` que le
+   navigateur applique à l'attribut `hidden`, qui vient de sa feuille par
+   défaut. Sans cette ligne, tous les panneaux s'affichaient en même temps
+   alors qu'ils portaient bien `hidden`. */
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   background: var(--fond);
@@ -148,7 +155,7 @@ label .aide, .grille .aide { margin: 6px 0 0; display: block; }
   font-size: 14px;
 }
 
-/* --- Listes de contenu --- */
+/* --- Listes (catégories) --- */
 .liste { list-style: none; margin: 0; padding: 0; }
 .liste li {
   display: flex;
@@ -295,3 +302,312 @@ label .aide, .grille .aide { margin: 6px 0 0; display: block; }
 .editeur__zone .co-marine  { color: #1b2a4a; }
 .editeur__zone .co-discret { color: #5c6270; }
 .editeur__zone .co-alerte  { color: #a4232b; }
+
+/* ============================================================
+   Onglets, tableau de bord, panneaux
+   ============================================================ */
+
+.onglets {
+  display: flex;
+  gap: 4px;
+  /* La barre porte trois zones : marque, onglets, déconnexion. Les onglets
+     prennent le centre, quelle que soit la largeur des deux autres. */
+  margin: 0 auto;
+}
+.onglet {
+  padding: 8px 18px;
+  border: 0;
+  border-radius: var(--rayon);
+  background: transparent;
+  color: rgba(255, 255, 255, .75);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.onglet:hover { background: rgba(255, 255, 255, .12); color: var(--blanc); }
+.onglet[aria-current] { background: var(--blanc); color: var(--marine); }
+
+.entete-onglet {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.entete-onglet h1 { margin: 0 0 4px; font-size: 24px; }
+.entete-onglet .aide { margin: 0; }
+.entete-onglet__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.entete-onglet__actions .bouton { margin-top: 0; }
+
+.bouton--discret {
+  background: var(--blanc);
+  color: var(--marine);
+  border: 1px solid var(--bord);
+}
+.bouton--discret:hover { background: var(--fond); }
+
+/* --- Un bloc par catégorie --- */
+.bloc {
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 1px solid var(--bord);
+}
+.bloc__tete {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.bloc__tete h2 { margin: 0; font-size: 17px; }
+.compteur {
+  padding: 1px 9px;
+  border: 1px solid var(--bord);
+  border-radius: 999px;
+  color: var(--discret);
+  font-size: 13px;
+}
+
+/* --- Rail horizontal ---
+   Deux cents actualités empilées feraient une page interminable : elles
+   défilent latéralement. Le défilement natif fait tout le travail (doigt,
+   molette, barre) ; les flèches ne sont là que pour la souris. */
+.rail-admin { position: relative; }
+.rail-admin__piste {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding-bottom: 6px;
+  /* Masque la barre sous Firefox et WebKit sans supprimer le défilement. */
+  scrollbar-width: thin;
+}
+.rail-admin__piste > * { scroll-snap-align: start; }
+/* Les flèches sont définies plus bas, APRÈS .icone : voir le commentaire là-bas. */
+
+/* --- Carte d'un élément --- */
+.carte-mini {
+  flex: 0 0 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon);
+  background: var(--blanc);
+  cursor: pointer;
+}
+.carte-mini:hover { border-color: var(--marine-clair); }
+.carte-mini:focus-visible {
+  outline: 2px solid var(--marine-clair);
+  outline-offset: 2px;
+}
+.carte-mini__haut {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.carte-mini__date { color: var(--discret); font-size: 13px; }
+.carte-mini__marque {
+  padding: 1px 8px;
+  border: 1px solid var(--bord);
+  border-radius: 999px;
+  color: var(--discret);
+  font-size: 12px;
+}
+.carte-mini__titre { margin: 0; font-size: 15px; line-height: 1.35; }
+.carte-mini__extrait {
+  margin: 0;
+  color: var(--discret);
+  font-size: 13px;
+  line-height: 1.45;
+  /* Trois lignes maximum : sans cette limite, une actualité longue étire sa
+     carte et casse l'alignement de tout le rail. */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.carte-mini__actions {
+  display: flex;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+/* --- Boutons-icônes ---
+   Dessinés en CSS plutôt qu'en SVG : trois formes simples, et aucun fichier
+   supplémentaire à charger dans une application qui doit s'ouvrir vite. */
+.icone {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon);
+  background: var(--blanc);
+  cursor: pointer;
+  position: relative;
+  display: inline-block;
+  text-decoration: none;
+}
+.icone:hover { background: var(--fond); }
+.icone--modifier::before {
+  content: '✎';
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--marine);
+  font-size: 15px;
+}
+.icone--supprimer::before {
+  content: '🗑';
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.icone--voir::before {
+  content: '↗';
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--marine);
+  font-size: 15px;
+}
+/* Flèches du rail. Déclarées APRÈS .icone et avec une spécificité supérieure
+   (deux classes) : sinon `.icone { position: relative }`, qui vient plus bas
+   dans le fichier, l'emporte sur le `position: absolute` de la flèche et celle-ci
+   se pose dans le flux au lieu de flotter sur le bord du rail. C'est arrivé. */
+.rail-admin .rail-admin__fleche {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--blanc);
+  border: 1px solid var(--bord);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+}
+.rail-admin .rail-admin__fleche--gauche { left: -14px; }
+.rail-admin .rail-admin__fleche--droite { right: -14px; }
+.rail-admin .rail-admin__fleche::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--marine);
+  border-bottom: 2px solid var(--marine);
+  color: transparent;
+}
+.rail-admin .rail-admin__fleche--gauche::before {
+  transform: translate(-30%, -50%) rotate(135deg);
+}
+.rail-admin .rail-admin__fleche--droite::before {
+  transform: translate(-70%, -50%) rotate(-45deg);
+}
+
+/* Second clic = confirmation. Le rouge plein dit que le prochain clic agit. */
+.icone--confirme {
+  background: var(--rouge) !important;
+  border-color: var(--rouge) !important;
+}
+.icone--confirme::before { filter: brightness(0) invert(1); }
+
+/* --- Panneaux superposés --- */
+.voile {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(20, 24, 34, .55);
+  overflow-y: auto;
+}
+.panneau {
+  width: 100%;
+  max-width: 560px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--blanc);
+  border-radius: var(--rayon);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .3);
+}
+.panneau--large { max-width: 820px; }
+.panneau form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;      /* sans quoi le corps ne peut pas défiler */
+}
+.panneau__tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--bord);
+}
+.panneau__tete h2 { margin: 0; font-size: 19px; }
+.panneau__corps {
+  padding: 20px 22px;
+  overflow-y: auto;
+}
+.panneau__pied {
+  display: flex;
+  gap: 10px;
+  padding: 16px 22px;
+  border-top: 1px solid var(--bord);
+  background: var(--fond);
+}
+.panneau__pied .bouton { margin-top: 0; }
+.fermer {
+  width: 32px; height: 32px;
+  border: 0;
+  border-radius: var(--rayon);
+  background: transparent;
+  color: var(--discret);
+  font-size: 16px;
+  cursor: pointer;
+}
+.fermer:hover { background: var(--fond); color: var(--texte); }
+
+/* --- Aperçu d'une actualité ---
+   Le rendu imite le site sans le copier : on vérifie ce qu'on a écrit, la
+   fidélité au pixel près, c'est la page publique qui la donne. */
+.apercu__meta {
+  margin: 0 0 14px;
+  color: var(--discret);
+  font-size: 14px;
+}
+.apercu__contenu { line-height: 1.65; }
+.apercu__contenu > :first-child { margin-top: 0; }
+.apercu__contenu h3 { font-size: 1.2rem; margin: 1.2em 0 .3em; }
+.apercu__contenu h4 { font-size: 1.05rem; margin: 1.1em 0 .3em; }
+.apercu__contenu img { display: block; max-width: 100%; height: auto; margin: 1em 0; }
+.apercu__contenu a { color: var(--marine-clair); }
+.apercu__contenu .ta-left { text-align: left; }
+.apercu__contenu .ta-center { text-align: center; }
+.apercu__contenu .ta-right { text-align: right; }
+.apercu__contenu .co-marine { color: #1b2a4a; }
+.apercu__contenu .co-discret { color: #5c6270; }
+.apercu__contenu .co-alerte { color: #a4232b; }
+
+/* --- Liste des catégories --- */
+.liste--categories li { align-items: center; }
+.form-categorie {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--bord);
+}
+
+@media (max-width: 700px) {
+  .barre { flex-wrap: wrap; }
+  .onglets { order: 3; width: 100%; margin: 10px 0 0; }
+  .entete-onglet__actions { width: 100%; }
+  .entete-onglet__actions .bouton { flex: 1; }
+  .rail-admin__fleche { display: none; }   /* le doigt suffit */
+  .carte-mini { flex-basis: 78%; }
+}

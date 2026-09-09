@@ -1,18 +1,22 @@
-{# admin.html — La coquille de l'application d'administration.
+{# admin.html — Coquille de l'application d'administration.
 
-   Une seule page : l'écran de connexion et l'écran de travail cohabitent dans
-   le document, `hidden` bascule de l'un à l'autre. Un back-office à deux
-   opérations n'a pas besoin de routage, et l'application installée s'ouvre
-   ainsi sans le clignotement d'une redirection.
+   DEUX ONGLETS, JAMAIS LES DEUX EN MÊME TEMPS : Actualités et Documents. Le
+   secrétariat vient publier UNE actualité, ou déposer UN arrêté, jamais les
+   deux d'un coup — tout empiler sur une page oblige à beaucoup défiler pour ne
+   toucher qu'à un endroit.
+
+   TABLEAU DE BORD D'ABORD, FORMULAIRE ENSUITE. On ouvre sur ce qui existe déjà,
+   pas sur un formulaire vide : la question la plus fréquente est « qu'y a-t-il
+   en ligne ? », pas « que puis-je ajouter ? ». Les formulaires vivent dans des
+   panneaux, ouverts sur demande.
 
    Ce fichier ne contient NI mot de passe, NI jeton, NI clé : la PWA installée
    chez le client ne détient aucun secret (voir auth.py). Elle envoie un mot de
    passe une fois et reçoit un cookie HttpOnly, que son propre JavaScript ne
    peut même pas lire.
 
-   Cette page n'a rien à voir avec le site public : elle ne charge ni styles.css
-   ni les scripts du site, et sa politique de sécurité est plus stricte (pas de
-   'unsafe-inline' pour les styles, puisqu'il n'y a aucun attribut style ici). #}
+   Les listes de catégories ne sont PAS rendues ici : elles changent en cours de
+   session, donc l'interface les reçoit par l'API et se redessine. #}
 <!doctype html>
 <html lang="fr">
 <head>
@@ -35,12 +39,16 @@
 
 <header class="barre">
     <span class="marque">{{ site_nom }}<b>Administration</b></span>
+    <nav class="onglets" id="onglets" hidden aria-label="Sections">
+        <button type="button" class="onglet" data-onglet="actualites" aria-current="page">Actualités</button>
+        <button type="button" class="onglet" data-onglet="documents">Documents</button>
+    </nav>
     <button type="button" id="deconnexion" class="lien-discret" hidden>Se déconnecter</button>
 </header>
 
 <main class="page">
 
-    <!-- ÉCRAN 1 — connexion -->
+    <!-- ÉCRAN — connexion -->
     <section id="ecran-connexion" class="carte carte--etroite" hidden>
         <h1>Connexion</h1>
         <p class="aide">Saisissez le mot de passe communiqué par votre prestataire.</p>
@@ -53,18 +61,89 @@
         </form>
     </section>
 
-    <!-- ÉCRAN 2 — travail -->
-    <div id="ecran-travail" hidden>
+    <!-- ONGLET — actualités -->
+    <div id="onglet-actualites" hidden>
+        <div class="entete-onglet">
+            <div>
+                <h1>Actualités</h1>
+                <p class="aide" id="resume-actualites"></p>
+            </div>
+            <div class="entete-onglet__actions">
+                <button type="button" class="bouton bouton--principal" data-ouvrir="form-actualite">
+                    Créer une nouvelle actualité
+                </button>
+                <button type="button" class="bouton bouton--discret" data-ouvrir="cat-actualites">
+                    Gérer les catégories
+                </button>
+            </div>
+        </div>
+        <div id="listes-actualites"></div>
+    </div>
 
-        <section class="carte">
-            <h1>Publier une actualité</h1>
-            <p class="aide">
-                Chaque rubrique montre ses <b>{{ en_une }}</b> actualités les plus proches
-                dans le temps sur la page Actualités. Les suivantes ne disparaissent pas :
-                elles restent sur la page de leur rubrique, derrière « Voir plus ».
-                Vous n'avez jamais rien à déplacer.
-            </p>
-            <form id="form-actualite" autocomplete="off">
+    <!-- ONGLET — documents -->
+    <div id="onglet-documents" hidden>
+        <div class="entete-onglet">
+            <div>
+                <h1>Documents</h1>
+                <p class="aide" id="resume-documents"></p>
+            </div>
+            <div class="entete-onglet__actions">
+                <button type="button" class="bouton bouton--principal" data-ouvrir="form-document">
+                    Déposer un nouveau document
+                </button>
+                <button type="button" class="bouton bouton--discret" data-ouvrir="cat-documents">
+                    Gérer les catégories
+                </button>
+            </div>
+        </div>
+        <div id="listes-documents"></div>
+    </div>
+
+    <p class="hors-ligne" id="hors-ligne" hidden>
+        Pas de connexion au serveur. L'application a besoin du réseau pour publier :
+        réessayez une fois la connexion revenue.
+    </p>
+
+</main>
+
+{# --- Panneaux ------------------------------------------------------------
+   Formulaires et aperçu vivent dans des panneaux superposés, cachés par défaut,
+   un seul ouvert à la fois. Ils sont écrits dans le document plutôt que
+   fabriqués en JavaScript : le balisage reste lisible, et les libellés
+   d'accessibilité ne se perdent pas dans des chaînes de caractères. #}
+<div class="voile" id="voile" hidden>
+
+    <!-- Aperçu d'une actualité, en grand -->
+    <section class="panneau panneau--large" id="apercu" role="dialog" aria-modal="true"
+             aria-labelledby="apercu-titre" hidden>
+        <header class="panneau__tete">
+            <h2 id="apercu-titre"></h2>
+            <button type="button" class="fermer" data-fermer aria-label="Fermer">✕</button>
+        </header>
+        <div class="panneau__corps">
+            <p class="apercu__meta" id="apercu-meta"></p>
+            <div class="apercu__contenu" id="apercu-contenu"></div>
+        </div>
+        <footer class="panneau__pied">
+            <button type="button" class="bouton bouton--principal" id="apercu-modifier">Modifier</button>
+            <button type="button" class="bouton bouton--discret" data-fermer>Fermer</button>
+        </footer>
+    </section>
+
+    <!-- Formulaire d'actualité : sert à la création ET à la modification -->
+    <section class="panneau panneau--large" id="form-actualite" role="dialog" aria-modal="true"
+             aria-labelledby="form-actualite-titre" hidden>
+        <header class="panneau__tete">
+            <h2 id="form-actualite-titre">Nouvelle actualité</h2>
+            <button type="button" class="fermer" data-fermer aria-label="Fermer">✕</button>
+        </header>
+        <form id="form-actu" autocomplete="off">
+            <div class="panneau__corps">
+                <p class="aide">
+                    Chaque catégorie montre ses <b>{{ en_une }}</b> actualités les plus proches
+                    dans le temps sur la page Actualités. Les suivantes restent atteignables
+                    en faisant défiler, et sur la page de leur catégorie.
+                </p>
                 <div class="grille">
                     <div>
                         <label for="a-titre">Titre</label>
@@ -72,12 +151,8 @@
                                placeholder="Réouverture de l'agence postale">
                     </div>
                     <div>
-                        <label for="a-rubrique">Rubrique</label>
-                        <select id="a-rubrique" name="rubrique" required>
-                            {% for cle, libelle, _ in rubriques_actualites %}
-                            <option value="{{ cle }}">{{ libelle }}</option>
-                            {% endfor %}
-                        </select>
+                        <label for="a-rubrique">Catégorie</label>
+                        <select id="a-rubrique" name="rubrique" required></select>
                     </div>
                     <div>
                         <label for="a-date">Date de l'évènement</label>
@@ -94,9 +169,9 @@
                 <label for="a-contenu">Texte de l'actualité</label>
                 <!-- Barre d'outils. Chaque bouton porte la commande qu'il applique ;
                      admin.js les branche en une boucle, il n'y a pas un gestionnaire
-                     par bouton à maintenir. Les boutons de couleur et d'alignement
-                     posent des CLASSES du site, jamais un style en ligne : c'est ce
-                     qui garde la charte tenue et l'assainissement vérifiable. -->
+                     par bouton à maintenir. Couleur et alignement posent des CLASSES
+                     du site, jamais un style en ligne : c'est ce qui garde la charte
+                     tenue et l'assainissement vérifiable. -->
                 <div class="editeur">
                     <div class="editeur__barre" role="toolbar" aria-label="Mise en forme">
                         <button type="button" data-cmd="bold" title="Gras (Ctrl+B)"><b>G</b></button>
@@ -111,9 +186,9 @@
                         <button type="button" data-cmd="insertUnorderedList" title="Liste à puces">• Liste</button>
                         <button type="button" data-cmd="insertOrderedList" title="Liste numérotée">1. Liste</button>
                         <span class="editeur__sep"></span>
-                        <button type="button" data-classe="ta-left" data-groupe="ta" title="Aligner à gauche">⇤</button>
-                        <button type="button" data-classe="ta-center" data-groupe="ta" title="Centrer">↔</button>
-                        <button type="button" data-classe="ta-right" data-groupe="ta" title="Aligner à droite">⇥</button>
+                        <button type="button" data-classe="ta-left" title="Aligner à gauche">⇤</button>
+                        <button type="button" data-classe="ta-center" title="Centrer">↔</button>
+                        <button type="button" data-classe="ta-right" title="Aligner à droite">⇥</button>
                         <span class="editeur__sep"></span>
                         <button type="button" data-couleur="co-marine" title="Bleu marine du site" class="pastille pastille--marine"></button>
                         <button type="button" data-couleur="co-discret" title="Gris discret" class="pastille pastille--discret"></button>
@@ -138,23 +213,27 @@
                        placeholder="https://…">
 
                 <p class="erreur" id="erreur-actualite" hidden></p>
-                <button type="submit" class="bouton bouton--principal">Publier l'actualité</button>
-            </form>
-        </section>
+            </div>
+            <footer class="panneau__pied">
+                <button type="submit" class="bouton bouton--principal" id="a-envoyer">Publier l'actualité</button>
+                <button type="button" class="bouton bouton--discret" data-fermer>Annuler</button>
+            </footer>
+        </form>
+    </section>
 
-        <section class="carte">
-            <h1>Actualités en ligne</h1>
-            <p class="aide" id="resume-actualites"></p>
-            <ul class="liste" id="liste-actualites"></ul>
-        </section>
-
-        <section class="carte">
-            <h1>Déposer un document</h1>
-            <p class="aide">
-                Fichiers PDF uniquement, 20 Mo maximum. Le document apparaît immédiatement
-                dans sa rubrique sur la page « Arrêtés et publications ».
-            </p>
-            <form id="form-document" autocomplete="off">
+    <!-- Formulaire de document -->
+    <section class="panneau" id="form-document" role="dialog" aria-modal="true"
+             aria-labelledby="form-document-titre" hidden>
+        <header class="panneau__tete">
+            <h2 id="form-document-titre">Nouveau document</h2>
+            <button type="button" class="fermer" data-fermer aria-label="Fermer">✕</button>
+        </header>
+        <form id="form-doc" autocomplete="off">
+            <div class="panneau__corps">
+                <p class="aide">
+                    Fichiers PDF uniquement, 20 Mo maximum. Le document apparaît immédiatement
+                    dans sa catégorie sur la page « Arrêtés et publications ».
+                </p>
                 <div class="grille">
                     <div>
                         <label for="d-titre">Titre du document</label>
@@ -162,40 +241,67 @@
                                placeholder="Arrêté portant réglementation du brûlage">
                     </div>
                     <div>
-                        <label for="d-rubrique">Rubrique</label>
-                        <select id="d-rubrique" name="rubrique" required>
-                            {% for cle, libelle in rubriques %}
-                            <option value="{{ cle }}">{{ libelle }}</option>
-                            {% endfor %}
-                        </select>
+                        <label for="d-rubrique">Catégorie</label>
+                        <select id="d-rubrique" name="rubrique" required></select>
                     </div>
                     <div>
                         <label for="d-date">Date du document</label>
                         <input id="d-date" name="date_document" type="date" required>
                     </div>
-                    <div>
+                    <div id="champ-fichier">
                         <label for="d-fichier">Fichier PDF</label>
-                        <input id="d-fichier" name="fichier" type="file" accept="application/pdf" required>
+                        <input id="d-fichier" name="fichier" type="file" accept="application/pdf">
+                        <span class="aide" id="aide-fichier">Le fichier ne peut pas être remplacé
+                        après coup : pour changer le PDF, supprimez le document et redéposez-le.</span>
                     </div>
                 </div>
                 <p class="erreur" id="erreur-document" hidden></p>
-                <button type="submit" class="bouton bouton--principal">Déposer le document</button>
+            </div>
+            <footer class="panneau__pied">
+                <button type="submit" class="bouton bouton--principal" id="d-envoyer">Déposer le document</button>
+                <button type="button" class="bouton bouton--discret" data-fermer>Annuler</button>
+            </footer>
+        </form>
+    </section>
+
+    {# Gestion des catégories : un panneau par famille, même balisage. Écrit
+       par une boucle pour que les deux ne puissent pas diverger. #}
+    {% for famille, titre in [('actualites', "Catégories d'actualités"), ('documents', 'Catégories de documents')] %}
+    <section class="panneau" id="cat-{{ famille }}" role="dialog" aria-modal="true"
+             aria-labelledby="cat-{{ famille }}-titre" hidden>
+        <header class="panneau__tete">
+            <h2 id="cat-{{ famille }}-titre">{{ titre }}</h2>
+            <button type="button" class="fermer" data-fermer aria-label="Fermer">✕</button>
+        </header>
+        <div class="panneau__corps">
+            {% if famille == 'actualites' %}
+            <p class="aide">
+                Créer une catégorie lui donne aussitôt sa page sur le site, sa section
+                sur la page Actualités et son choix dans le formulaire.
+            </p>
+            {% else %}
+            <p class="aide">
+                Créer une catégorie ajoute un bloc dépliable sur la page « Arrêtés et
+                publications », précédé de la description que vous écrivez ici.
+            </p>
+            {% endif %}
+            <ul class="liste liste--categories" id="liste-cat-{{ famille }}"></ul>
+
+            <form class="form-categorie" data-famille="{{ famille }}" autocomplete="off">
+                <label for="cat-{{ famille }}-libelle">Nom de la nouvelle catégorie</label>
+                <input id="cat-{{ famille }}-libelle" name="libelle" required maxlength="60"
+                       placeholder="{{ 'Travaux du village' if famille == 'actualites' else 'Comptes rendus' }}">
+                <label for="cat-{{ famille }}-desc">Description affichée sur le site</label>
+                <textarea id="cat-{{ famille }}-desc" name="description" rows="2" maxlength="300"
+                          placeholder="Une phrase qui dit au visiteur ce qu'il trouvera ici."></textarea>
+                <p class="erreur" id="erreur-cat-{{ famille }}" hidden></p>
+                <button type="submit" class="bouton bouton--principal">Créer la catégorie</button>
             </form>
-        </section>
+        </div>
+    </section>
+    {% endfor %}
 
-        <section class="carte">
-            <h1>Documents en ligne</h1>
-            <ul class="liste" id="liste-documents"></ul>
-        </section>
-
-    </div>
-
-    <p class="hors-ligne" id="hors-ligne" hidden>
-        Pas de connexion au serveur. L'application a besoin du réseau pour publier :
-        réessayez une fois la connexion revenue.
-    </p>
-
-</main>
+</div>
 
 <script src="static/admin.js"></script>
 </body>

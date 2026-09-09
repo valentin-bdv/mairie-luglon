@@ -6,22 +6,27 @@
 // cookie HttpOnly que ce script ne peut PAS lire — c'est justement l'intérêt.
 // Il n'y a donc rien à voler dans l'application installée chez le client.
 //
-// Toutes les URL sont RELATIVES à /admin/. Le back-office ne sait pas s'il est
-// servi depuis un tunnel Cloudflare, depuis localhost ou depuis le domaine
-// définitif, et n'a pas à le savoir : c'est ce qui permet de déployer le même
-// fichier partout (même principe qu'API_BASE côté site public).
+// Toutes les URL sont RELATIVES au dossier de l'administration. Le back-office
+// ne sait pas s'il est servi depuis un tunnel Cloudflare, depuis localhost ou
+// depuis le domaine définitif, et n'a pas à le savoir : c'est ce qui permet de
+// déployer le même fichier partout (même principe qu'API_BASE côté site).
+//
+// UN SEUL ÉTAT, UN SEUL REDESSIN. `etat` contient tout ce que le serveur sait ;
+// `dessiner()` reconstruit l'écran à partir de lui. Aucune fonction ne retouche
+// le DOM « au passage » après une action : on écrit en base, on relit, on
+// redessine. C'est plus de travail pour le navigateur et beaucoup moins de
+// place pour un écran qui ment sur ce qui est réellement publié.
 // ============================================================
 
 (function () {
 
   const $ = (id) => document.getElementById(id);
 
-  const ecranConnexion = $('ecran-connexion');
-  const ecranTravail = $('ecran-travail');
-  const horsLigne = $('hors-ligne');
-  const boutonDeconnexion = $('deconnexion');
-
-  let enUne = 5;   // remplacé par la valeur du serveur au premier chargement
+  let etat = { connecte: false, actualites: [], documents: [],
+               rubriques_actualites: [], rubriques_documents: [], en_une: 5 };
+  let ongletCourant = 'actualites';
+  let actualiteEnEdition = null;   // null = création
+  let documentEnEdition = null;
 
   // --- Accès réseau --------------------------------------------------------
 
@@ -36,7 +41,7 @@
     // sans cette exception, une faute de frappe affiche « session expirée » à
     // quelqu'un qui n'a jamais été connecté, ce qui n'a aucun sens pour lui.
     if (reponse.status === 401 && chemin !== 'connexion') {
-      montrer('connexion');
+      montrerEcran('connexion');
       throw new Error('Session expirée, reconnectez-vous.');
     }
     if (!reponse.ok) {
@@ -50,177 +55,398 @@
     return reponse.json();
   }
 
-  function montrer(ecran) {
-    ecranConnexion.hidden = ecran !== 'connexion';
-    ecranTravail.hidden = ecran !== 'travail';
-    boutonDeconnexion.hidden = ecran !== 'travail';
+  // --- Écrans et panneaux --------------------------------------------------
+
+  function montrerEcran(quoi) {
+    const connecte = quoi !== 'connexion';
+    $('ecran-connexion').hidden = connecte;
+    $('onglets').hidden = !connecte;
+    $('deconnexion').hidden = !connecte;
+    $('onglet-actualites').hidden = !connecte || ongletCourant !== 'actualites';
+    $('onglet-documents').hidden = !connecte || ongletCourant !== 'documents';
   }
 
+  function ouvrirPanneau(id) {
+    document.querySelectorAll('.panneau').forEach((p) => { p.hidden = p.id !== id; });
+    $('voile').hidden = false;
+    // Le focus part sur le premier champ : sans ça, la tabulation repart du
+    // haut du document, c'est-à-dire derrière le panneau.
+    const premier = $(id).querySelector('input, select, textarea, button');
+    if (premier) premier.focus();
+  }
+
+  function fermerPanneau() {
+    $('voile').hidden = true;
+    document.querySelectorAll('.panneau').forEach((p) => { p.hidden = true; });
+  }
+
+  document.addEventListener('click', (e) => {
+    const ouvrir = e.target.closest('[data-ouvrir]');
+    if (ouvrir) {
+      const id = ouvrir.dataset.ouvrir;
+      if (id === 'form-actualite') preparerFormActualite(null);
+      if (id === 'form-document') preparerFormDocument(null);
+      ouvrirPanneau(id);
+      return;
+    }
+    if (e.target.closest('[data-fermer]')) fermerPanneau();
+    // Clic sur le voile lui-même (pas sur un panneau) = fermeture.
+    if (e.target === $('voile')) fermerPanneau();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !$('voile').hidden) fermerPanneau();
+  });
+
+  document.querySelectorAll('.onglet').forEach((b) => {
+    b.addEventListener('click', () => {
+      ongletCourant = b.dataset.onglet;
+      document.querySelectorAll('.onglet').forEach((o) => {
+        if (o.dataset.onglet === ongletCourant) o.setAttribute('aria-current', 'page');
+        else o.removeAttribute('aria-current');
+      });
+      montrerEcran('travail');
+    });
+  });
+
   function erreur(id, message) {
-    const el = $(id);
-    el.textContent = message;
-    el.className = 'erreur';
-    el.hidden = false;
+    const el2 = $(id);
+    el2.textContent = message;
+    el2.className = 'erreur';
+    el2.hidden = false;
   }
 
   function succes(id, message) {
-    const el = $(id);
-    el.textContent = message;
-    el.className = 'succes';
-    el.hidden = false;
-    setTimeout(() => { el.hidden = true; }, 4000);
+    const el2 = $(id);
+    el2.textContent = message;
+    el2.className = 'succes';
+    el2.hidden = false;
+    setTimeout(() => { el2.hidden = true; }, 4000);
   }
 
-  // --- Rendu des listes ----------------------------------------------------
+  // --- Fabrique de petits éléments ----------------------------------------
 
-  function ligne(titre, detail, archive, surSupprimer) {
-    const li = document.createElement('li');
-
-    const infos = document.createElement('div');
-    infos.className = 'infos';
-
-    const t = document.createElement('div');
-    t.className = 'titre';
+  function el(balise, classe, texte) {
+    const n = document.createElement(balise);
+    if (classe) n.className = classe;
     // textContent et non innerHTML : ces valeurs viennent de la base, donc de
     // ce qu'a saisi le secrétariat. Rien de ce qui est tapé dans un champ ne
     // doit pouvoir devenir du balisage exécutable, même de sa part.
-    t.textContent = titre;
-    if (archive) {
-      const marque = document.createElement('span');
-      marque.className = 'archive';
-      marque.textContent = 'hors sommaire, sur sa page de rubrique';
-      t.appendChild(marque);
-    }
+    if (texte !== undefined) n.textContent = texte;
+    return n;
+  }
 
-    const d = document.createElement('div');
-    d.className = 'detail';
-    d.textContent = detail;
+  function boutonIcone(classe, titre, surClic) {
+    const b = el('button', 'icone ' + classe);
+    b.type = 'button';
+    b.title = titre;
+    b.setAttribute('aria-label', titre);
+    b.addEventListener('click', (e) => { e.stopPropagation(); surClic(b); });
+    return b;
+  }
 
-    infos.append(t, d);
-
-    const bouton = document.createElement('button');
-    bouton.type = 'button';
-    bouton.className = 'supprimer';
-    bouton.textContent = 'Supprimer';
-    // Confirmation par second clic, sans confirm() : une modale native fige
-    // tous les évènements du navigateur. Le bouton devient rouge et le libellé
-    // change, l'intention est claire sans bloquer quoi que ce soit.
-    bouton.addEventListener('click', async () => {
-      if (bouton.dataset.confirme !== '1') {
-        bouton.dataset.confirme = '1';
-        bouton.textContent = 'Confirmer ?';
+  // Confirmation par SECOND CLIC, jamais confirm() : une boîte de dialogue
+  // native fige tous les évènements du navigateur, et ce dépôt s'est déjà fait
+  // piéger par ça. Le bouton passe au rouge et change d'intitulé — l'intention
+  // est claire sans rien bloquer.
+  function boutonSupprimer(quoi, surSupprimer) {
+    return boutonIcone('icone--supprimer', 'Supprimer ' + quoi, async (b) => {
+      if (b.dataset.confirme !== '1') {
+        b.dataset.confirme = '1';
+        b.classList.add('icone--confirme');
+        b.title = 'Cliquez à nouveau pour confirmer';
         setTimeout(() => {
-          bouton.dataset.confirme = '';
-          bouton.textContent = 'Supprimer';
+          b.dataset.confirme = '';
+          b.classList.remove('icone--confirme');
+          b.title = 'Supprimer ' + quoi;
         }, 5000);
         return;
       }
-      bouton.disabled = true;
+      b.disabled = true;
+      try { await surSupprimer(); await rafraichir(); }
+      catch (err) { b.disabled = false; alert(err.message); }
+    });
+  }
+
+  // --- Rails horizontaux ---------------------------------------------------
+  // Une catégorie peut contenir deux cents actualités. Les empiler
+  // verticalement rendrait la page interminable ; elles défilent latéralement,
+  // comme sur mobile. Les flèches servent à la souris, le doigt et la molette
+  // font le reste tout seuls.
+
+  function rail(cartes) {
+    const enveloppe = el('div', 'rail-admin');
+    const piste = el('div', 'rail-admin__piste');
+    cartes.forEach((c) => piste.appendChild(c));
+
+    const glisser = (sens) => {
+      // On défile d'un peu moins d'une largeur visible : garder une carte
+      // commune entre deux écrans évite de perdre le fil.
+      piste.scrollBy({ left: sens * piste.clientWidth * 0.85, behavior: 'smooth' });
+    };
+    const gauche = boutonIcone('rail-admin__fleche rail-admin__fleche--gauche',
+                               'Voir les plus récentes', () => glisser(-1));
+    const droite = boutonIcone('rail-admin__fleche rail-admin__fleche--droite',
+                               'Voir les plus anciennes', () => glisser(1));
+
+    // Les flèches ne servent à rien si tout tient à l'écran : on les cache
+    // plutôt que de les laisser inertes, ce qui donnerait l'impression d'un
+    // bouton cassé.
+    const ajuster = () => {
+      const debordement = piste.scrollWidth > piste.clientWidth + 4;
+      gauche.hidden = !debordement || piste.scrollLeft <= 2;
+      droite.hidden = !debordement ||
+        piste.scrollLeft >= piste.scrollWidth - piste.clientWidth - 2;
+    };
+    piste.addEventListener('scroll', ajuster);
+    window.addEventListener('resize', ajuster);
+    setTimeout(ajuster, 0);      // après insertion dans le document
+
+    enveloppe.append(gauche, piste, droite);
+    return enveloppe;
+  }
+
+  // --- Onglet Actualités ---------------------------------------------------
+
+  function carteActualite(a, rangDansRubrique) {
+    const c = el('article', 'carte-mini');
+    c.tabIndex = 0;
+    c.setAttribute('role', 'button');
+    c.setAttribute('aria-label', 'Ouvrir « ' + a.titre + ' »');
+
+    const haut = el('div', 'carte-mini__haut');
+    haut.appendChild(el('span', 'carte-mini__date', a.date_evenement));
+    if (rangDansRubrique > etat.en_une) {
+      haut.appendChild(el('span', 'carte-mini__marque', 'hors sommaire'));
+    }
+    c.appendChild(haut);
+    c.appendChild(el('h3', 'carte-mini__titre', a.titre));
+    c.appendChild(el('p', 'carte-mini__extrait', a.extrait));
+
+    const actions = el('div', 'carte-mini__actions');
+    actions.appendChild(boutonIcone('icone--modifier', 'Modifier cette actualité', () => {
+      preparerFormActualite(a);
+      ouvrirPanneau('form-actualite');
+    }));
+    actions.appendChild(boutonSupprimer('cette actualité',
+      () => api('actualites/' + a.id, { method: 'DELETE' })));
+    c.appendChild(actions);
+
+    const ouvrir = () => apercu(a);
+    c.addEventListener('click', ouvrir);
+    c.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ouvrir(); }
+    });
+    return c;
+  }
+
+  function dessinerActualites() {
+    const hote = $('listes-actualites');
+    hote.textContent = '';
+    $('resume-actualites').textContent = etat.actualites.length
+      ? `${etat.actualites.length} actualité${etat.actualites.length > 1 ? 's' : ''} en ligne, `
+        + `dans ${etat.rubriques_actualites.length} catégorie${etat.rubriques_actualites.length > 1 ? 's' : ''}.`
+      : 'Aucune actualité publiée pour le moment.';
+
+    if (!etat.rubriques_actualites.length) {
+      hote.appendChild(el('p', 'vide', 'Aucune catégorie : créez-en une pour pouvoir publier.'));
+      return;
+    }
+
+    etat.rubriques_actualites.forEach((r) => {
+      const bloc = el('section', 'bloc');
+      const tete = el('div', 'bloc__tete');
+      tete.appendChild(el('h2', null, r.libelle));
+      const dans = etat.actualites.filter((a) => a.rubrique === r.cle);
+      tete.appendChild(el('span', 'compteur', String(dans.length)));
+      bloc.appendChild(tete);
+
+      if (!dans.length) {
+        bloc.appendChild(el('p', 'vide', 'Aucune actualité dans cette catégorie.'));
+      } else {
+        bloc.appendChild(rail(dans.map((a, i) => carteActualite(a, i + 1))));
+      }
+      hote.appendChild(bloc);
+    });
+  }
+
+  // --- Onglet Documents ----------------------------------------------------
+
+  function carteDocument(d) {
+    const c = el('article', 'carte-mini');
+    const haut = el('div', 'carte-mini__haut');
+    haut.appendChild(el('span', 'carte-mini__date', d.date_document));
+    c.appendChild(haut);
+    c.appendChild(el('h3', 'carte-mini__titre', d.titre));
+    c.appendChild(el('p', 'carte-mini__extrait',
+      `PDF · ${d.taille_octets < 1024 ? 'moins de 1' : Math.round(d.taille_octets / 1024)} Ko`));
+
+    const actions = el('div', 'carte-mini__actions');
+    const voir = el('a', 'icone icone--voir');
+    voir.href = '../documents/' + d.fichier;
+    voir.target = '_blank';
+    voir.rel = 'noopener';
+    voir.title = 'Ouvrir le PDF';
+    voir.setAttribute('aria-label', 'Ouvrir le PDF');
+    actions.appendChild(voir);
+    actions.appendChild(boutonIcone('icone--modifier', 'Modifier ce document', () => {
+      preparerFormDocument(d);
+      ouvrirPanneau('form-document');
+    }));
+    actions.appendChild(boutonSupprimer('ce document',
+      () => api('documents/' + d.id, { method: 'DELETE' })));
+    c.appendChild(actions);
+    return c;
+  }
+
+  function dessinerDocuments() {
+    const hote = $('listes-documents');
+    hote.textContent = '';
+    $('resume-documents').textContent = etat.documents.length
+      ? `${etat.documents.length} document${etat.documents.length > 1 ? 's' : ''} en ligne.`
+      : 'Aucun document déposé pour le moment.';
+
+    if (!etat.rubriques_documents.length) {
+      hote.appendChild(el('p', 'vide', 'Aucune catégorie : créez-en une pour pouvoir déposer.'));
+      return;
+    }
+
+    etat.rubriques_documents.forEach((r) => {
+      const bloc = el('section', 'bloc');
+      const tete = el('div', 'bloc__tete');
+      tete.appendChild(el('h2', null, r.libelle));
+      const dans = etat.documents.filter((d) => d.rubrique === r.cle);
+      tete.appendChild(el('span', 'compteur', String(dans.length)));
+      bloc.appendChild(tete);
+
+      if (!dans.length) {
+        bloc.appendChild(el('p', 'vide', 'Aucun document dans cette catégorie.'));
+      } else {
+        bloc.appendChild(rail(dans.map(carteDocument)));
+      }
+      hote.appendChild(bloc);
+    });
+  }
+
+  // --- Aperçu d'une actualité ---------------------------------------------
+
+  function apercu(a) {
+    $('apercu-titre').textContent = a.titre;
+    const r = etat.rubriques_actualites.find((x) => x.cle === a.rubrique);
+    $('apercu-meta').textContent =
+      [r ? r.libelle : a.rubrique, a.date_evenement, a.lieu].filter(Boolean).join(' · ');
+    // innerHTML ici est délibéré et sûr : `contenu` a été assaini par le
+    // serveur à l'enregistrement (backoffice/contenu.py), et c'est le SEUL
+    // champ dans ce cas. Titre, lieu et extrait passent par textContent — eux
+    // sont du texte brut.
+    $('apercu-contenu').innerHTML = a.contenu || '';
+    $('apercu-modifier').onclick = () => {
+      preparerFormActualite(a);
+      ouvrirPanneau('form-actualite');
+    };
+    ouvrirPanneau('apercu');
+  }
+
+  // --- Listes déroulantes de catégories ------------------------------------
+
+  function remplirSelect(select, rubriques, valeur) {
+    select.textContent = '';
+    rubriques.forEach((r) => {
+      const o = document.createElement('option');
+      o.value = r.cle;
+      o.textContent = r.libelle;
+      select.appendChild(o);
+    });
+    if (valeur) select.value = valeur;
+  }
+
+  // --- Formulaires actualité / document ------------------------------------
+
+  function preparerFormActualite(a) {
+    actualiteEnEdition = a;
+    $('form-actualite-titre').textContent = a ? "Modifier l'actualité" : 'Nouvelle actualité';
+    $('a-envoyer').textContent = a ? 'Enregistrer les modifications' : "Publier l'actualité";
+    $('erreur-actualite').hidden = true;
+    remplirSelect($('a-rubrique'), etat.rubriques_actualites, a ? a.rubrique : null);
+    $('a-titre').value = a ? a.titre : '';
+    $('a-date').value = a ? a.date_evenement : '';
+    $('a-lieu').value = a ? (a.lieu || '') : '';
+    $('a-lien-url').value = a ? (a.lien_url || '') : '';
+    $('a-contenu').innerHTML = a ? (a.contenu || '') : '';
+  }
+
+  function preparerFormDocument(d) {
+    documentEnEdition = d;
+    $('form-document-titre').textContent = d ? 'Modifier le document' : 'Nouveau document';
+    $('d-envoyer').textContent = d ? 'Enregistrer les modifications' : 'Déposer le document';
+    $('erreur-document').hidden = true;
+    remplirSelect($('d-rubrique'), etat.rubriques_documents, d ? d.rubrique : null);
+    $('d-titre').value = d ? d.titre : '';
+    $('d-date').value = d ? d.date_document : '';
+    // En modification, le fichier n'est pas remplaçable : le champ disparaît
+    // plutôt que d'être présent et sans effet, ce qui laisserait croire qu'on
+    // peut changer le PDF.
+    $('champ-fichier').hidden = !!d;
+    $('d-fichier').required = !d;
+    $('d-fichier').value = '';
+  }
+
+  // --- Catégories ----------------------------------------------------------
+
+  function dessinerCategories(famille) {
+    const ul = $('liste-cat-' + famille);
+    const rubriques = etat['rubriques_' + famille];
+    const contenus = famille === 'actualites' ? etat.actualites : etat.documents;
+    ul.textContent = '';
+    if (!rubriques.length) {
+      ul.appendChild(el('li', 'vide', 'Aucune catégorie pour le moment.'));
+      return;
+    }
+    rubriques.forEach((r) => {
+      const li = el('li');
+      const infos = el('div', 'infos');
+      const combien = contenus.filter((c) => c.rubrique === r.cle).length;
+      infos.appendChild(el('div', 'titre', r.libelle));
+      infos.appendChild(el('div', 'detail',
+        `/${r.cle}/ · ${combien} élément${combien > 1 ? 's' : ''}`));
+      if (r.description) infos.appendChild(el('div', 'detail', r.description));
+      li.appendChild(infos);
+
+      li.appendChild(boutonIcone('icone--modifier', 'Renommer cette catégorie', () => {
+        const libelle = prompt('Nom de la catégorie', r.libelle);
+        if (libelle === null) return;
+        const description = prompt('Description affichée sur le site', r.description || '');
+        if (description === null) return;
+        api(`rubriques/${famille}/${r.cle}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ libelle, description }),
+        }).then(rafraichir).catch((e) => erreur('erreur-cat-' + famille, e.message));
+      }));
+      li.appendChild(boutonSupprimer('cette catégorie',
+        () => api(`rubriques/${famille}/${r.cle}`, { method: 'DELETE' })));
+      ul.appendChild(li);
+    });
+  }
+
+  document.querySelectorAll('.form-categorie').forEach((f) => {
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const famille = f.dataset.famille;
+      $('erreur-cat-' + famille).hidden = true;
       try {
-        await surSupprimer();
+        await api('rubriques/' + famille, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.fromEntries(new FormData(f))),
+        });
+        f.reset();
         await rafraichir();
-      } catch (e) {
-        bouton.disabled = false;
-        alert(e.message);
+        succes('erreur-cat-' + famille, 'Catégorie créée. Sa page existe déjà sur le site.');
+      } catch (err) {
+        erreur('erreur-cat-' + famille, err.message);
       }
     });
-
-    li.append(infos, bouton);
-    return li;
-  }
-
-  function listeVide(ul, message) {
-    const li = document.createElement('li');
-    li.className = 'vide';
-    li.textContent = message;
-    ul.appendChild(li);
-  }
-
-  function rendreActualites(actualites) {
-    const ul = $('liste-actualites');
-    ul.textContent = '';
-    $('resume-actualites').textContent = actualites.length
-      ? `${actualites.length} actualité${actualites.length > 1 ? 's' : ''} en ligne.`
-      : '';
-    if (!actualites.length) {
-      listeVide(ul, 'Aucune actualité publiée.');
-      return;
-    }
-    // Le rang se compte PAR RUBRIQUE, pas sur la liste entière : c'est chaque
-    // rubrique qui montre ses cinq premières sur le sommaire. Sans ce compteur,
-    // la sixième actualité toutes rubriques confondues serait marquée « hors
-    // sommaire » alors qu'elle est peut-être la première de la sienne.
-    const rang = {};
-    actualites.forEach((a) => {
-      rang[a.rubrique] = (rang[a.rubrique] || 0) + 1;
-      ul.appendChild(ligne(
-        a.titre,
-        `${libelleRubrique(a.rubrique)} · ${a.date_evenement}${a.lieu ? ' · ' + a.lieu : ''}`,
-        rang[a.rubrique] > enUne,
-        () => api('actualites/' + a.id, { method: 'DELETE' })
-      ));
-    });
-  }
-
-  // Le <select> du formulaire porte déjà la correspondance clé → libellé :
-  // inutile de la recopier ici, elle divergerait.
-  function libelleRubrique(cle) {
-    const opt = document.querySelector(`#a-rubrique option[value="${CSS.escape(cle)}"]`);
-    return opt ? opt.textContent : cle;
-  }
-
-  function rendreDocuments(documents) {
-    const ul = $('liste-documents');
-    ul.textContent = '';
-    if (!documents.length) {
-      listeVide(ul, 'Aucun document déposé.');
-      return;
-    }
-    documents.forEach((d) => {
-      ul.appendChild(ligne(
-        d.titre,
-        `${d.rubrique} · ${d.date_document} · ${Math.round(d.taille_octets / 1024)} Ko`,
-        false,
-        () => api('documents/' + d.id, { method: 'DELETE' })
-      ));
-    });
-  }
-
-  // --- Chargement ----------------------------------------------------------
-
-  async function rafraichir() {
-    const etat = await api('etat');
-    if (!etat.connecte) {
-      montrer('connexion');
-      return;
-    }
-    enUne = etat.en_une;
-    rendreActualites(etat.actualites);
-    rendreDocuments(etat.documents);
-    montrer('travail');
-  }
-
-  // --- Formulaires ---------------------------------------------------------
-
-  $('form-connexion').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    $('erreur-connexion').hidden = true;
-    try {
-      await api('connexion', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mot_de_passe: $('mot_de_passe').value }),
-      });
-      $('mot_de_passe').value = '';
-      await rafraichir();
-    } catch (err) {
-      erreur('erreur-connexion', err.message);
-    }
-  });
-
-  boutonDeconnexion.addEventListener('click', async () => {
-    try { await api('deconnexion', { method: 'POST' }); } catch (_) { /* sans importance */ }
-    montrer('connexion');
   });
 
   // --- Éditeur de texte ----------------------------------------------------
@@ -246,8 +472,6 @@
   }
 
   function elementDeBloc() {
-    // Remonte de la sélection jusqu'au bloc qui la contient, sans sortir de la
-    // zone éditable.
     let n = document.getSelection().anchorNode;
     if (!n) return null;
     if (n.nodeType === 3) n = n.parentNode;
@@ -282,11 +506,10 @@
 
   document.querySelectorAll('.editeur__barre [data-couleur]').forEach((b) => {
     b.addEventListener('click', () => conserverSelection(() => {
-      const couleur = b.dataset.couleur;
       const bloc = elementDeBloc();
       if (!bloc) return;
       bloc.classList.remove('co-marine', 'co-discret', 'co-alerte');
-      if (couleur) bloc.classList.add(couleur);
+      if (b.dataset.couleur) bloc.classList.add(b.dataset.couleur);
     }));
   });
 
@@ -333,24 +556,45 @@
     document.execCommand('insertText', false, texte);
   });
 
-  $('form-actualite').addEventListener('submit', async (e) => {
+  // --- Envois --------------------------------------------------------------
+
+  $('form-connexion').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    $('erreur-connexion').hidden = true;
+    try {
+      await api('connexion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mot_de_passe: $('mot_de_passe').value }),
+      });
+      $('mot_de_passe').value = '';
+      await rafraichir();
+    } catch (err) {
+      erreur('erreur-connexion', err.message);
+    }
+  });
+
+  $('deconnexion').addEventListener('click', async () => {
+    try { await api('deconnexion', { method: 'POST' }); } catch (_) { /* sans importance */ }
+    montrerEcran('connexion');
+  });
+
+  $('form-actu').addEventListener('submit', async (e) => {
     e.preventDefault();
     $('erreur-actualite').hidden = true;
-    const f = e.target;
-    const bouton = f.querySelector('button[type=submit]');
+    const bouton = $('a-envoyer');
     bouton.disabled = true;
     try {
-      const données = Object.fromEntries(new FormData(f));
+      const données = Object.fromEntries(new FormData(e.target));
       données.contenu = zone.innerHTML;
-      await api('actualites', {
-        method: 'POST',
+      const enEdition = actualiteEnEdition;
+      await api(enEdition ? 'actualites/' + enEdition.id : 'actualites', {
+        method: enEdition ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(données),
       });
-      f.reset();
-      zone.innerHTML = '';
+      fermerPanneau();
       await rafraichir();
-      succes('erreur-actualite', 'Actualité publiée. Elle est en ligne immédiatement.');
     } catch (err) {
       erreur('erreur-actualite', err.message);
     } finally {
@@ -358,19 +602,28 @@
     }
   });
 
-  $('form-document').addEventListener('submit', async (e) => {
+  $('form-doc').addEventListener('submit', async (e) => {
     e.preventDefault();
     $('erreur-document').hidden = true;
-    const f = e.target;
-    const bouton = f.querySelector('button[type=submit]');
+    const bouton = $('d-envoyer');
     bouton.disabled = true;
     try {
-      // FormData brut, sans en-tête Content-Type posé à la main : le navigateur
-      // doit fabriquer lui-même la frontière multipart. La poser casse l'envoi.
-      await api('documents', { method: 'POST', body: new FormData(f) });
-      f.reset();
+      if (documentEnEdition) {
+        const données = Object.fromEntries(new FormData(e.target));
+        delete données.fichier;
+        await api('documents/' + documentEnEdition.id, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(données),
+        });
+      } else {
+        // FormData brut, sans en-tête Content-Type posé à la main : le
+        // navigateur doit fabriquer lui-même la frontière multipart. La poser
+        // casse l'envoi.
+        await api('documents', { method: 'POST', body: new FormData(e.target) });
+      }
+      fermerPanneau();
       await rafraichir();
-      succes('erreur-document', 'Document déposé. Il est en ligne immédiatement.');
     } catch (err) {
       erreur('erreur-document', err.message);
     } finally {
@@ -378,14 +631,28 @@
     }
   });
 
-  // --- Démarrage -----------------------------------------------------------
+  // --- Chargement ----------------------------------------------------------
+
+  function dessiner() {
+    dessinerActualites();
+    dessinerDocuments();
+    dessinerCategories('actualites');
+    dessinerCategories('documents');
+    montrerEcran('travail');
+  }
+
+  async function rafraichir() {
+    etat = await api('etat');
+    if (!etat.connecte) { montrerEcran('connexion'); return; }
+    dessiner();
+  }
 
   rafraichir().catch(() => {
     // Serveur injoignable au lancement : on le dit franchement. Un back-office
     // ne peut pas travailler hors ligne sans inventer de la résolution de
     // conflits — mieux vaut une phrase claire qu'une illusion de fonctionnement.
-    horsLigne.hidden = false;
-    montrer('connexion');
+    $('hors-ligne').hidden = false;
+    montrerEcran('connexion');
   });
 
   if ('serviceWorker' in navigator) {

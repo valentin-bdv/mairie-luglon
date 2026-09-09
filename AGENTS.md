@@ -674,16 +674,44 @@ Things to know before touching it:
   pushes its oldest off the summary; it stays on the rubrique page. Nobody moves
   anything. Ordering is by **event date descending**, not publication date — an item
   typed today about last year's meeting must not jump ahead of next month's fête.
-- **Rubriques live in `config.RUBRIQUES_ACTUALITES`.** Adding one there creates its page,
-  its summary section and its choice in the form. It does **not** add the nav entry: the
-  submenu lives in the 26 static files and in `_layout.html`, and has to be updated by
-  hand (see the drift note below).
+- **Rubriques live in the DATABASE, not in the code.** The secretariat creates, renames
+  and deletes them from the admin app; `config.RUBRIQUES_ACTUALITES` and
+  `RUBRIQUES_DOCUMENTS` are only the **seed**, planted once on an empty table. Editing
+  those lists therefore affects a fresh install and nothing else — which is exactly what
+  you adjust for another client. Seeding only when the table is empty is deliberate: a
+  rubrique deleted by the secretariat must not reappear at the next restart.
+- **A rubrique's key is its URL and never changes.** Renaming edits the label and the
+  description; the key stays. Changing it would break links already shared, printed in a
+  bulletin, or indexed. Deleting a non-empty rubrique is refused rather than orphaning
+  its content into invisibility.
+- **The nav submenu is dynamic on rendered pages only.** `_layout.html` loops over the
+  rubriques, so a new category appears in the menu of every page the server renders. The
+  21 hand-written static pages keep the list frozen in their HTML — that's the cost of the
+  partial migration, and it is the reason to finish converting them to templates.
 - **Rich text is sanitised server-side by `contenu.py`, always.** The editor only
   produces allowed markup, but the API takes JSON — anyone with the password can post
   anything. The filter is on the server, never in the interface. It **rebuilds** from an
   allowlist rather than stripping what looks dangerous: an unknown tag is never emitted.
   `{{ a.contenu | safe }}` in `rubrique.html` is the only legitimate use of `| safe` in
   this repo, and only because of that.
+- **The admin app is two tabs, dashboard first.** Actualités and Documents never show at
+  once: the secretariat comes to publish one thing, not to scroll past the other. Each tab
+  opens on what already exists — the frequent question is "what's online?", not "what can
+  I add?" — and the forms live in overlay panels opened on demand. Deletion confirms on a
+  **second click**, never with `confirm()`: a native dialog freezes every browser event,
+  which this repo has been bitten by before.
+- **A category with two hundred items scrolls sideways**, in the admin and on the public
+  summary alike, rather than making an endless page. On the public summary the **sixth
+  card is the "Voir plus" card**: you meet it exactly when there is nothing more to see
+  there, whereas a button under the rail assumes you thought to look below it.
+- **Clicking a card opens the actualité in a modal** (`actu-modal.js`), which fetches it
+  from a small public read-only endpoint. Fail-open: the card *is* a link to its rubrique
+  page, so no script, no network, or a static host means the click simply follows the
+  link. `preventDefault()` there must stay **synchronous** — after an `await` the browser
+  has already navigated and the call does nothing.
+- **Each document rubrique's description sits directly above its own card**, not grouped
+  with the others at the top of the page. All the definitions first, then all the blocks,
+  forces a round trip to find out what the block you just opened contains.
 - **Colour and alignment are classes, never inline styles.** `ta-center`, `co-alerte` and
   the rest are declared in three places that must agree: `CLASSES` in `contenu.py`
   (otherwise the attribute is stripped on save and the formatting silently vanishes),

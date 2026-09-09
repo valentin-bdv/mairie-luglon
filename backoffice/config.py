@@ -67,24 +67,28 @@ ADMIN_CHEMIN = os.environ.get("BO_ADMIN_CHEMIN", "/gestion").rstrip("/")
 # personne ne déplace rien à la main, la limite est une requête.
 ACTUALITES_EN_UNE = 5
 
-# Rubriques d'actualités. La clé sert d'URL (/actualites/<clé>/) et est stockée
-# en base ; le libellé s'affiche. Ajouter une rubrique ici lui crée sa page,
-# son entrée de sommaire et son choix dans le formulaire, sans autre
-# modification. En retirer une laisse ses actualités en base sans page pour les
-# afficher — les déplacer avant.
+# Rubriques d'actualités de DÉPART. Elles ne sont semées en base qu'au PREMIER
+# démarrage : ensuite le secrétariat les crée, renomme et supprime depuis
+# l'administration, et c'est la base qui fait foi. Modifier cette liste n'a donc
+# d'effet que sur une installation neuve.
 RUBRIQUES_ACTUALITES = [
     ("vie-du-village", "Vie du village", "La vie quotidienne de la commune : évènements, animations, rendez-vous."),
     ("travaux", "Travaux", "Chantiers en cours, voirie, réseaux et perturbations à prévoir."),
     ("associations", "Associations", "Ce que proposent les associations luglonnaises."),
 ]
 
-# Rubriques de documents, dans l'ordre d'affichage sur la page publique.
-# La clé est stockée en base ; changer un libellé est sans risque, changer une
-# clé demande une migration des lignes existantes.
-RUBRIQUES = [
-    ("arrete-municipal", "Arrêtés municipaux"),
-    ("arrete-prefectoral", "Arrêtés préfectoraux"),
-    ("bulletin", "Bulletins municipaux"),
+# Rubriques de documents de DÉPART. Comme celles des actualités, elles ne sont
+# semées qu'au premier démarrage : ensuite, ce sont celles de la base qui font
+# foi, et le secrétariat les gère depuis l'administration. Modifier cette liste
+# n'a donc d'effet que sur une installation neuve — c'est ce qu'il faut ajuster
+# pour un autre client.
+RUBRIQUES_DOCUMENTS = [
+    ("arrete-municipal", "Arrêtés municipaux",
+     "Décisions du maire relevant de ses pouvoirs de police : circulation, urbanisme, salubrité, débits de boissons. Affichées en mairie dès leur signature."),
+    ("arrete-prefectoral", "Arrêtés préfectoraux",
+     "Décisions de la préfecture des Landes qui s'appliquent à la commune : restrictions d'eau, risque incendie, vigilance météo. Relayées ici dès leur publication."),
+    ("bulletin", "Bulletins municipaux",
+     "Publié une à deux fois par an, le bulletin revient sur les temps forts de la commune. Distribué dans les boîtes aux lettres et disponible en mairie."),
 ]
 
 # --- Dépôt de fichiers -----------------------------------------------------

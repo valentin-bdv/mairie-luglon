@@ -47,6 +47,24 @@ CREATE TABLE IF NOT EXISTS sessions (
     jeton       TEXT PRIMARY KEY,
     expire_le   TEXT NOT NULL
 );
+
+-- Les rubriques vivent en base, pas dans le code : le secrétariat doit pouvoir
+-- en créer, en renommer et en supprimer sans intervention. config.py ne fournit
+-- plus que le jeu de DÉPART, semé au premier démarrage — ce qui reste ce qu'il
+-- faut modifier pour installer chez un autre client.
+CREATE TABLE IF NOT EXISTS rubriques_actualites (
+    cle         TEXT PRIMARY KEY,     -- sert d'URL : /actualites/<cle>/
+    libelle     TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    ordre       INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS rubriques_documents (
+    cle         TEXT PRIMARY KEY,
+    libelle     TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    ordre       INTEGER NOT NULL DEFAULT 0
+);
 """
 
 
@@ -61,19 +79,151 @@ def connexion():
 
 
 def initialiser():
-    """Crée le schéma s'il manque.
+    """Crée le schéma s'il manque, et rattrape les schémas anciens.
 
-    Il n'y a pas de migrations : `CREATE TABLE IF NOT EXISTS` ne modifie pas une
-    table déjà créée avec d'anciennes colonnes. Si le schéma change en cours de
-    développement, supprimez `donnees/backoffice.sqlite3` — à ce volume, une
-    machinerie de migration coûterait plus cher que les données qu'elle
-    protège. En production, une modification de schéma se fait à la main sur une
-    base sauvegardée au préalable.
+    `CREATE TABLE IF NOT EXISTS` ne touche PAS une table déjà créée avec
+    d'autres colonnes. Sans le rattrapage ci-dessous, une base d'hier reste
+    intacte sur le disque mais devient illisible par le code d'aujourd'hui : les
+    actualités sont toujours là, et pourtant le site les affiche comme si elles
+    n'existaient pas. C'est arrivé une fois, et « mes données ont disparu » est
+    la pire chose qu'un outil puisse faire croire à quelqu'un.
+
+    Il n'y a pas de système de migration versionné pour autant : à ce volume,
+    ce serait plus de code à maintenir que de lignes à protéger. On répare les
+    écarts connus, un par un, et on les documente ici.
     """
     config.DEPOTS.mkdir(parents=True, exist_ok=True)
     config.MEDIAS.mkdir(parents=True, exist_ok=True)
     with connexion() as conn:
         conn.executescript(SCHEMA)
+        _rattraper_schema(conn)
+        _semer_rubriques(conn)
+
+
+def _rattraper_schema(conn):
+    """Renomme les colonnes de l'ancien schéma d'actualités.
+
+    Avant les rubriques, la table portait `categorie` (texte libre) et `texte`
+    (sans mise en forme). Elle porte maintenant `rubrique` (une clé) et
+    `contenu` (du HTML assaini), plus `extrait`. On récupère les lignes plutôt
+    que de demander à quelqu'un de retaper ses actualités.
+    """
+    colonnes = {r["name"] for r in conn.execute("PRAGMA table_info(actualites)")}
+    if "categorie" not in colonnes and "texte" not in colonnes:
+        return          # schéma déjà à jour, cas normal
+
+    if "rubrique" not in colonnes:
+        conn.execute("ALTER TABLE actualites ADD COLUMN rubrique TEXT NOT NULL DEFAULT ''")
+    if "contenu" not in colonnes:
+        conn.execute("ALTER TABLE actualites ADD COLUMN contenu TEXT NOT NULL DEFAULT ''")
+    if "extrait" not in colonnes:
+        conn.execute("ALTER TABLE actualites ADD COLUMN extrait TEXT NOT NULL DEFAULT ''")
+
+    # L'ancienne « catégorie » était du texte libre : elle ne correspond à
+    # aucune clé de rubrique. On range tout dans la première rubrique déclarée
+    # plutôt que d'inventer une correspondance — le secrétariat déplacera, et au
+    # moins les actualités réapparaissent.
+    defaut = config.RUBRIQUES_ACTUALITES[0][0]
+    conn.execute("UPDATE actualites SET rubrique = ? WHERE rubrique = ''", (defaut,))
+
+    if "texte" in colonnes:
+        # L'ancien texte était brut : on l'enveloppe dans un paragraphe pour
+        # qu'il s'affiche correctement dans le nouveau rendu HTML.
+        conn.execute(
+            "UPDATE actualites SET contenu = '<p>' || replace(replace(texte, '&', '&amp;'), '<', '&lt;') || '</p>' "
+            "WHERE contenu = '' AND texte <> ''")
+        conn.execute("UPDATE actualites SET extrait = substr(texte, 1, 180) WHERE extrait = ''")
+
+    print("  base : ancien schéma d'actualités rattrapé, les lignes sont conservées")
+
+
+def _semer_rubriques(conn):
+    """Sème les rubriques de config.py, une seule fois.
+
+    On ne sème QUE si la table est vide. Sinon, une rubrique supprimée par le
+    secrétariat réapparaîtrait au redémarrage suivant — le genre de « bug »
+    qu'on met des heures à comprendre parce qu'il ne se manifeste qu'après un
+    redéploiement.
+    """
+    for table, source in (("rubriques_actualites", config.RUBRIQUES_ACTUALITES),
+                          ("rubriques_documents", config.RUBRIQUES_DOCUMENTS)):
+        vide = conn.execute(f"SELECT COUNT(*) AS n FROM {table}").fetchone()["n"] == 0
+        if not vide:
+            continue
+        for i, (cle, libelle, description) in enumerate(source):
+            conn.execute(
+                f"INSERT INTO {table} (cle, libelle, description, ordre) VALUES (?, ?, ?, ?)",
+                (cle, libelle, description, i))
+
+
+# --- Rubriques -------------------------------------------------------------
+# Deux familles (actualités, documents) au comportement identique : mêmes
+# opérations, mêmes contraintes. Un seul jeu de fonctions paramétré par la
+# table, plutôt que deux jeux jumeaux qui divergeront.
+
+_TABLES_RUBRIQUES = {
+    "actualites": ("rubriques_actualites", "actualites"),
+    "documents": ("rubriques_documents", "documents"),
+}
+
+
+def rubriques(famille):
+    table, _ = _TABLES_RUBRIQUES[famille]
+    with connexion() as conn:
+        return [dict(r) for r in conn.execute(
+            f"SELECT * FROM {table} ORDER BY ordre, libelle")]
+
+
+def rubrique(famille, cle):
+    table, _ = _TABLES_RUBRIQUES[famille]
+    with connexion() as conn:
+        r = conn.execute(f"SELECT * FROM {table} WHERE cle = ?", (cle,)).fetchone()
+        return dict(r) if r else None
+
+
+def ajouter_rubrique(famille, cle, libelle, description):
+    table, _ = _TABLES_RUBRIQUES[famille]
+    with connexion() as conn:
+        rang = conn.execute(f"SELECT COALESCE(MAX(ordre), -1) + 1 AS n FROM {table}").fetchone()["n"]
+        conn.execute(
+            f"INSERT INTO {table} (cle, libelle, description, ordre) VALUES (?, ?, ?, ?)",
+            (cle, libelle, description, rang))
+
+
+def modifier_rubrique(famille, cle, libelle, description):
+    """Le libellé et la description changent ; LA CLÉ NON.
+
+    La clé est l'URL de la page (/actualites/vie-du-village/) : la renommer
+    casserait tous les liens déjà partagés, imprimés dans un bulletin ou
+    référencés par un moteur de recherche. Renommer « Travaux » en « Voirie »
+    change le titre affiché, pas l'adresse.
+    """
+    table, _ = _TABLES_RUBRIQUES[famille]
+    with connexion() as conn:
+        conn.execute(f"UPDATE {table} SET libelle = ?, description = ? WHERE cle = ?",
+                     (libelle, description, cle))
+
+
+def compter_dans_rubrique(famille, cle):
+    _, table_contenu = _TABLES_RUBRIQUES[famille]
+    with connexion() as conn:
+        return conn.execute(
+            f"SELECT COUNT(*) AS n FROM {table_contenu} WHERE rubrique = ?", (cle,)).fetchone()["n"]
+
+
+def supprimer_rubrique(famille, cle):
+    """Refuse de supprimer une rubrique qui contient encore quelque chose.
+
+    Sans ce garde-fou, des actualités resteraient en base sans page pour les
+    afficher : invisibles sur le site, invisibles dans l'administration, et
+    pourtant présentes. Mieux vaut un refus explicite qu'un contenu fantôme.
+    """
+    if compter_dans_rubrique(famille, cle):
+        raise ValueError("Cette rubrique contient encore des éléments : "
+                         "déplacez-les ou supprimez-les d'abord.")
+    table, _ = _TABLES_RUBRIQUES[famille]
+    with connexion() as conn:
+        conn.execute(f"DELETE FROM {table} WHERE cle = ?", (cle,))
 
 
 def _maintenant():
@@ -124,7 +274,31 @@ def ajouter_actualite(données):
         return cur.lastrowid
 
 
+def actualite(id_):
+    with connexion() as conn:
+        r = conn.execute("SELECT * FROM actualites WHERE id = ?", (id_,)).fetchone()
+        return dict(r) if r else None
+
+
+def modifier_actualite(id_, données):
+    with connexion() as conn:
+        conn.execute(
+            """UPDATE actualites SET titre = ?, rubrique = ?, date_evenement = ?,
+                                     lieu = ?, contenu = ?, extrait = ?, lien_url = ?
+               WHERE id = ?""",
+            (données["titre"], données["rubrique"], données["date_evenement"],
+             données.get("lieu", ""), données["contenu"], données.get("extrait", ""),
+             données.get("lien_url", ""), id_))
+
+
 def supprimer_actualite(id_):
+    """Retire la ligne. Les images qu'elle contenait restent sur le disque.
+
+    C'est délibéré : rien ne dit qu'une image n'est pas réutilisée dans une
+    autre actualité, et les traquer demanderait d'analyser le HTML de toutes les
+    lignes à chaque suppression. Quelques fichiers orphelins sur un disque
+    coûtent moins cher qu'une image qui disparaît d'un article encore publié.
+    """
     with connexion() as conn:
         conn.execute("DELETE FROM actualites WHERE id = ?", (id_,))
 
@@ -146,6 +320,18 @@ def document(id_):
     with connexion() as conn:
         r = conn.execute("SELECT * FROM documents WHERE id = ?", (id_,)).fetchone()
         return dict(r) if r else None
+
+
+def modifier_document(id_, données):
+    """Le titre, la rubrique et la date changent ; le FICHIER non.
+
+    Remplacer le fichier reviendrait à publier un autre document sous la même
+    entrée, sans trace du changement. Pour cela : supprimer et redéposer.
+    """
+    with connexion() as conn:
+        conn.execute(
+            "UPDATE documents SET titre = ?, rubrique = ?, date_document = ? WHERE id = ?",
+            (données["titre"], données["rubrique"], données["date_document"], id_))
 
 
 def ajouter_document(données):

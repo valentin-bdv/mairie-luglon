@@ -86,9 +86,9 @@
                 <li class="site-nav__item--has-menu">
                     <a href="{{ p }}/actualites/"{{ courant("/actualites/") }}>Actualités<span class="site-nav__chevron" aria-hidden="true"></span></a>
                     <ul class="site-nav__submenu">
-                        <li><a href="{{ p }}/actualites/vie-du-village/"{{ courant("/actualites/vie-du-village/") }}>Vie du village</a></li>
-                        <li><a href="{{ p }}/actualites/travaux/"{{ courant("/actualites/travaux/") }}>Travaux</a></li>
-                        <li><a href="{{ p }}/actualites/associations/"{{ courant("/actualites/associations/") }}>Associations</a></li>
+                        {% for r in rubriques_nav %}
+                        <li><a href="{{ p }}/actualites/{{ r.cle }}/"{{ courant("/actualites/" ~ r.cle ~ "/") }}>{{ r.libelle }}</a></li>
+                        {% endfor %}
                         <li><a href="https://incendie.cdf-luglon.fr/" target="_blank" rel="noopener noreferrer">Incendie</a></li>
                     </ul>
                 </li>
@@ -143,6 +143,8 @@
     <script src="{{ p }}/rail-dots.js"></script>
     <script src="{{ p }}/hero-fit.js"></script>
     <script src="{{ p }}/nav.js"></script>
+    <script src="{{ p }}/config.js"></script>
+    <script src="{{ p }}/actu-modal.js"></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

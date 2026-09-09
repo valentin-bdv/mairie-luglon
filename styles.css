@@ -2662,6 +2662,46 @@ html {
   color: var(--muted);
 }
 
+/* --- Carte « Voir plus », dernière du rail ---------------------------------
+   Elle occupe la place de la sixième actualité : en faisant défiler, on tombe
+   dessus au moment exact où il n'y a plus rien à voir dans le sommaire. Un
+   bouton posé sous le rail suppose qu'on ait pensé à regarder en dessous. */
+.event-card--plus {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2xs);
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  background: var(--navy-tint-08);
+  border-style: dashed;
+}
+.event-card--plus:hover {
+  background: var(--navy-tint-16);
+}
+.event-card--plus__nombre {
+  font-family: var(--font-title);
+  font-size: var(--fs-lead-xl);
+  color: var(--navy-ink);
+}
+.event-card--plus__texte {
+  max-width: 22ch;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
+/* Intro d'une rubrique de documents, posée juste au-dessus de SA carte. */
+.accordion-intro {
+  max-width: var(--measure);
+  margin: var(--space-m) 0 var(--space-2xs);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+.accordion-group > .accordion-intro:first-child { margin-top: 0; }
+
 .ta-left   { text-align: left; }
 .ta-center { text-align: center; }
 .ta-right  { text-align: right; }
@@ -3579,6 +3619,57 @@ input[type="number"] {
   font-family: var(--font-title);
   font-size: 1.4rem;
 }
+/* --- Modale d'actualité ----------------------------------------------------
+   Placé APRÈS .modal-box, et pas ailleurs : à spécificité égale, c'est le
+   dernier déclaré qui gagne, et les règles de la modale de réservation
+   (bordure rouge, titre rouge) écrasaient celles-ci quand elles venaient
+   avant. Réutilise .modal-overlay pour le placement, et
+   ne redéfinit que la boîte : celle de la réservation est étroite et bordée de
+   rouge (c'est une alerte), une actualité demande de la largeur et rien qui
+   crie. Voir actu-modal.js — la modale est un confort, la carte reste un lien
+   vers la page de rubrique si le script ne s'exécute pas. */
+.modal-box--actu {
+  position: relative;
+  max-width: 720px;
+  max-height: 86vh;
+  overflow-y: auto;
+  border: 1px solid var(--tab-border);
+  background: var(--bg);
+  padding: var(--space-l);
+}
+.modal-box--actu h3 {
+  margin: 0 0 var(--space-m);
+  color: var(--text);
+  font-size: var(--fs-lead-xl);
+  line-height: 1.15;
+}
+.actu-modal__meta {
+  margin: 0 0 var(--space-2xs);
+  font-family: var(--font-title);
+  letter-spacing: var(--tracking-title);
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.actu-modal__lien {
+  margin: var(--space-m) 0 0;
+}
+.actu-modal__lien a { color: var(--navy-ink); }
+.actu-modal__fermer {
+  position: absolute;
+  top: var(--space-s);
+  right: var(--space-s);
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--tab-border);
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.actu-modal__fermer:hover { color: var(--text); }
+
 .modal-question {
   font-weight: 600;
   margin: 14px 0 18px;

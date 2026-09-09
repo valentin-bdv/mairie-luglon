@@ -27,13 +27,22 @@
             <div class="rail event-grid" tabindex="0"
                  role="group" aria-label="{{ s.libelle }}">
 {% for a in s.actualites %}{{ carte(a, loop.index, badge, p ~ '/actualites/' ~ s.cle ~ '/') }}
-{% endfor %}            </div>
-            <div class="rail-dots" role="group" aria-label="Aller à une actualité"></div>
-            <div class="cta-row" style="justify-content:center">
-                <a class="btn btn--primary" href="{{ p }}/actualites/{{ s.cle }}/">
-                    Voir plus{% if s.reste %} ({{ s.reste }} de plus){% endif %}
+{% endfor %}
+                {%- if s.reste %}
+                {# La carte « Voir plus » occupe la place de la sixième, dans le rail
+                   lui-même : en faisant défiler, on tombe dessus au moment exact où
+                   il n'y a plus rien à voir ici. Un bouton posé sous le rail, lui,
+                   suppose qu'on ait pensé à regarder en dessous. #}
+                <a class="event-card event-card--plus" href="{{ p }}/actualites/{{ s.cle }}/" data-reveal style="--i:{{ s.actualites|length + 1 }}">
+                    <span class="event-card--plus__nombre">+{{ s.reste }}</span>
+                    <span class="event-card--plus__texte">
+                        {{ 'Voir les autres actualités' if s.reste > 1 else "Voir l'autre actualité" }}
+                        de « {{ s.libelle }} »
+                    </span>
                 </a>
+                {%- endif %}
             </div>
+            <div class="rail-dots" role="group" aria-label="Aller à une actualité"></div>
             {% else %}
             <div class="prose" data-reveal>
                 <p><em>Aucune actualité dans cette rubrique pour le moment.</em></p>

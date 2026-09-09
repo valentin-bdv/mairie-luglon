@@ -10,7 +10,7 @@
    qu'il faudrait maintenir à chaque rubrique ajoutée dans config.py. #}
 {% macro carte(a, i, badge, lien_rubrique) -%}
 {% set passe = badge(a.date_evenement) == 'passe' %}
-                <article class="event-card{% if passe %} event-card--past{% endif %}" data-date="{{ a.date_evenement }}" data-reveal style="--i:{{ i }}">
+                <article class="event-card{% if passe %} event-card--past{% endif %}" data-date="{{ a.date_evenement }}" data-actu-id="{{ a.id }}" data-reveal style="--i:{{ i }}">
                     <div class="event-card__head">
                         <span class="event-card__icon icon-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 21V4"/><path d="M4 5 20 9l-16 4Z"/></svg></span>
                         <span class="event-card__badge{% if passe %} event-card__badge--past{% endif %}">{{ 'Terminé' if passe else 'À venir' }}</span>

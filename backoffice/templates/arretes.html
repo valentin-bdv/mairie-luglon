@@ -23,19 +23,9 @@
             </div>
             <div class="prose" data-reveal>
                 <p>
-                    <strong>Arrêtés municipaux :</strong> décisions du maire relevant de ses
-                    pouvoirs de police (circulation, urbanisme, salubrité, débits de
-                    boissons...), affichées en mairie dès leur signature.
-                </p>
-                <p>
-                    <strong>Arrêtés préfectoraux :</strong> décisions de la préfecture des
-                    Landes qui s'appliquent à la commune (restrictions d'eau, risque incendie,
-                    vigilance météo...), relayées ici dès leur publication.
-                </p>
-                <p>
-                    <strong>Bulletin municipal :</strong> publié une à deux fois par an, il
-                    revient sur les temps forts de la commune. Distribué dans les boîtes aux
-                    lettres et disponible en mairie.
+                    Arrêtés du maire, arrêtés de la préfecture des Landes et bulletins
+                    municipaux : dépliez la rubrique qui vous intéresse. Chaque document
+                    est un PDF qui s'ouvre directement dans votre navigateur.
                 </p>
             </div>
         </section>
@@ -50,14 +40,19 @@
                    première tout court : quand les arrêtés municipaux sont vides et que
                    seuls les bulletins existent, ouvrir la rubrique vide donne une page
                    qui a l'air de n'avoir aucun document. #}
-                {% set premiere_remplie = (par_rubrique | selectattr(2) | map(attribute=0) | first) %}
-                {% for cle, libelle, docs in par_rubrique %}
-                <details class="accordion"{% if cle == premiere_remplie %} open{% endif %}>
-                    <summary>{{ libelle }}<span class="accordion__count">{{ docs|length }}</span><span class="accordion__chevron" aria-hidden="true"></span></summary>
+                {% set premiere_remplie = (par_rubrique | selectattr('documents') | map(attribute='cle') | first) %}
+                {% for r in par_rubrique %}
+                {# LA DÉFINITION EST COLLÉE À SA CARTE, et non regroupée avec les
+                   autres en haut de page. Toutes les définitions d'abord puis toutes
+                   les rubriques oblige le visiteur à faire l'aller-retour pour savoir
+                   ce que contient le bloc qu'il vient d'ouvrir. #}
+                <p class="accordion-intro">{{ r.description }}</p>
+                <details class="accordion"{% if r.cle == premiere_remplie %} open{% endif %}>
+                    <summary>{{ r.libelle }}<span class="accordion__count">{{ r.documents|length }}</span><span class="accordion__chevron" aria-hidden="true"></span></summary>
                     <div class="accordion__body">
-                        {% if docs %}
+                        {% if r.documents %}
                         <ul class="accordion__list">
-                            {% for d in docs %}
+                            {% for d in r.documents %}
                             {# Le titre OUVRE le document dans le lecteur du navigateur ;
                                le téléchargement est un second lien, explicite. On vient
                                sur cette page pour lire un arrêté, pas pour l'archiver.
