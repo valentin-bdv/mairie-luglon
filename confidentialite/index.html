@@ -3,6 +3,22 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+
+    <!-- Politique de sécurité du contenu. En <meta> et non en en-tête HTTP
+         parce que GitHub Pages ne permet d'envoyer aucun en-tête personnalisé.
+         Conséquence à connaître : frame-ancestors est IGNORÉ en <meta> (règle de
+         la spécification), le site reste donc encadrable par un tiers tant qu'il
+         est hébergé là — voir CLAUDE.md. Le reste s'applique normalement.
+         style-src autorise 'unsafe-inline' à cause des ~114 attributs style="…"
+         du HTML (--i:0 des animations, justify-content des cta-row) ; script-src
+         n'en a pas besoin : aucune page ne contient de <script> en ligne, et il
+         ne faut pas en introduire, ce serait affaiblir la règle la plus utile.
+         frame-src n'ouvre que Google Maps, pour les cartes de vie-pratique/dechets/.
+         La même politique est répétée à l'identique sur toutes les pages : il n'y a
+         pas de gabarit dans ce dépôt, donc si vous la modifiez, modifiez-la partout
+         (grep "Content-Security-Policy"). -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-src https://www.google.com; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>Politique de confidentialité - Mairie de Luglon</title>
 
     <link rel="icon" type="image/png" href="/mairie-luglon/favicon.png">
@@ -19,7 +35,7 @@
             <div class="site-nav__utility-bar">
                 <a href="tel:+33558075012"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4.4 4.4h3.4l1.4 4.6-2.3 1.7a12.6 12.6 0 0 0 6.4 6.4l1.7-2.3 4.6 1.4v3.4c0 1-.9 1.8-1.9 1.7C9.4 20.6 3.4 14.6 2.7 6.3c-.1-1 .7-1.9 1.7-1.9Z"/></svg>05 58 07 50 12</a>
                 <span class="sep">·</span>
-                <a href="mailto:mairie@luglon.fr"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2.8" y="4.9" width="18.4" height="14.2" rx="2.2"/><path d="m3.6 6.6 8.4 6.3 8.4-6.3"/></svg>mairie@luglon.fr</a>
+                <a href="mailto:accueil@mairie-luglon.fr"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2.8" y="4.9" width="18.4" height="14.2" rx="2.2"/><path d="m3.6 6.6 8.4 6.3 8.4-6.3"/></svg>accueil@mairie-luglon.fr</a>
             </div>
         </div>
         <div class="site-nav__bar">
@@ -109,7 +125,13 @@
             <h2>1. Responsable du traitement</h2>
             <p>
                 Les données sont collectées par la <strong>Mairie de Luglon</strong>.
-                Contact : <a href="mailto:mairie@luglon.fr">mairie@luglon.fr</a>.
+                Contact : <a href="mailto:accueil@mairie-luglon.fr">accueil@mairie-luglon.fr</a>.
+            </p>
+            <p>
+                En tant qu'organisme public, la commune est tenue de désigner un
+                <strong>délégué à la protection des données</strong> (DPO). Ses coordonnées
+                seront publiées ici dès sa désignation ; en attendant, adressez vos demandes
+                au secrétariat, qui les transmettra.
             </p>
 
             <h2>2. Données collectées</h2>
@@ -118,7 +140,7 @@
                 <li>votre <strong>prénom et nom</strong> ;</li>
                 <li>votre <strong>numéro de téléphone</strong> ;</li>
                 <li>votre <strong>adresse e-mail</strong> ;</li>
-                <li>la <strong>salle</strong>, la <strong>date</strong>, le <strong>créneau</strong> et le <strong>nombre de personnes</strong> ;</li>
+                <li>la <strong>salle</strong>, la ou les <strong>journées</strong> demandées et le <strong>nombre de personnes</strong> ;</li>
                 <li>le <strong>motif</strong> de la réservation et un éventuel <strong>commentaire</strong>.</li>
             </ul>
 
@@ -141,27 +163,49 @@
                 demande n'est transmise à un serveur ou à un tiers. Le formulaire enregistre
                 simplement votre demande dans la mémoire locale de votre navigateur («&nbsp;stockage
                 local&nbsp;») afin de vous la réafficher et d'éviter les doublons ; ces données
-                restent sur votre appareil et vous pouvez les effacer à tout moment en vidant
-                les données du site dans votre navigateur. Avant une mise en ligne réelle, la
+                ne quittent pas votre appareil. Vos <strong>nom, téléphone, e-mail, motif et
+                commentaire y sont effacés automatiquement au bout de trente minutes</strong>
+                — seules les journées demandées subsistent, pour que le calendrier continue de
+                les afficher comme prises. Le bouton «&nbsp;Effacer de cet appareil&nbsp;», sur
+                la page de confirmation, supprime tout immédiatement. Cette limite existe parce
+                qu'un navigateur est souvent partagé : sans elle, la personne qui utiliserait
+                l'ordinateur après vous verrait votre nom et votre numéro. Avant une mise en ligne réelle, la
                 mairie devra brancher un circuit de traitement effectif (par exemple un
                 formulaire transmis par e-mail au secrétariat) et mettre à jour cette page en
                 conséquence.
             </p>
 
-            <h2>5. Durée de conservation</h2>
+            <h2>5. Cartes Google Maps</h2>
+            <p>
+                La page «&nbsp;Déchets et encombrants&nbsp;» propose deux cartes fournies par
+                <strong>Google</strong>. Elles ne se chargent <strong>que si vous cliquez</strong>
+                sur «&nbsp;Afficher la carte&nbsp;» : tant que vous ne le faites pas, aucune
+                information n'est transmise à Google. En cliquant, vous acceptez que votre
+                adresse IP lui soit communiquée et que des traceurs soient déposés sur votre
+                appareil, selon les conditions de Google. Vous pouvez aussi consulter ces lieux
+                directement sur Google Maps, sans passer par ce site.
+            </p>
+            <p>
+                En dehors de ces cartes, <strong>ce site ne fait appel à aucun service tiers</strong> :
+                pas de mesure d'audience, pas de réseau social, pas de police de caractères ou
+                de bibliothèque chargée depuis un serveur extérieur. Il ne dépose
+                <strong>aucun cookie</strong>.
+            </p>
+
+            <h2>6. Durée de conservation</h2>
             <p>
                 Une fois un circuit de traitement réel mis en place, les données seront
                 conservées le temps nécessaire au traitement de la demande, puis supprimées
                 dans un délai raisonnable.
             </p>
 
-            <h2>6. Vos droits</h2>
+            <h2>7. Vos droits</h2>
             <p>
                 Conformément au Règlement Général sur la Protection des Données (RGPD), vous
                 disposez à tout moment d'un droit <strong>d'accès, de rectification,
                 d'effacement, d'opposition, de limitation du traitement et de
                 portabilité</strong> des données vous concernant. Il vous suffit de nous écrire à
-                <a href="mailto:mairie@luglon.fr">mairie@luglon.fr</a>.
+                <a href="mailto:accueil@mairie-luglon.fr">accueil@mairie-luglon.fr</a>.
             </p>
             <p>
                 Si vous estimez que vos droits ne sont pas respectés, vous pouvez également
@@ -184,6 +228,7 @@
                 <span class="footer-copyright">©2027 Tous droits réservés.</span>
                 <a href="/mairie-luglon/confidentialite/" class="footer-legal-link">Politique de confidentialité</a>
                 <a href="/mairie-luglon/mentions-legales/" class="footer-legal-link">Mentions légales</a>
+                <a href="/mairie-luglon/accessibilite/" class="footer-legal-link">Accessibilité&nbsp;: non conforme</a>
             </div>
             <div class="footer-social">
                 <a href="/mairie-luglon/contact/" aria-label="Nous contacter" class="footer-social-link footer-mail">

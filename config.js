@@ -1,7 +1,7 @@
 // ============================================================
 // config.js — Configuration PARTAGÉE du site
 // À inclure AVANT script.js et confirmation.js :
-//     <script src="/config.js"></script>
+//     <script src="/mairie-luglon/config.js"></script>
 //
 // Objectif : ne définir les informations de la salle qu'à UN SEUL endroit
 // pour le code. Le reste du site (script.js, confirmation.js) lit ces

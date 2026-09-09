@@ -7,7 +7,7 @@
 // seconde ; combiné au backdrop-filter de la barre, c'est la recette
 // classique des saccades sur iOS Safari. Ici : 2 à 4 appels par visite.
 //
-// À inclure sur les 6 pages : <script src="/nav.js"></script>
+// À inclure sur toutes les pages : <script src="/mairie-luglon/nav.js"></script>
 // ============================================================
 
 (function () {

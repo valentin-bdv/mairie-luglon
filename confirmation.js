@@ -1,13 +1,22 @@
 // ============================================================
 // confirmation.js — Logique de la page /vie-pratique/reservation-salle/confirmation/
-// Lit la dernière demande enregistrée dans localStorage et l'affiche
-// clairement à l'utilisateur.
+// Affiche la demande que le visiteur vient d'envoyer, et lui donne le moyen
+// de l'effacer de cet appareil.
+//
+// Ce fichier NE DÉCIDE PAS de ce qui est conservé ni combien de temps : cette
+// règle appartient à reservation-storage.js, inclus avant lui. `lastFresh()`
+// ne renvoie une demande que si elle est encore récente ; sinon on affiche le
+// bloc « aucune demande récente », qui est exactement le bon message pour
+// quelqu'un qui arrive ici sans venir du formulaire — y compris le visiteur
+// suivant d'un poste partagé, à qui le nom et le téléphone du précédent ne
+// doivent jamais s'afficher.
 // ============================================================
 
 (function () {
 
   // Configuration partagée, définie dans /config.js (inclus avant ce fichier)
   const ROOM = window.LUGLON.ROOM;
+  const STORE = window.LUGLON.storage;
 
   function formatDateFR(isoDate) {
     if (!isoDate) return '';
@@ -26,35 +35,22 @@
       .replace(/'/g, '&#39;');
   }
 
-  function loadReservations() {
-    try { return JSON.parse(localStorage.getItem('luglon_reservations') || '[]'); }
-    catch { return []; }
-  }
-
   const foundBlock = document.getElementById('confirmation-found');
   const notFoundBlock = document.getElementById('confirmation-not-found');
   const detailsEl = document.getElementById('confirmation-details');
+  const forgetBtn = document.getElementById('confirmation-forget');
 
-  const lastTimestamp = localStorage.getItem('luglon_last_reservation_timestamp');
-  const reservations = loadReservations();
-
-  // On cherche la demande correspondant exactement au dernier timestamp
-  // enregistré (le plus fiable pour retrouver LA demande qui vient d'être
-  // faite, même si plusieurs demandes existent sur l'appareil).
-  const lastReservation = lastTimestamp
-    ? reservations.find(r => String(r.timestamp) === lastTimestamp)
-    : null;
+  const lastReservation = STORE.lastFresh();
 
   if (!lastReservation) {
-    // Pas de demande récente trouvée : visite directe de la page, ou
-    // localStorage vidé entre temps.
+    // Visite directe de la page, demande trop ancienne, ou stockage vidé.
     notFoundBlock.style.display = 'block';
     return;
   }
 
   foundBlock.style.display = 'block';
 
-  const dates = lastReservation.dates || [];
+  const dates = Array.isArray(lastReservation.dates) ? lastReservation.dates : [];
   const datesLabel = dates.length > 1 ? 'Journées' : 'Journée';
   const datesValue = dates.map(formatDateFR).join(', ');
 
@@ -67,5 +63,20 @@
     <div class="confirmation-row"><span>Motif</span><strong>${escapeHTML(lastReservation.motif)}</strong></div>
     ${lastReservation.notes ? `<div class="confirmation-row"><span>Commentaire</span><strong>${escapeHTML(lastReservation.notes)}</strong></div>` : ''}
   `;
+
+  // Effacement immédiat, sans confirm() : la modale native bloque tous les
+  // évènements du navigateur (voir les mises en garde du dépôt), et il n'y a
+  // rien de dangereux à effacer — la demande n'existe que sur cet appareil,
+  // et le message qui suit le dit clairement.
+  if (forgetBtn) {
+    forgetBtn.addEventListener('click', function () {
+      STORE.forgetAll();
+      detailsEl.innerHTML =
+        '<p class="confirmation-forgotten">Les informations de cette demande ont été effacées de cet appareil. ' +
+        'La demande envoyée à la mairie, elle, n\'est pas concernée : pour la modifier ou l\'annuler, contactez le secrétariat.</p>';
+      forgetBtn.disabled = true;
+      forgetBtn.textContent = 'DONNÉES EFFACÉES';
+    });
+  }
 
 })();

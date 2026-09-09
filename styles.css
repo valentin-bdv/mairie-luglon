@@ -2095,13 +2095,55 @@ html {
 .embed-map {
   margin: 0;
 }
-.embed-map iframe {
+.embed-map iframe,
+.map-consent {
   display: block;
   width: 100%;
   aspect-ratio: 4 / 3;
   border: 0;
   border-radius: var(--r-l);
   box-shadow: var(--shadow-m);
+}
+
+/* Écran de consentement affiché À LA PLACE de la carte tant que personne n'a
+   cliqué (voir map-consent.js) : il occupe exactement la même boîte que
+   l'iframe qui le remplacera, pour que l'affichage de la carte ne fasse pas
+   sauter la mise en page. */
+.map-consent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2xs);
+  padding: var(--space-m);
+  text-align: center;
+  cursor: pointer;
+  background: var(--card);
+  border: 1px dashed var(--tab-border);
+  color: var(--text);
+  font: inherit;
+}
+.map-consent:hover,
+.map-consent:focus-visible {
+  background: var(--navy-tint-08);
+}
+.map-consent__title {
+  font-family: var(--font-title);
+  letter-spacing: var(--tracking-title);
+  font-size: 1.1rem;
+  color: var(--navy-ink);
+}
+.map-consent__note {
+  max-width: 38ch;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+.map-consent__fallback {
+  display: block;
+  padding: var(--space-m);
+  text-align: center;
+  color: var(--navy-ink);
 }
 
 /* Conteneur de section de contenu : la même mesure sur toutes les pages.
@@ -3569,6 +3611,38 @@ input[type="number"] {
   /* Texte couleur du fond de page : blanc sur gris foncé en clair, noir sur
      gris clair en sombre — bon contraste dans les deux cas */
   color: var(--bg);
+}
+
+/* Effacement des données de l'appareil (RGPD). Volontairement en retrait :
+   c'est une sortie de secours, pas l'action attendue de la page — d'où le
+   fond transparent et la bordure, face aux deux boutons pleins à côté. */
+.confirmation-forget-btn {
+  background: transparent !important;
+  color: var(--muted);
+  border: 1px solid var(--tab-border);
+  cursor: pointer;
+  font: inherit;
+}
+.confirmation-forget-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+/* Phrase qui annonce la conservation limitée, au-dessus des boutons. */
+.confirmation-privacy {
+  max-width: 440px;
+  margin: 18px auto 0;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+  color: var(--muted);
+}
+/* Remplace le détail de la demande une fois l'effacement fait. */
+.confirmation-forgotten {
+  margin: 0;
+  padding: var(--space-s) 0;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+  color: var(--muted);
+  text-align: left;
 }
 
 @media (max-width: 768px) {

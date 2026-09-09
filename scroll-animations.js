@@ -21,7 +21,7 @@
 //     seul tout le contenu d'une page (.legal-card, .confirmation-card).
 //     Ces cartes ont une animation d'entrée purement CSS, sans JS.
 //
-// À inclure sur chaque page : <script src="/scroll-animations.js"></script>
+// À inclure sur chaque page : <script src="/mairie-luglon/scroll-animations.js"></script>
 // ============================================================
 
 (function () {

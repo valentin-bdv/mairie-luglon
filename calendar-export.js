@@ -2,7 +2,7 @@
 // calendar-export.js — Boutons "Ajouter au calendrier" (pages Actualités)
 // Génère un fichier .ics par évènement (compatible Apple Calendar, Google
 // Calendar, Outlook...) en un clic, sans dépendance externe.
-// À inclure : <script src="/calendar-export.js"></script>
+// À inclure : <script src="/mairie-luglon/calendar-export.js"></script>
 // ============================================================
 
 (function () {

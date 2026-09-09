@@ -35,7 +35,7 @@
 // ------------------------------------------------------------
 //
 // À inclure sur les pages qui affichent des cartes d'évènement :
-//     <script src="/events.js"></script>
+//     <script src="/mairie-luglon/events.js"></script>
 // ============================================================
 
 (function () {

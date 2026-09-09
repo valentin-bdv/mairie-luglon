@@ -13,9 +13,21 @@ reintroduce Comité des Fêtes / `cdf-luglon.fr` content or branding. (A referen
 a real mairie site, `Arengosse.html`, used to sit at the repo root as inspiration; it was
 deleted once the design had settled and should not come back.)
 
-Addresses, phone numbers, opening hours, and the municipal team listed on
-`mairie/equipe-municipale/` are **plausible placeholders**, not real facts about Luglon —
+Addresses and opening hours are **plausible placeholders**, not real facts about Luglon —
 flag this if asked to treat them as authoritative.
+
+The **municipal team on `mairie/equipe-municipale/` is real**, though — these are the
+commune's actual elected officials, confirmed by the site owner (2026-09), and this file
+described them as placeholders for a while. Treat their names and roles as facts about
+real people: a typo there is a misspelled person's name, not a cosmetic detail (a
+"Virgine"/"Virginie" slip was corrected on exactly those grounds).
+
+The commune's contact address is **`accueil@mairie-luglon.fr`**. It used to be
+`mairie@luglon.fr` across 19 pages, including as the RGPD contact — but `luglon.fr` was
+never registered (NXDOMAIN), so every message bounced and anyone could have registered
+the domain and received mail meant for the mairie. If `luglon.fr` is ever bought, the
+plan is a redirect to `mairie-luglon.fr`, not a second identity: keep
+`mairie-luglon.fr` everywhere the site names itself (canonicals, sitemap, e-mail).
 
 `vie-pratique/enfance-jeunesse/`, the waste-management part of `vie-pratique/dechets/`,
 `vie-pratique/associations/`, `vie-pratique/entreprises/`, the homepage "chiffres" stat
@@ -195,7 +207,8 @@ non-obvious logic.
   conceptually under Mairie any more than under Vie pratique or Actualités. If it ever
   grows sub-pages of its own, it would need to become a `site-nav__item--has-menu` like
   the others — until then, don't add a submenu just to be "consistent" with them.
-- `mentions-legales/`, `confidentialite/`, `404.html` — as named; not in any nav submenu.
+- `mentions-legales/`, `confidentialite/`, `accessibilite/`, `404.html` — as named; not in
+  any nav submenu, but all three legal pages are linked from every footer.
 
 There is no separate `galerie/` page (removed by design — photos are distributed across
 the relevant pages instead, as hero images and as card vignettes/banners, rather than
@@ -277,6 +290,20 @@ Each HTML page manually includes only the scripts it needs, always after `config
   browser's instant snap. Fails open: without `Element.animate` support (checked at the
   top of the file) it does nothing, and every `<details>` still works natively —
   independently openable, just without exclusivity or animation.
+- `reservation-storage.js` — **owns the retention rule** for the booking form, and is the
+  only thing allowed to touch `luglon_reservations` / `luglon_last_reservation_timestamp`.
+  Loaded after `config.js` (it extends `window.LUGLON`) and before `script.js` /
+  `confirmation.js`, which both go through it. Name, phone, e-mail, motif and comment are
+  stripped 30 minutes after a request; only `dates` survive, because that's all the
+  calendar needs to grey a day out. It exists as its own file precisely so that rule sits
+  in one place instead of being copied into the two callers and drifting apart. The purge
+  runs on every read rather than on a timer — a timer doesn't run while the tab is closed,
+  which is exactly the case that matters. Watch the mutation trap documented on `load()`:
+  `purge()` mutates the objects it's given, so the "did anything change?" comparison has
+  to snapshot the JSON *before* purging or the cleaned list is silently never written back
+  (that bug shipped once and was caught in the browser, not by reading the code).
+- `map-consent.js` — Google Maps on click only, on `vie-pratique/dechets/`. See the
+  security section below; unlike everything else here, it **fails closed** on purpose.
 - `scroll-animations.js` — reveal-on-scroll. Contract: the only selector shared with CSS
   is `[data-reveal]`; this script alone adds `.reveal-on` to `<html>`, which is what arms
   the CSS-side hiding. If this script fails to run, nothing gets hidden — never add a case
@@ -530,9 +557,9 @@ arrows) are circles, not rounded boxes. The 2px decorative bars (`.site-nav__bur
 ### Footer's mail icon links to `/contact/`, not `mailto:`
 
 `.footer-social-link.footer-mail` (the navy circular icon in `.footer-social`) is an
-`<a href="/contact/">`, and there is no longer a plain-text `mairie@luglon.fr` link next
-to it — that was removed on purpose so the footer funnels people to the Contact page's
-own form/info instead of popping their mail client directly. `mailto:mairie@luglon.fr`
+`<a href="/contact/">`, and there is no longer a plain-text e-mail link next to it —
+that was removed on purpose so the footer funnels people to the Contact page's own
+form/info instead of popping their mail client directly. `mailto:accueil@mairie-luglon.fr`
 is still used elsewhere (the utility strip above the nav, `.contact-card` links) — this
 is the one deliberate exception, not a mistake to "fix" back to a mailto.
 
@@ -561,6 +588,58 @@ etc.) needs to be wired into `submitReservationOnServer()` in `script.js`, and t
 page updated to match. Don't add a call to a live third-party endpoint here without the
 user explicitly setting one up — the previous version of this code pointed at the Comité
 des Fêtes' real Google Apps Script deployment, which must never be reintroduced.
+
+Whoever wires that path up inherits three things the demo already put in place, and
+should not undo them: the text inputs carry `maxlength` (80/20/120/120/500) so a real
+endpoint isn't the first thing to meet an unbounded string; `form-action 'none'` in the
+CSP means that if JS ever fails, the form can't fall back to a native GET that would put
+the visitor's name and phone number in the URL and their browser history; and
+`reservation-storage.js` still expires the local copy regardless of what the server does.
+The privacy page's section 4 describes the demo behaviour explicitly and has to be
+rewritten at the same time — it currently promises that nothing leaves the device.
+
+### Security posture — what an audit fixed, and what it can't
+
+A full security audit (2026-09) turned up no remotely exploitable flaw in the code, and
+the fixes it produced are load-bearing. Four of them are easy to undo by accident:
+
+- **The CSP lives in a `<meta>` on all 26 pages, repeated verbatim.** GitHub Pages sends
+  no custom headers, so a meta tag is the only option. Two consequences. First, there's
+  no templating here, so the policy is duplicated 26 times — change it with a grep for
+  `Content-Security-Policy`, never on one page. Second, `frame-ancestors` is **ignored**
+  in a meta CSP (spec rule), so the site stays framable and clickjacking can't be closed
+  while it's hosted on GitHub Pages; the day it moves to a host that sends real headers,
+  add `frame-ancestors 'none'` there rather than trying to make the meta work.
+- **`script-src 'self'` holds only because no page has an inline `<script>`.** Adding one
+  would force `'unsafe-inline'` and gut the most valuable directive in the policy. Inline
+  `style=` attributes are a different matter — there are ~114 of them (`--i:0`,
+  `justify-content`), hence `style-src 'unsafe-inline'`, which is far less dangerous.
+- **Google Maps loads on click, never on page load** (`map-consent.js` +
+  `.map-consent`). The two maps on `vie-pratique/dechets/` are the site's only third
+  party; embedding them directly sent every visitor's IP to Google before they did
+  anything, which a public-sector site can't do without consent. This script is the one
+  place in the repo that deliberately **fails closed**: if it doesn't run, no map loads.
+  Don't "simplify" it back to a plain `<iframe>`.
+- **Personal form data expires by itself** — see `reservation-storage.js`, which owns
+  that rule for both `script.js` and `confirmation.js`. Never read `luglon_reservations`
+  directly from either; that would walk around the purge.
+
+Two facts worth keeping in mind rather than rediscovering: the site has **zero
+third-party JavaScript** (no CDN, self-hosted fonts), which is its single best security
+property — weigh any proposed library against losing it; and the repo's public git
+history contains a Google Apps Script `/exec` URL from the Comité des Fêtes era, which
+is why that endpoint had to be redeployed rather than merely deleted from the code.
+
+### Legal pages: three, not two
+
+`mentions-legales/`, `confidentialite/` **and `accessibilite/`**. The last one is a RGAA
+declaration, mandatory for a public-sector site (art. 47 of loi 2005-102, décret
+2019-768), and it comes with an obligation the other two don't have: the conformity level
+must appear on **every page**, which is why each footer carries an
+`Accessibilité : non conforme` link. It says "non conforme" because no audit has been
+run — that's the honest state, the same device used by `mairie/arretes-et-publications/`,
+and it should be replaced by a measured figure once an audit happens, not quietly
+upgraded to "partiellement conforme" because the site looks decent.
 
 ### CSS structure
 

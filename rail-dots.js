@@ -13,7 +13,7 @@
 // d'anti-rebond à régler.
 //
 // À inclure sur les pages qui ont un rail :
-//     <script src="/rail-dots.js"></script>
+//     <script src="/mairie-luglon/rail-dots.js"></script>
 // ============================================================
 
 (function () {

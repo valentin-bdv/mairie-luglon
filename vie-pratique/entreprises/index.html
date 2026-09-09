@@ -3,6 +3,22 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+
+    <!-- Politique de sécurité du contenu. En <meta> et non en en-tête HTTP
+         parce que GitHub Pages ne permet d'envoyer aucun en-tête personnalisé.
+         Conséquence à connaître : frame-ancestors est IGNORÉ en <meta> (règle de
+         la spécification), le site reste donc encadrable par un tiers tant qu'il
+         est hébergé là — voir CLAUDE.md. Le reste s'applique normalement.
+         style-src autorise 'unsafe-inline' à cause des ~114 attributs style="…"
+         du HTML (--i:0 des animations, justify-content des cta-row) ; script-src
+         n'en a pas besoin : aucune page ne contient de <script> en ligne, et il
+         ne faut pas en introduire, ce serait affaiblir la règle la plus utile.
+         frame-src n'ouvre que Google Maps, pour les cartes de vie-pratique/dechets/.
+         La même politique est répétée à l'identique sur toutes les pages : il n'y a
+         pas de gabarit dans ce dépôt, donc si vous la modifiez, modifiez-la partout
+         (grep "Content-Security-Policy"). -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-src https://www.google.com; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>Entreprises - Mairie de Luglon</title>
 
     <link rel="icon" type="image/png" href="/mairie-luglon/favicon.png">
@@ -19,7 +35,7 @@
             <div class="site-nav__utility-bar">
                 <a href="tel:+33558075012"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4.4 4.4h3.4l1.4 4.6-2.3 1.7a12.6 12.6 0 0 0 6.4 6.4l1.7-2.3 4.6 1.4v3.4c0 1-.9 1.8-1.9 1.7C9.4 20.6 3.4 14.6 2.7 6.3c-.1-1 .7-1.9 1.7-1.9Z"/></svg>05 58 07 50 12</a>
                 <span class="sep">·</span>
-                <a href="mailto:mairie@luglon.fr"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2.8" y="4.9" width="18.4" height="14.2" rx="2.2"/><path d="m3.6 6.6 8.4 6.3 8.4-6.3"/></svg>mairie@luglon.fr</a>
+                <a href="mailto:accueil@mairie-luglon.fr"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2.8" y="4.9" width="18.4" height="14.2" rx="2.2"/><path d="m3.6 6.6 8.4 6.3 8.4-6.3"/></svg>accueil@mairie-luglon.fr</a>
             </div>
         </div>
         <div class="site-nav__bar">
@@ -237,6 +253,7 @@
                 <span class="footer-copyright">©2027 Tous droits réservés.</span>
                 <a href="/mairie-luglon/confidentialite/" class="footer-legal-link">Politique de confidentialité</a>
                 <a href="/mairie-luglon/mentions-legales/" class="footer-legal-link">Mentions légales</a>
+                <a href="/mairie-luglon/accessibilite/" class="footer-legal-link">Accessibilité&nbsp;: non conforme</a>
             </div>
             <div class="footer-social">
                 <a href="/mairie-luglon/contact/" aria-label="Nous contacter" class="footer-social-link footer-mail">

@@ -22,7 +22,7 @@
 // HTML et le JS.
 //
 // À inclure sur les pages qui ont un .accordion-group :
-//     <script src="/accordion.js"></script>
+//     <script src="/mairie-luglon/accordion.js"></script>
 // ============================================================
 
 (function () {

@@ -29,13 +29,11 @@ function toISODate(year, month, day) {
 // 1. GESTION DES RÉSERVATIONS (Stockage Local)
 // Client-side-only, comme le reste du gabarit : ces demandes ne sont
 // enregistrées QUE dans le navigateur de la personne qui les envoie.
-function loadReservations() {
-    try { return JSON.parse(localStorage.getItem('luglon_reservations') || '[]'); }
-    catch { return []; }
-}
-function saveReservations(arr) {
-    localStorage.setItem('luglon_reservations', JSON.stringify(arr));
-}
+// La durée de vie des champs personnels (nom, téléphone, e-mail, motif,
+// commentaire) est décidée par reservation-storage.js, inclus avant ce
+// fichier — surtout ne pas relire `luglon_reservations` en direct ici, ce
+// serait contourner ce nettoyage.
+const STORE = window.LUGLON.storage;
 
 // Quelques journées déjà retenues, pour que le calendrier de démonstration
 // ne soit pas entièrement vide au premier chargement. À remplacer par les
@@ -49,8 +47,7 @@ const MOCK_RESERVED_DATES = [
 // ci-dessus, plus celles déjà réservées sur cet appareil. Chaque demande
 // peut porter sur plusieurs journées (tableau `dates`), d'où le flatMap.
 function getReservedDates() {
-    const local = loadReservations().flatMap(r => r.dates || []);
-    return new Set([...MOCK_RESERVED_DATES, ...local]);
+    return new Set([...MOCK_RESERVED_DATES, ...STORE.reservedDates()]);
 }
 
 // 2. CALENDRIER DE RÉSERVATION
@@ -354,7 +351,6 @@ function submitReservation(formData) {
 
     submitReservationOnServer().then((res) => {
         if (res && res.success) {
-            const data = loadReservations();
             const entry = {
                 name: formData.name,
                 phone: formData.phone,
@@ -366,13 +362,12 @@ function submitReservation(formData) {
                 timestamp: Date.now() // horodatage réel, utilisé par la page de confirmation
             };
 
-            data.push(entry);
-            saveReservations(data);
-            // On garde une trace de "la dernière demande effectuée" pour que
-            // la page de confirmation sache laquelle afficher.
-            localStorage.setItem('luglon_last_reservation_timestamp', String(entry.timestamp));
+            // add() enregistre la demande ET la marque comme « la dernière
+            // effectuée », pour que la page de confirmation sache laquelle
+            // afficher.
+            STORE.add(entry);
 
-            window.location.href = '/vie-pratique/reservation-salle/confirmation/';
+            window.location.href = '/mairie-luglon/vie-pratique/reservation-salle/confirmation/';
         } else {
             setSubmissionStatus('error', "La demande n'a pas pu être enregistrée. Merci de réessayer ou de nous contacter.");
             submitButton.disabled = false;
