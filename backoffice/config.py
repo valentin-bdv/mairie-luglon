@@ -72,9 +72,51 @@ ACTUALITES_EN_UNE = 5
 # l'administration, et c'est la base qui fait foi. Modifier cette liste n'a donc
 # d'effet que sur une installation neuve.
 RUBRIQUES_ACTUALITES = [
-    ("vie-du-village", "Vie du village", "La vie quotidienne de la commune : évènements, animations, rendez-vous."),
-    ("travaux", "Travaux", "Chantiers en cours, voirie, réseaux et perturbations à prévoir."),
-    ("associations", "Associations", "Ce que proposent les associations luglonnaises."),
+    ("vie-du-village", "Vie du village",
+     "La vie quotidienne de la commune : évènements, animations, rendez-vous."),
+    ("travaux", "Travaux",
+     "Chantiers en cours, voirie, réseaux et perturbations à prévoir."),
+    ("associations", "Associations",
+     "Ce que proposent les associations luglonnaises."),
+    ("incendie", "Incendie",
+     "Départs de feu, vigilance et consignes de sécurité en période sèche."),
+]
+
+# Actualités de départ, semées en même temps que leurs rubriques. Elles
+# reprennent celles qui étaient écrites en dur sur la page d'accueil : plutôt
+# que de les perdre en rendant la page dynamique, on les fait entrer en base,
+# où le secrétariat peut désormais les modifier comme les autres.
+#
+# Leurs liens « En savoir plus » pointent volontairement vers cdf-luglon.fr —
+# c'est une demande répétée du propriétaire du site, pas un reste à nettoyer
+# (voir CLAUDE.md).
+ACTUALITES_DEPART = [
+    {
+        "titre": "Incendie à Luglon",
+        "rubrique": "incendie",
+        "date_evenement": "2026-08-18",
+        "lieu": "Lisière de forêt",
+        "contenu": "<p>Départ de feu maîtrisé rapidement par les pompiers, aucun blessé. "
+                   "La vigilance reste de mise en période sèche.</p>",
+        "lien_url": "https://incendie.cdf-luglon.fr/",
+    },
+    {
+        "titre": "Fêtes de Luglon",
+        "rubrique": "vie-du-village",
+        "date_evenement": "2027-07-10",
+        "lieu": "Cœur du village",
+        "contenu": "<p>Trois jours de fête au cœur du village : bal, concours et animations "
+                   "pour petits et grands. Programme à venir.</p>",
+        "lien_url": "https://cdf-luglon.fr/evenements/fetes-de-luglon/",
+    },
+    {
+        "titre": "Concours de belote",
+        "rubrique": "vie-du-village",
+        "date_evenement": "2026-09-20",
+        "lieu": "Salle des fêtes",
+        "contenu": "<p>Bientôt de retour : date précise à confirmer prochainement.</p>",
+        "lien_url": "https://cdf-luglon.fr/evenements/concours-de-belote",
+    },
 ]
 
 # Rubriques de documents de DÉPART. Comme celles des actualités, elles ne sont

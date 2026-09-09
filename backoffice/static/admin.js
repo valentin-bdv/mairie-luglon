@@ -27,6 +27,7 @@
   let ongletCourant = 'actualites';
   let actualiteEnEdition = null;   // null = création
   let documentEnEdition = null;
+  let categorieEnEdition = null;
 
   // --- Accès réseau --------------------------------------------------------
 
@@ -75,9 +76,16 @@
     if (premier) premier.focus();
   }
 
+  // Appelé à la fermeture, pour qu'une promesse en attente (confirmer()) ne
+  // reste pas suspendue si la personne ferme le panneau au lieu de répondre.
+  let panneauFerme = null;
+
   function fermerPanneau() {
     $('voile').hidden = true;
     document.querySelectorAll('.panneau').forEach((p) => { p.hidden = true; });
+    const rappel = panneauFerme;
+    panneauFerme = null;
+    if (rappel) rappel();
   }
 
   document.addEventListener('click', (e) => {
@@ -145,27 +153,48 @@
     return b;
   }
 
-  // Confirmation par SECOND CLIC, jamais confirm() : une boîte de dialogue
-  // native fige tous les évènements du navigateur, et ce dépôt s'est déjà fait
-  // piéger par ça. Le bouton passe au rouge et change d'intitulé — l'intention
-  // est claire sans rien bloquer.
+  // AUCUNE BOÎTE DE DIALOGUE NATIVE DANS CETTE APPLICATION. Ni confirm(), ni
+  // prompt(), ni alert() : elles sont impossibles à styler, elles n'ont rien à
+  // voir avec le reste de l'écran, et elles figent tous les évènements du
+  // navigateur. Tout passe par les panneaux du document.
+  //
+  // `confirmer()` rend une promesse : le code appelant s'écrit du haut vers le
+  // bas comme avec confirm(), sans imbriquer des fonctions de rappel.
+  function confirmer(message) {
+    return new Promise((resoudre) => {
+      $('confirmer-message').textContent = message;
+      const oui = $('confirmer-oui');
+      // On remplace le bouton par un clone : ça détache d'un coup tous les
+      // écouteurs de l'appel précédent. Sans ça, une deuxième confirmation
+      // déclencherait aussi la suppression de la première.
+      const neuf = oui.cloneNode(true);
+      oui.replaceWith(neuf);
+      neuf.addEventListener('click', () => { fermerPanneau(); resoudre(true); });
+      panneauFerme = () => resoudre(false);
+      ouvrirPanneau('confirmer');
+    });
+  }
+
   function boutonSupprimer(quoi, surSupprimer) {
     return boutonIcone('icone--supprimer', 'Supprimer ' + quoi, async (b) => {
-      if (b.dataset.confirme !== '1') {
-        b.dataset.confirme = '1';
-        b.classList.add('icone--confirme');
-        b.title = 'Cliquez à nouveau pour confirmer';
-        setTimeout(() => {
-          b.dataset.confirme = '';
-          b.classList.remove('icone--confirme');
-          b.title = 'Supprimer ' + quoi;
-        }, 5000);
-        return;
-      }
+      if (!await confirmer('Supprimer ' + quoi + ' ? Cette action est définitive.')) return;
       b.disabled = true;
       try { await surSupprimer(); await rafraichir(); }
-      catch (err) { b.disabled = false; alert(err.message); }
+      catch (err) { b.disabled = false; signaler(err.message); }
     });
+  }
+
+  // Erreur qui n'a pas de champ où s'afficher (une suppression, par exemple).
+  // Elle réutilise le panneau de confirmation, sans le bouton d'action.
+  function signaler(message) {
+    $('confirmer-titre').textContent = 'Impossible';
+    $('confirmer-message').textContent = message;
+    $('confirmer-oui').hidden = true;
+    ouvrirPanneau('confirmer');
+    panneauFerme = () => {
+      $('confirmer-titre').textContent = 'Confirmer la suppression';
+      $('confirmer-oui').hidden = false;
+    };
   }
 
   // --- Rails horizontaux ---------------------------------------------------
@@ -412,22 +441,36 @@
       if (r.description) infos.appendChild(el('div', 'detail', r.description));
       li.appendChild(infos);
 
-      li.appendChild(boutonIcone('icone--modifier', 'Renommer cette catégorie', () => {
-        const libelle = prompt('Nom de la catégorie', r.libelle);
-        if (libelle === null) return;
-        const description = prompt('Description affichée sur le site', r.description || '');
-        if (description === null) return;
-        api(`rubriques/${famille}/${r.cle}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ libelle, description }),
-        }).then(rafraichir).catch((e) => erreur('erreur-cat-' + famille, e.message));
+      li.appendChild(boutonIcone('icone--modifier', 'Modifier cette catégorie', () => {
+        categorieEnEdition = { famille, cle: r.cle };
+        $('c-libelle').value = r.libelle;
+        $('c-desc').value = r.description || '';
+        $('erreur-cat-modif').hidden = true;
+        ouvrirPanneau('form-categorie');
       }));
       li.appendChild(boutonSupprimer('cette catégorie',
         () => api(`rubriques/${famille}/${r.cle}`, { method: 'DELETE' })));
       ul.appendChild(li);
     });
   }
+
+  $('form-cat-modif').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    $('erreur-cat-modif').hidden = true;
+    const { famille, cle } = categorieEnEdition;
+    try {
+      await api(`rubriques/${famille}/${cle}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.fromEntries(new FormData(e.target))),
+      });
+      fermerPanneau();
+      await rafraichir();
+      ouvrirPanneau('cat-' + famille);
+    } catch (err) {
+      erreur('erreur-cat-modif', err.message);
+    }
+  });
 
   document.querySelectorAll('.form-categorie').forEach((f) => {
     f.addEventListener('submit', async (e) => {
@@ -513,11 +556,14 @@
     }));
   });
 
+  // Le lien passe par un champ du panneau, pas par prompt(). Voir confirmer().
   $('btn-lien').addEventListener('click', () => {
-    const url = prompt('Adresse du lien (https://…)');
-    if (!url) return;
+    const champ = $('a-lien-url');
+    const url = champ.value.trim();
     if (!/^https?:\/\//i.test(url)) {
-      erreur('erreur-actualite', 'Le lien doit commencer par https://');
+      erreur('erreur-actualite',
+             'Écrivez d\'abord l\'adresse dans le champ « Lien » en bas du formulaire, '
+             + 'puis sélectionnez le texte et cliquez sur Lien.');
       return;
     }
     conserverSelection(() => document.execCommand('createLink', false, url));

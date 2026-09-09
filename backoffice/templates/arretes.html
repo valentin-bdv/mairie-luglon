@@ -46,7 +46,7 @@
                    autres en haut de page. Toutes les définitions d'abord puis toutes
                    les rubriques oblige le visiteur à faire l'aller-retour pour savoir
                    ce que contient le bloc qu'il vient d'ouvrir. #}
-                <p class="accordion-intro">{{ r.description }}</p>
+                <div class="prose accordion-intro"><p>{{ r.description }}</p></div>
                 <details class="accordion"{% if r.cle == premiere_remplie %} open{% endif %}>
                     <summary>{{ r.libelle }}<span class="accordion__count">{{ r.documents|length }}</span><span class="accordion__chevron" aria-hidden="true"></span></summary>
                     <div class="accordion__body">

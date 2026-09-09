@@ -697,9 +697,17 @@ Things to know before touching it:
 - **The admin app is two tabs, dashboard first.** Actualités and Documents never show at
   once: the secretariat comes to publish one thing, not to scroll past the other. Each tab
   opens on what already exists — the frequent question is "what's online?", not "what can
-  I add?" — and the forms live in overlay panels opened on demand. Deletion confirms on a
-  **second click**, never with `confirm()`: a native dialog freezes every browser event,
-  which this repo has been bitten by before.
+  I add?" — and the forms live in overlay panels opened on demand.
+- **No native browser dialog anywhere.** Not `confirm()`, not `prompt()`, not `alert()`:
+  they can't be styled, they look nothing like the rest of the screen, and they freeze
+  every browser event. Deletion opens the app's own confirmation panel; `confirmer()` in
+  `admin.js` returns a promise so the calling code still reads top to bottom.
+- **No explanatory prose in the admin UI.** The site owner asked for it explicitly: the
+  screen carries labels and counts, nothing that explains how the tool works. Don't add
+  helper sentences back — if something needs explaining, it's the interface that's wrong.
+- **Icons are SVG paths in a data URI**, not Unicode characters. `✎` and `🗑` render
+  differently on every machine, and the second comes out as a colour emoji on macOS,
+  which has no place in a sober tool.
 - **A category with two hundred items scrolls sideways**, in the admin and on the public
   summary alike, rather than making an endless page. On the public summary the **sixth
   card is the "Voir plus" card**: you meet it exactly when there is nothing more to see
@@ -709,9 +717,13 @@ Things to know before touching it:
   page, so no script, no network, or a static host means the click simply follows the
   link. `preventDefault()` there must stay **synchronous** — after an `await` the browser
   has already navigated and the call does nothing.
-- **Each document rubrique's description sits directly above its own card**, not grouped
-  with the others at the top of the page. All the definitions first, then all the blocks,
-  forces a round trip to find out what the block you just opened contains.
+- **Each description sits directly above its own card**, not grouped with the others at
+  the top of the page — on `mairie/arretes-et-publications/` and on
+  `mairie/vos-demarches/` alike. All the definitions first, then all the blocks, forces a
+  round trip to find out what the block you just opened contains. The page alternates
+  description, card, description, card. `.accordion-intro` handles only the spacing:
+  giving it a size and a colour crushed `.prose` where the two meet and shrank body
+  paragraphs into grey captions.
 - **Colour and alignment are classes, never inline styles.** `ta-center`, `co-alerte` and
   the rest are declared in three places that must agree: `CLASSES` in `contenu.py`
   (otherwise the attribute is stripped on save and the formatting silently vanishes),
@@ -804,6 +816,36 @@ must appear on **every page**, which is why each footer carries an
 run — that's the honest state, the same device used by `mairie/arretes-et-publications/`,
 and it should be replaced by a measured figure once an audit happens, not quietly
 upgraded to "partiellement conforme" because the site looks decent.
+
+### No link may fall back to the browser's default blue
+
+`styles.css` sets `a { color: var(--navy-ink) }` in the reset, and `admin.css` does the
+same with its own token. Before that, any link added in a corner without its own rule
+came out electric blue — a colour that belongs to no charter. The brand colour is now the
+site's default and each component only departs from it when it has a reason.
+
+Links that *are* buttons or cards (`.btn`, `.event-card`, `.value-card`, `.contact-card`,
+the nav, the brand, the footer icons) are listed together in that same block and reset to
+`color: inherit; text-decoration: none`. Listing them once beats repeating the pair in a
+dozen components — and beats forgetting it in the thirteenth.
+
+### The homepage renders from the database too
+
+`index.html`'s actualités used to be three hand-written cards. They now live in the
+database (`config.ACTUALITES_DEPART`, seeded once) and the page is a template,
+`backoffice/templates/accueil.html`. Their `lien_url` still points at cdf-luglon.fr —
+that's the site owner's repeated instruction, not a leftover.
+
+The three of them also fixed a category question: Fêtes and Concours belong to **Vie du
+village**, Incendie to its own **Incendie** rubrique.
+
+### `404.html` is a real page
+
+It carries the site chrome and four cards toward the main sections, because an error page
+that offers nothing forces the visitor back to the homepage to start over. It's generated
+from `backoffice/templates/404.html` like the other static copies. GitHub Pages picks up
+`/404.html` on its own; nginx needs `error_page 404 /404.html`, and the FastAPI app has
+its own handler for the URLs it serves.
 
 ### CSS structure
 

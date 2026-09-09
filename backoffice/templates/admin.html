@@ -51,7 +51,6 @@
     <!-- ÉCRAN — connexion -->
     <section id="ecran-connexion" class="carte carte--etroite" hidden>
         <h1>Connexion</h1>
-        <p class="aide">Saisissez le mot de passe communiqué par votre prestataire.</p>
         <form id="form-connexion" autocomplete="off">
             <label for="mot_de_passe">Mot de passe</label>
             <input type="password" id="mot_de_passe" name="mot_de_passe" required
@@ -118,7 +117,9 @@
              aria-labelledby="apercu-titre" hidden>
         <header class="panneau__tete">
             <h2 id="apercu-titre"></h2>
-            <button type="button" class="fermer" data-fermer aria-label="Fermer">✕</button>
+            <button type="button" class="fermer" data-fermer aria-label="Fermer">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
         </header>
         <div class="panneau__corps">
             <p class="apercu__meta" id="apercu-meta"></p>
@@ -135,15 +136,12 @@
              aria-labelledby="form-actualite-titre" hidden>
         <header class="panneau__tete">
             <h2 id="form-actualite-titre">Nouvelle actualité</h2>
-            <button type="button" class="fermer" data-fermer aria-label="Fermer">✕</button>
+            <button type="button" class="fermer" data-fermer aria-label="Fermer">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
         </header>
         <form id="form-actu" autocomplete="off">
             <div class="panneau__corps">
-                <p class="aide">
-                    Chaque catégorie montre ses <b>{{ en_une }}</b> actualités les plus proches
-                    dans le temps sur la page Actualités. Les suivantes restent atteignables
-                    en faisant défiler, et sur la page de leur catégorie.
-                </p>
                 <div class="grille">
                     <div>
                         <label for="a-titre">Titre</label>
@@ -157,8 +155,6 @@
                     <div>
                         <label for="a-date">Date de l'évènement</label>
                         <input id="a-date" name="date_evenement" type="date" required>
-                        <span class="aide">Une date à venir affiche « À venir », une date
-                        passée affiche « Terminé ».</span>
                     </div>
                     <div>
                         <label for="a-lieu">Lieu <span class="facultatif">(facultatif)</span></label>
@@ -203,10 +199,6 @@
                          aria-label="Texte de l'actualité"></div>
                     <input type="file" id="a-image" accept="image/jpeg,image/png,image/gif,image/webp" hidden>
                 </div>
-                <p class="aide">
-                    Les polices et les couleurs sont celles du site : c'est ce qui évite
-                    qu'une publication à l'autre le site parte dans tous les sens.
-                </p>
 
                 <label for="a-lien-url">Lien « En savoir plus » <span class="facultatif">(facultatif)</span></label>
                 <input id="a-lien-url" name="lien_url" type="url" maxlength="300"
@@ -226,14 +218,12 @@
              aria-labelledby="form-document-titre" hidden>
         <header class="panneau__tete">
             <h2 id="form-document-titre">Nouveau document</h2>
-            <button type="button" class="fermer" data-fermer aria-label="Fermer">✕</button>
+            <button type="button" class="fermer" data-fermer aria-label="Fermer">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
         </header>
         <form id="form-doc" autocomplete="off">
             <div class="panneau__corps">
-                <p class="aide">
-                    Fichiers PDF uniquement, 20 Mo maximum. Le document apparaît immédiatement
-                    dans sa catégorie sur la page « Arrêtés et publications ».
-                </p>
                 <div class="grille">
                     <div>
                         <label for="d-titre">Titre du document</label>
@@ -251,14 +241,56 @@
                     <div id="champ-fichier">
                         <label for="d-fichier">Fichier PDF</label>
                         <input id="d-fichier" name="fichier" type="file" accept="application/pdf">
-                        <span class="aide" id="aide-fichier">Le fichier ne peut pas être remplacé
-                        après coup : pour changer le PDF, supprimez le document et redéposez-le.</span>
                     </div>
                 </div>
                 <p class="erreur" id="erreur-document" hidden></p>
             </div>
             <footer class="panneau__pied">
                 <button type="submit" class="bouton bouton--principal" id="d-envoyer">Déposer le document</button>
+                <button type="button" class="bouton bouton--discret" data-fermer>Annuler</button>
+            </footer>
+        </form>
+    </section>
+
+    <!-- Confirmation de suppression. Une modale du site, jamais confirm() :
+         la boîte native est laide, non stylable, et fige tous les évènements
+         du navigateur. -->
+    <section class="panneau panneau--court" id="confirmer" role="dialog" aria-modal="true"
+             aria-labelledby="confirmer-titre" hidden>
+        <header class="panneau__tete">
+            <h2 id="confirmer-titre">Confirmer la suppression</h2>
+            <button type="button" class="fermer" data-fermer aria-label="Fermer">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+        </header>
+        <div class="panneau__corps">
+            <p id="confirmer-message"></p>
+        </div>
+        <footer class="panneau__pied">
+            <button type="button" class="bouton bouton--danger" id="confirmer-oui">Supprimer</button>
+            <button type="button" class="bouton bouton--discret" data-fermer>Annuler</button>
+        </footer>
+    </section>
+
+    <!-- Modification d'une catégorie : nom ET description -->
+    <section class="panneau" id="form-categorie" role="dialog" aria-modal="true"
+             aria-labelledby="form-categorie-titre" hidden>
+        <header class="panneau__tete">
+            <h2 id="form-categorie-titre">Modifier la catégorie</h2>
+            <button type="button" class="fermer" data-fermer aria-label="Fermer">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+        </header>
+        <form id="form-cat-modif" autocomplete="off">
+            <div class="panneau__corps">
+                <label for="c-libelle">Nom de la catégorie</label>
+                <input id="c-libelle" name="libelle" required maxlength="60">
+                <label for="c-desc">Description affichée sur le site</label>
+                <textarea id="c-desc" name="description" rows="3" maxlength="300"></textarea>
+                <p class="erreur" id="erreur-cat-modif" hidden></p>
+            </div>
+            <footer class="panneau__pied">
+                <button type="submit" class="bouton bouton--principal">Enregistrer</button>
                 <button type="button" class="bouton bouton--discret" data-fermer>Annuler</button>
             </footer>
         </form>
@@ -271,20 +303,11 @@
              aria-labelledby="cat-{{ famille }}-titre" hidden>
         <header class="panneau__tete">
             <h2 id="cat-{{ famille }}-titre">{{ titre }}</h2>
-            <button type="button" class="fermer" data-fermer aria-label="Fermer">✕</button>
+            <button type="button" class="fermer" data-fermer aria-label="Fermer">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
         </header>
         <div class="panneau__corps">
-            {% if famille == 'actualites' %}
-            <p class="aide">
-                Créer une catégorie lui donne aussitôt sa page sur le site, sa section
-                sur la page Actualités et son choix dans le formulaire.
-            </p>
-            {% else %}
-            <p class="aide">
-                Créer une catégorie ajoute un bloc dépliable sur la page « Arrêtés et
-                publications », précédé de la description que vous écrivez ici.
-            </p>
-            {% endif %}
             <ul class="liste liste--categories" id="liste-cat-{{ famille }}"></ul>
 
             <form class="form-categorie" data-famille="{{ famille }}" autocomplete="off">

@@ -98,6 +98,7 @@ def initialiser():
         conn.executescript(SCHEMA)
         _rattraper_schema(conn)
         _semer_rubriques(conn)
+        _semer_actualites(conn)
 
 
 def _rattraper_schema(conn):
@@ -154,6 +155,28 @@ def _semer_rubriques(conn):
             conn.execute(
                 f"INSERT INTO {table} (cle, libelle, description, ordre) VALUES (?, ?, ?, ?)",
                 (cle, libelle, description, i))
+
+
+def _semer_actualites(conn):
+    """Sème les actualités de départ, uniquement sur une base vierge.
+
+    Même règle que pour les rubriques : on ne sème que si la table est vide,
+    sinon une actualité supprimée par le secrétariat reviendrait au prochain
+    redémarrage. Ce sont celles qui étaient écrites en dur sur la page
+    d'accueil ; les faire entrer en base évite de les perdre en rendant la page
+    dynamique.
+    """
+    from . import contenu
+    if conn.execute("SELECT COUNT(*) AS n FROM actualites").fetchone()["n"]:
+        return
+    for a in config.ACTUALITES_DEPART:
+        html = contenu.assainir(a["contenu"])
+        conn.execute(
+            """INSERT INTO actualites
+               (titre, rubrique, date_evenement, lieu, contenu, extrait, lien_url, publie_le)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (a["titre"], a["rubrique"], a["date_evenement"], a.get("lieu", ""),
+             html, contenu.extrait(html), a.get("lien_url", ""), _maintenant()))
 
 
 # --- Rubriques -------------------------------------------------------------

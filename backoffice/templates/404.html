@@ -1,0 +1,59 @@
+{% extends "_layout.html" %}
+
+{% block titre %}Page introuvable{% endblock %}
+{% block description %}Cette page n'existe pas ou a été déplacée. Retrouvez les rubriques du site de la Mairie de Luglon.{% endblock %}
+{% block canonical %}/404.html{% endblock %}
+{% block sous_titre %}Erreur 404{% endblock %}
+{% block titre_hero %}PAGE INTROUVABLE{% endblock %}
+
+{% block contenu %}
+        <section class="page-section has-decor">
+            <span class="decor-vine decor-vine--left" aria-hidden="true"><span class="decor-vine__ink"></span></span>
+            <span class="decor-vine decor-vine--right" aria-hidden="true"><span class="decor-vine__ink"></span></span>
+            <div class="section-head" data-reveal>
+                <p class="kicker">Cette adresse ne mène nulle part</p>
+                <h2>La page a peut-être changé de place</h2>
+                <p>
+                    Le site a été réorganisé : certaines adresses d'avant ne fonctionnent
+                    plus. Voici les grandes rubriques pour retrouver ce que vous cherchiez.
+                </p>
+            </div>
+
+            {# Des chemins, pas des excuses. Une page d'erreur qui ne propose rien
+               oblige à repartir de l'accueil et à tout reparcourir. #}
+            <div class="rail value-grid" tabindex="0" role="group" aria-label="Rubriques du site">
+                <a class="value-card" href="{{ p }}/mairie/" data-reveal style="--i:0">
+                    <span class="value-card__icon icon-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/></svg></span>
+                    <h3>La Mairie</h3>
+                    <p>Équipe municipale, conseils, arrêtés, démarches d'état civil, urbanisme.</p>
+                </a>
+                <a class="value-card" href="{{ p }}/vie-pratique/" data-reveal style="--i:1">
+                    <span class="value-card__icon icon-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 6.8V12l3.4 2"/></svg></span>
+                    <h3>Vie pratique</h3>
+                    <p>Réservation de salle, déchets, CCAS et seniors, enfance et jeunesse.</p>
+                </a>
+                <a class="value-card" href="{{ p }}/actualites/" data-reveal style="--i:2">
+                    <span class="value-card__icon icon-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 21V4"/><path d="M4 5 20 9l-16 4Z"/></svg></span>
+                    <h3>Actualités</h3>
+                    <p>Ce qui se passe dans la commune, rubrique par rubrique.</p>
+                </a>
+                <a class="value-card" href="{{ p }}/contact/" data-reveal style="--i:3">
+                    <span class="value-card__icon icon-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2.8" y="4.9" width="18.4" height="14.2" rx="2.2"/><path d="m3.6 6.6 8.4 6.3 8.4-6.3"/></svg></span>
+                    <h3>Contact</h3>
+                    <p>Horaires, téléphone et adresse du secrétariat de mairie.</p>
+                </a>
+            </div>
+            <div class="rail-dots" role="group" aria-label="Aller à une rubrique"></div>
+        </section>
+
+        <section class="page-section page-section--footer-band">
+            <div class="section-head section-head--center" data-reveal>
+                <p class="kicker">Vous ne trouvez pas ?</p>
+                <h2>Le secrétariat vous oriente</h2>
+                <div class="cta-row" style="justify-content:center">
+                    <a class="btn btn--primary" href="{{ p }}/">Retour à l'accueil</a>
+                    <a class="btn btn--ghost" href="{{ p }}/contact/">Nous contacter</a>
+                </div>
+            </div>
+        </section>
+{% endblock %}

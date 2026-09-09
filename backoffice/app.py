@@ -159,6 +159,31 @@ def _badge(date_evenement: str) -> str:
 # Pages publiques rendues
 # ---------------------------------------------------------------------------
 
+@app.exception_handler(404)
+def page_introuvable(request: Request, exc):
+    """Sert la page 404 du site plutôt que le JSON d'erreur de FastAPI.
+
+    GitHub Pages utilise /404.html tout seul ; nginx doit être configuré avec
+    `error_page 404 /404.html` pour faire de même sur les fichiers statiques.
+    Ce gestionnaire couvre les URL traitées par l'application.
+    """
+    return gabarits.TemplateResponse("404.html", contexte(request), status_code=404)
+
+
+@app.get(P + "/", response_class=HTMLResponse)
+def page_accueil(request: Request):
+    """L'accueil, avec ses dernières actualités toutes rubriques confondues.
+
+    Elles étaient écrites en dur dans index.html. Les rendre dynamiques évitait
+    de les perdre à chaque publication, mais il fallait d'abord les faire entrer
+    en base : c'est ce que fait config.ACTUALITES_DEPART, semé une seule fois.
+    """
+    recentes = db.actualites(limite=config.ACTUALITES_EN_UNE)
+    return gabarits.TemplateResponse("accueil.html", contexte(
+        request, actualites=recentes,
+        reste=max(0, db.compter_actualites() - len(recentes)), badge=_badge))
+
+
 @app.get(P + "/actualites/", response_class=HTMLResponse)
 def page_actualites(request: Request):
     """Sommaire : les ACTUALITES_EN_UNE plus récentes DE CHAQUE RUBRIQUE.

@@ -330,6 +330,32 @@ body {
   color: var(--text);
 }
 
+/* AUCUN LIEN NE DOIT TOMBER SUR LE BLEU PAR DÉFAUT DU NAVIGATEUR. Ce bleu
+   électrique n'appartient à aucune charte, et il suffit d'un lien ajouté dans
+   un coin sans règle dédiée pour qu'il apparaisse. La couleur de marque est
+   donc le défaut du site, et chaque composant n'a plus qu'à s'en écarter s'il
+   a une raison. --navy-ink et non --luglon-navy : c'est de l'encre, donc elle
+   doit rester lisible en thème sombre (voir le commentaire du token). */
+a {
+  color: var(--navy-ink);
+}
+/* Les liens qui sont des boutons ou des cartes n'ont ni couleur ni soulignement
+   à hériter : leur apparence vient entièrement de leur propre classe. Les
+   lister ici évite de répéter `color: inherit; text-decoration: none` dans une
+   dizaine de composants — et surtout d'oublier de le faire dans le onzième. */
+a.btn,
+a.event-card,
+a.value-card,
+a.contact-card,
+a.site-nav__brand,
+a.footer-social-link,
+a.skip-link,
+.site-nav__links a,
+.rail-dots a {
+  color: inherit;
+  text-decoration: none;
+}
+
 
 /* ============================================================================
    4. TYPOGRAPHIE
@@ -2692,15 +2718,22 @@ html {
   color: var(--muted);
 }
 
-/* Intro d'une rubrique de documents, posée juste au-dessus de SA carte. */
+/* Description posée JUSTE AU-DESSUS de la carte dépliable qu'elle décrit, et
+   non regroupée avec les autres en tête de page. Toutes les descriptions
+   d'abord puis toutes les cartes oblige le visiteur à faire l'aller-retour
+   pour savoir ce que contient le bloc qu'il vient d'ouvrir. La page alterne
+   donc description, carte, description, carte.
+
+   Cette classe ne règle QUE l'espacement : la typographie vient de .prose
+   quand il accompagne. Lui donner aussi une taille et une couleur écrasait
+   .prose là où les deux se rencontrent, et rapetissait des paragraphes de
+   texte courant en légende grise. */
 .accordion-intro {
   max-width: var(--measure);
   margin: var(--space-m) 0 var(--space-2xs);
-  font-size: var(--fs-sm);
-  line-height: var(--lh-body);
-  color: var(--muted);
 }
 .accordion-group > .accordion-intro:first-child { margin-top: 0; }
+.accordion-intro > :last-child { margin-bottom: 0; }
 
 .ta-left   { text-align: left; }
 .ta-center { text-align: center; }
