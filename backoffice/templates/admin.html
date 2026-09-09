@@ -1,0 +1,166 @@
+{# admin.html — La coquille de l'application d'administration.
+
+   Une seule page : l'écran de connexion et l'écran de travail cohabitent dans
+   le document, `hidden` bascule de l'un à l'autre. Un back-office à deux
+   opérations n'a pas besoin de routage, et l'application installée s'ouvre
+   ainsi sans le clignotement d'une redirection.
+
+   Ce fichier ne contient NI mot de passe, NI jeton, NI clé : la PWA installée
+   chez le client ne détient aucun secret (voir auth.py). Elle envoie un mot de
+   passe une fois et reçoit un cookie HttpOnly, que son propre JavaScript ne
+   peut même pas lire.
+
+   Cette page n'a rien à voir avec le site public : elle ne charge ni styles.css
+   ni les scripts du site, et sa politique de sécurité est plus stricte (pas de
+   'unsafe-inline' pour les styles, puisqu'il n'y a aucun attribut style ici). #}
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <title>Administration — {{ site_nom }}</title>
+
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    {# Une page d'administration n'a rien à faire dans un moteur de recherche. #}
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#1b2a4a">
+
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="static/icone-192.png">
+    <link rel="apple-touch-icon" href="static/icone-192.png">
+    <link rel="stylesheet" href="static/admin.css">
+</head>
+<body>
+
+<header class="barre">
+    <span class="marque">{{ site_nom }}<b>Administration</b></span>
+    <button type="button" id="deconnexion" class="lien-discret" hidden>Se déconnecter</button>
+</header>
+
+<main class="page">
+
+    <!-- ÉCRAN 1 — connexion -->
+    <section id="ecran-connexion" class="carte carte--etroite" hidden>
+        <h1>Connexion</h1>
+        <p class="aide">Saisissez le mot de passe communiqué par votre prestataire.</p>
+        <form id="form-connexion" autocomplete="off">
+            <label for="mot_de_passe">Mot de passe</label>
+            <input type="password" id="mot_de_passe" name="mot_de_passe" required
+                   autocomplete="current-password">
+            <p class="erreur" id="erreur-connexion" hidden></p>
+            <button type="submit" class="bouton bouton--principal">Entrer</button>
+        </form>
+    </section>
+
+    <!-- ÉCRAN 2 — travail -->
+    <div id="ecran-travail" hidden>
+
+        <section class="carte">
+            <h1>Publier une actualité</h1>
+            <p class="aide">
+                Les <b>{{ en_une }}</b> actualités les plus proches dans le temps s'affichent
+                en grand sur la page Actualités. Les suivantes basculent toutes seules
+                vers « Autres actualités » : vous n'avez rien à déplacer.
+            </p>
+            <form id="form-actualite" autocomplete="off">
+                <div class="grille">
+                    <div>
+                        <label for="a-titre">Titre</label>
+                        <input id="a-titre" name="titre" required maxlength="120"
+                               placeholder="Réouverture de l'agence postale">
+                    </div>
+                    <div>
+                        <label for="a-categorie">Catégorie</label>
+                        <input id="a-categorie" name="categorie" required maxlength="40"
+                               placeholder="Travaux, Animations, Vie municipale…">
+                    </div>
+                    <div>
+                        <label for="a-date">Date de l'évènement</label>
+                        <input id="a-date" name="date_evenement" type="date" required>
+                        <span class="aide">Une date à venir affiche « À venir », une date
+                        passée affiche « Terminé ».</span>
+                    </div>
+                    <div>
+                        <label for="a-lieu">Lieu <span class="facultatif">(facultatif)</span></label>
+                        <input id="a-lieu" name="lieu" maxlength="60" placeholder="Salle des fêtes">
+                    </div>
+                </div>
+                <label for="a-texte">Texte</label>
+                <textarea id="a-texte" name="texte" required rows="4" maxlength="600"
+                          placeholder="Deux ou trois phrases : ce qui se passe, où, et pour qui."></textarea>
+                <div class="grille">
+                    <div>
+                        <label for="a-meta">Précision <span class="facultatif">(facultatif)</span></label>
+                        <input id="a-meta" name="meta" maxlength="80"
+                               placeholder="Programme complet à venir">
+                    </div>
+                    <div>
+                        <label for="a-lien">Lien « En savoir plus » <span class="facultatif">(facultatif)</span></label>
+                        <input id="a-lien" name="lien_url" type="url" maxlength="300"
+                               placeholder="https://…">
+                    </div>
+                </div>
+                <p class="erreur" id="erreur-actualite" hidden></p>
+                <button type="submit" class="bouton bouton--principal">Publier l'actualité</button>
+            </form>
+        </section>
+
+        <section class="carte">
+            <h1>Actualités en ligne</h1>
+            <p class="aide" id="resume-actualites"></p>
+            <ul class="liste" id="liste-actualites"></ul>
+        </section>
+
+        <section class="carte">
+            <h1>Déposer un document</h1>
+            <p class="aide">
+                Fichiers PDF uniquement, 20 Mo maximum. Le document apparaît immédiatement
+                dans sa rubrique sur la page « Arrêtés et publications ».
+            </p>
+            <form id="form-document" autocomplete="off">
+                <div class="grille">
+                    <div>
+                        <label for="d-titre">Titre du document</label>
+                        <input id="d-titre" name="titre" required maxlength="120"
+                               placeholder="Arrêté portant réglementation du brûlage">
+                    </div>
+                    <div>
+                        <label for="d-rubrique">Rubrique</label>
+                        <select id="d-rubrique" name="rubrique" required>
+                            {% for cle, libelle in rubriques %}
+                            <option value="{{ cle }}">{{ libelle }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="d-date">Date du document</label>
+                        <input id="d-date" name="date_document" type="date" required>
+                    </div>
+                    <div>
+                        <label for="d-fichier">Fichier PDF</label>
+                        <input id="d-fichier" name="fichier" type="file" accept="application/pdf" required>
+                    </div>
+                </div>
+                <p class="erreur" id="erreur-document" hidden></p>
+                <button type="submit" class="bouton bouton--principal">Déposer le document</button>
+            </form>
+        </section>
+
+        <section class="carte">
+            <h1>Documents en ligne</h1>
+            <ul class="liste" id="liste-documents"></ul>
+        </section>
+
+    </div>
+
+    <p class="hors-ligne" id="hors-ligne" hidden>
+        Pas de connexion au serveur. L'application a besoin du réseau pour publier :
+        réessayez une fois la connexion revenue.
+    </p>
+
+</main>
+
+<script src="static/admin.js"></script>
+</body>
+</html>

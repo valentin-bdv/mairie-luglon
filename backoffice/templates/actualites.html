@@ -1,0 +1,63 @@
+{% extends "_layout.html" %}
+{% from "_carte.html" import carte with context %}
+
+{% block titre %}Actualités{% endblock %}
+{% block description %}Les actualités de la commune de Luglon : travaux, animations, rendez-vous associatifs et informations municipales.{% endblock %}
+{% block canonical %}/actualites/{% endblock %}
+{% block sous_titre %}La vie de la commune au fil de l'eau{% endblock %}
+{% block titre_hero %}ACTUALITÉS{% endblock %}
+
+{% block contenu %}
+        <section class="page-section has-decor">
+            <span class="decor-vine decor-vine--left" aria-hidden="true"><span class="decor-vine__ink"></span></span>
+            <span class="decor-vine decor-vine--right" aria-hidden="true"><span class="decor-vine__ink"></span></span>
+            <div class="section-head" data-reveal>
+                <p class="kicker">Toute l'année</p>
+                <h2>Ce qui se passe à Luglon</h2>
+                <p>
+                    Travaux, animations, commerces et rendez-vous associatifs : retrouvez
+                    ici les annonces de la commune.
+                </p>
+            </div>
+
+            {% if actualites %}
+            <div class="rail event-grid" tabindex="0"
+                 role="group" aria-label="Les actualités de la commune">
+{% for a in actualites %}{{ carte(a, loop.index, badge) }}
+{% endfor %}            </div>
+            <div class="rail-dots" role="group" aria-label="Aller à une actualité"></div>
+            {% else %}
+            {# Aucune actualité en base : on le dit, plutôt que d'afficher un rail vide
+               dont le visiteur ne saurait pas s'il est cassé ou simplement vide. #}
+            <div class="prose" data-reveal>
+                <p><em>Aucune actualité publiée pour le moment.</em></p>
+            </div>
+            {% endif %}
+        </section>
+
+        {% if reste %}
+        {# Le passage à « autres actualités » est automatique : au-delà de
+           ACTUALITES_EN_UNE, les plus anciennes basculent seules. Personne ne
+           déplace rien à la main — c'est une requête, pas un rangement. #}
+        <section class="page-section">
+            <div class="section-head section-head--center" data-reveal>
+                <p class="kicker">Archives</p>
+                <h2>{{ reste }} autre{{ 's' if reste > 1 }} actualité{{ 's' if reste > 1 }}</h2>
+                <div class="cta-row" style="justify-content:center">
+                    <a class="btn btn--primary" href="{{ p }}/actualites/autres/">Voir les autres actualités</a>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <section class="page-section page-section--footer-band">
+            <div class="section-head section-head--center" data-reveal>
+                <p class="kicker">Une information à transmettre ?</p>
+                <h2>Contactez la mairie</h2>
+                <div class="cta-row" style="justify-content:center">
+                    <a class="btn btn--primary" href="{{ p }}/contact/">Nous contacter</a>
+                    <a class="btn btn--ghost" href="{{ p }}/">Retour à l'accueil</a>
+                </div>
+            </div>
+        </section>
+{% endblock %}

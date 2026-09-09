@@ -207,6 +207,9 @@ non-obvious logic.
   conceptually under Mairie any more than under Vie pratique or Actualités. If it ever
   grows sub-pages of its own, it would need to become a `site-nav__item--has-menu` like
   the others — until then, don't add a submenu just to be "consistent" with them.
+- `actualites/autres/` — archive of actualités pushed off the main page. Listed in the
+  Actualités submenu. Rendered from the database when the site is served by
+  `backoffice/`; a generated static copy stands in on GitHub Pages.
 - `mentions-legales/`, `confidentialite/`, `accessibilite/`, `404.html` — as named; not in
   any nav submenu, but all three legal pages are linked from every footer.
 
@@ -647,33 +650,51 @@ rewritten the day a real backend goes live. Don't point this at a third-party en
 without the site owner setting one up — the pre-mairie version of this code posted to the
 Comité des Fêtes' Google Apps Script deployment, which must never come back.
 
-### `tools/dev-server.py` is a preview harness, not a build step and not the backend
+### `backoffice/` — the admin app, and the three pages it renders
 
-The site stays 100% static and GitHub Pages keeps serving it as-is. This FastAPI script
-exists for one reason: letting the site be tested **from a phone, through a tunnel, with a
-form actually wired to a server** — something GitHub Pages can't do because it executes
-nothing.
+`backoffice/` is a small FastAPI application that serves **the whole site**: it
+renders three pages from SQLite, exposes the back-office API, hosts the admin PWA,
+and serves the other 21 pages as the static files they have always been. It replaced
+`tools/dev-server.py`, which did a subset of this.
 
-It mirrors the eventual OVH setup in the two ways that matter: one application serves both
-the static files and the API (hence same-origin, no CORS, no CSP change), and the site is
-mounted under **`/mairie-luglon/`, not `/`** — mounting at the root 404s every internal
-link, since they all carry that prefix. Note the mount is declared *last* in the file: a
-`StaticFiles` mount swallows everything under its prefix, including routes declared after
-it.
+**Only three public pages come out of the database** — `/actualites/`,
+`/actualites/autres/` and `/mairie/arretes-et-publications/`. Everything else stays a
+hand-edited HTML file. That line was drawn deliberately: those are the only pages whose
+content changes between two visits from the secretariat, and turning the other 21 into
+templates would multiply the work without making anything more editable.
 
-It deliberately has no database, no mail, no auth — requests are appended to a gitignored
-JSONL file. It's a wiring check, not something to put online. Running it needs a venv
-(`.venv/`, gitignored) with `fastapi` and `uvicorn`; the site itself still has no
-dependency and no package manager.
+Things to know before touching it:
 
-Whoever wires that path up inherits three things the demo already put in place, and
-should not undo them: the text inputs carry `maxlength` (80/20/120/120/500) so a real
-endpoint isn't the first thing to meet an unbounded string; `form-action 'none'` in the
-CSP means that if JS ever fails, the form can't fall back to a native GET that would put
-the visitor's name and phone number in the URL and their browser history; and
-`reservation-storage.js` still expires the local copy regardless of what the server does.
-The privacy page's section 4 describes the demo behaviour explicitly and has to be
-rewritten at the same time — it currently promises that nothing leaves the device.
+- **The 5-then-overflow rule is a query, not a rearrangement.** `ACTUALITES_EN_UNE` in
+  `backoffice/config.py` decides how many actualités stay on the main page; the rest
+  appear on `/actualites/autres/` automatically. Nobody moves anything. Ordering is by
+  **event date descending**, not publication date — an item typed today about last
+  year's meeting must not jump ahead of next month's fête.
+- **`config.py` holds everything client-specific.** No other Python module contains a
+  commune name, a URL or a rubric. Templates *are* client-specific by nature — for
+  another client you replace them. `_layout.html` was **extracted from a real page of
+  the site**, not retyped, which is also how to start for a new client.
+- **The nav now exists in two places**: 27 static files and `_layout.html`. That's the
+  price of a partial migration and it will drift — a nav change has to be made in both.
+  The layout can be re-extracted from any up-to-date static page (that's how it was
+  built) rather than hand-patched.
+- **Jinja macros need `with context`.** `_carte.html` is imported by both actualités
+  templates; without `with context` an imported macro sees none of the caller's
+  variables and the render dies on the first call. This cost a debugging round already.
+- **Uploads are checked on their bytes**, not their extension, and stored under a
+  generated name — never the uploaded filename, which is how path traversal gets in.
+  PDF only.
+- **`donnees/` is gitignored and is the only irreplaceable thing in the project.** The
+  code is in git; the commune's actualités and arrêtés are not. Backups belong off the
+  server.
+- The app **refuses to start** without `BO_MOT_DE_PASSE_HACHE`. A back-office that
+  publishes to a mairie's website does not run with a default password, not even "just
+  for testing".
+
+`actualites/autres/index.html` exists as a **static file too**, generated from the same
+Jinja template with an empty list. That's the GitHub Pages copy — same "théâtre" as the
+reservation form. It was generated, not written: hand-writing it would have created a
+second truth that diverges the first time the template changes.
 
 ### Security posture — what an audit fixed, and what it can't
 

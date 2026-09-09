@@ -1,0 +1,206 @@
+/* ============================================================
+   admin.css — Interface du back-office.
+
+   VOLONTAIREMENT SANS RAPPORT AVEC styles.css. Le site public a une identité
+   (police d'affichage, décor de fougères, héros marine) qui sert à séduire un
+   visiteur ; un outil de travail utilisé deux fois par semaine par la même
+   personne a besoin de l'inverse : des champs larges, des libellés lisibles,
+   des zones de clic généreuses, et rien qui distraie. Réutiliser la feuille du
+   site aurait aussi couplé l'outil à l'identité graphique du client, alors que
+   c'est précisément la partie qu'on veut pouvoir reprendre chez le suivant.
+
+   Une seule couleur est empruntée au site : le marine, pour que l'outil se
+   reconnaisse comme appartenant à la même commande.
+   ============================================================ */
+
+:root {
+  --marine: #1b2a4a;
+  --marine-clair: #2f5bb7;
+  --texte: #1a1a1c;
+  --discret: #5c6270;
+  --bord: #d9dce3;
+  --fond: #f4f5f7;
+  --blanc: #fff;
+  --rouge: #a4232b;
+  --vert: #1f6b3f;
+  --rayon: 0;                       /* le site est carré, l'outil aussi */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--fond);
+  color: var(--texte);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* --- Barre supérieure --- */
+.barre {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 20px;
+  background: var(--marine);
+  color: var(--blanc);
+  /* position: sticky et non fixed : dans une fenêtre d'application autonome
+     il n'y a pas de barre d'adresse, la page commence vraiment en haut. */
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.marque { font-weight: 600; }
+.marque b { display: block; font-weight: 400; font-size: 13px; opacity: .75; }
+
+.lien-discret {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, .35);
+  color: var(--blanc);
+  padding: 7px 14px;
+  border-radius: var(--rayon);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+}
+.lien-discret:hover { background: rgba(255, 255, 255, .12); }
+
+/* --- Mise en page --- */
+.page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 24px 20px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.carte {
+  background: var(--blanc);
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon);
+  padding: 22px;
+}
+.carte--etroite { max-width: 420px; margin: 40px auto 0; }
+.carte h1 { margin: 0 0 6px; font-size: 20px; }
+
+.aide { margin: 0 0 18px; color: var(--discret); font-size: 14px; }
+.facultatif { color: var(--discret); font-weight: 400; }
+
+/* --- Formulaires --- */
+label {
+  display: block;
+  margin: 14px 0 5px;
+  font-weight: 600;
+  font-size: 14px;
+}
+input, select, textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon);
+  font: inherit;
+  background: var(--blanc);
+  color: var(--texte);
+}
+input:focus, select:focus, textarea:focus {
+  outline: 2px solid var(--marine-clair);
+  outline-offset: 1px;
+  border-color: var(--marine-clair);
+}
+textarea { resize: vertical; }
+label .aide, .grille .aide { margin: 6px 0 0; display: block; }
+
+/* Deux colonnes sur large, une seule dès que c'est serré : le secrétariat
+   travaille parfois sur un portable 13 pouces, parfois sur une tablette. */
+.grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0 18px;
+}
+
+.bouton {
+  margin-top: 20px;
+  padding: 12px 22px;
+  border: 0;
+  border-radius: var(--rayon);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.bouton--principal { background: var(--marine); color: var(--blanc); }
+.bouton--principal:hover { background: var(--marine-clair); }
+.bouton:disabled { opacity: .55; cursor: default; }
+
+.erreur {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  background: #fbeaea;
+  border-left: 3px solid var(--rouge);
+  color: var(--rouge);
+  font-size: 14px;
+}
+.succes {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  background: #e9f3ec;
+  border-left: 3px solid var(--vert);
+  color: var(--vert);
+  font-size: 14px;
+}
+
+/* --- Listes de contenu --- */
+.liste { list-style: none; margin: 0; padding: 0; }
+.liste li {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--bord);
+}
+.liste li:last-child { border-bottom: 0; }
+.liste .infos { flex: 1; min-width: 0; }
+.liste .titre { font-weight: 600; }
+.liste .detail { color: var(--discret); font-size: 13px; }
+
+/* Ce qui est déjà passé sous la barre des « en une » : signalé ici, parce que
+   c'est la question que le secrétariat se pose en publiant. */
+.liste .archive {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border: 1px solid var(--bord);
+  border-radius: 999px;
+  color: var(--discret);
+  font-size: 12px;
+}
+
+.supprimer {
+  flex: none;
+  background: none;
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon);
+  color: var(--rouge);
+  padding: 7px 13px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+}
+.supprimer:hover { background: #fbeaea; border-color: var(--rouge); }
+/* Deuxième clic = confirmation. Pas de confirm() natif : une boîte de dialogue
+   modale bloque tous les évènements du navigateur, et ce dépôt s'est déjà fait
+   piéger par ça (voir les mises en garde sur les alertes). */
+.supprimer[data-confirme="1"] {
+  background: var(--rouge);
+  border-color: var(--rouge);
+  color: var(--blanc);
+}
+
+.vide { color: var(--discret); font-style: italic; padding: 8px 0; }
+
+.hors-ligne {
+  margin: 0;
+  padding: 14px 16px;
+  background: #fdf3e3;
+  border-left: 3px solid #b4761a;
+  color: #7a4f0d;
+}

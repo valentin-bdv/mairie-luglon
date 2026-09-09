@@ -1,8 +1,12 @@
 .aider*
 .DS_Store
 
-# Artefacts du serveur de développement (tools/dev-server.py) : demandes de
-# test et environnement Python. Le site lui-même reste 100 % statique.
-demandes-dev.jsonl
+# Environnement Python du back-office. Le site public, lui, reste 100 %
+# statique et sans dépendance.
 .venv/
 __pycache__/
+
+# Données du back-office : base SQLite et PDF déposés par le secrétariat.
+# Ce sont les seules choses non reproductibles du projet — à sauvegarder,
+# jamais à versionner (voir backoffice/README.md).
+backoffice/donnees/

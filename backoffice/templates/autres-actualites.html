@@ -1,0 +1,53 @@
+{% extends "_layout.html" %}
+{% from "_carte.html" import carte with context %}
+
+{% block titre %}Autres actualités{% endblock %}
+{% block description %}Les actualités plus anciennes de la commune de Luglon, sorties de la page d'accueil des actualités.{% endblock %}
+{% block canonical %}/actualites/autres/{% endblock %}
+{% block sous_titre %}Ce qui est déjà passé{% endblock %}
+{% block titre_hero %}AUTRES ACTUALITÉS{% endblock %}
+
+{% block hero_retour %}
+            <div class="cta-row">
+                <a class="btn btn--ghost" href="{{ p }}/actualites/">← Actualités</a>
+            </div>
+{% endblock %}
+
+{% block contenu %}
+        <section class="page-section has-decor">
+            <span class="decor-vine decor-vine--left" aria-hidden="true"><span class="decor-vine__ink"></span></span>
+            <span class="decor-vine decor-vine--right" aria-hidden="true"><span class="decor-vine__ink"></span></span>
+            <div class="section-head" data-reveal>
+                <p class="kicker">Archives</p>
+                <h2>Les actualités précédentes</h2>
+                <p>
+                    Les annonces sorties de la page principale restent consultables ici,
+                    de la plus récente à la plus ancienne.
+                </p>
+            </div>
+
+            {% if actualites %}
+            <div class="rail event-grid" tabindex="0"
+                 role="group" aria-label="Actualités précédentes">
+{% for a in actualites %}{{ carte(a, loop.index, badge) }}
+{% endfor %}            </div>
+            <div class="rail-dots" role="group" aria-label="Aller à une actualité"></div>
+            {% else %}
+            <div class="prose" data-reveal>
+                <p><em>Aucune actualité archivée pour le moment : toutes tiennent encore
+                sur la page principale.</em></p>
+            </div>
+            {% endif %}
+        </section>
+
+        <section class="page-section page-section--footer-band">
+            <div class="section-head section-head--center" data-reveal>
+                <p class="kicker">Revenir</p>
+                <h2>Les actualités du moment</h2>
+                <div class="cta-row" style="justify-content:center">
+                    <a class="btn btn--primary" href="{{ p }}/actualites/">Actualités</a>
+                    <a class="btn btn--ghost" href="{{ p }}/">Retour à l'accueil</a>
+                </div>
+            </div>
+        </section>
+{% endblock %}

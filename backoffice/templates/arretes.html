@@ -1,0 +1,91 @@
+{% extends "_layout.html" %}
+
+{% block titre %}Arrêtés et publications{% endblock %}
+{% block description %}Arrêtés municipaux, arrêtés préfectoraux et bulletins municipaux de la commune de Luglon, à télécharger.{% endblock %}
+{% block canonical %}/mairie/arretes-et-publications/{% endblock %}
+{% block sous_titre %}Mairie{% endblock %}
+{% block titre_hero %}ARRÊTÉS ET PUBLICATIONS{% endblock %}
+{% block hero_image %}mairie-luglon.jpeg{% endblock %}
+
+{% block hero_retour %}
+            <div class="cta-row">
+                <a class="btn btn--ghost" href="{{ p }}/mairie/">← Mairie</a>
+            </div>
+{% endblock %}
+
+{% block contenu %}
+        <section class="page-section has-decor">
+            <span class="decor-vine decor-vine--left" aria-hidden="true"><span class="decor-vine__ink"></span></span>
+            <span class="decor-vine decor-vine--right" aria-hidden="true"><span class="decor-vine__ink"></span></span>
+            <div class="section-head" data-reveal>
+                <p class="kicker">Décisions officielles</p>
+                <h2>Ce qui est publié ici</h2>
+            </div>
+            <div class="prose" data-reveal>
+                <p>
+                    <strong>Arrêtés municipaux :</strong> décisions du maire relevant de ses
+                    pouvoirs de police (circulation, urbanisme, salubrité, débits de
+                    boissons...), affichées en mairie dès leur signature.
+                </p>
+                <p>
+                    <strong>Arrêtés préfectoraux :</strong> décisions de la préfecture des
+                    Landes qui s'appliquent à la commune (restrictions d'eau, risque incendie,
+                    vigilance météo...), relayées ici dès leur publication.
+                </p>
+                <p>
+                    <strong>Bulletin municipal :</strong> publié une à deux fois par an, il
+                    revient sur les temps forts de la commune. Distribué dans les boîtes aux
+                    lettres et disponible en mairie.
+                </p>
+            </div>
+        </section>
+
+        {# Une rubrique par catégorie de config.RUBRIQUES, dans l'ordre déclaré.
+           Une rubrique vide s'affiche quand même, avec sa phrase : le visiteur
+           doit pouvoir constater qu'il n'y a rien à télécharger plutôt que de
+           se demander si la rubrique existe. #}
+        <section class="page-section">
+            <div class="accordion-group" data-reveal>
+                {% for cle, libelle, docs in par_rubrique %}
+                <details class="accordion"{% if loop.first and docs %} open{% endif %}>
+                    <summary>{{ libelle }}<span class="accordion__count">{{ docs|length }}</span><span class="accordion__chevron" aria-hidden="true"></span></summary>
+                    <div class="accordion__body">
+                        {% if docs %}
+                        <ul class="accordion__list">
+                            {% for d in docs %}
+                            <li>
+                                <strong><a href="{{ p }}/documents/{{ d.fichier }}">{{ d.titre }}</a></strong>
+                                {# « 0 Ko » sur un petit fichier a l'air d'un bug : en dessous du kilo-octet
+                                   on annonce « moins de 1 Ko ». #}
+                                <span>{{ date_fr(d.date_document, jour=True) }} · PDF, {% if d.taille_octets < 1024 %}moins de 1 Ko{% else %}{{ (d.taille_octets / 1024)|round|int }} Ko{% endif %}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <div class="prose">
+                            <p><em>Aucun document publié dans cette rubrique pour le moment.</em></p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </details>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="page-section page-section--footer-band">
+            <div class="section-head section-head--center" data-reveal>
+                <p class="kicker">Aller plus loin</p>
+                <h2>Voir aussi</h2>
+                <div class="cta-row" style="justify-content:center">
+                    <a class="btn btn--primary" href="{{ p }}/mairie/conseils-municipaux/">Conseils municipaux</a>
+                    <a class="btn btn--ghost" href="{{ p }}/mairie/">Retour à Mairie</a>
+                </div>
+            </div>
+        </section>
+{% endblock %}
+
+{# accordion.js n'est pas dans le gabarit de base : seule cette page a des
+   <details> groupés. Les autres n'ont pas à le télécharger. #}
+{% block scripts %}
+    <script src="{{ p }}/accordion.js"></script>
+{% endblock %}
