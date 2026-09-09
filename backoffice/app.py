@@ -28,6 +28,7 @@ Pages est l'aperçu de développement et non le site livré.
 """
 
 import datetime
+import sys
 import mimetypes
 import pathlib
 import re
@@ -53,9 +54,20 @@ def demarrage():
         # Refus de démarrer plutôt qu'un back-office ouvert : celui-ci publie
         # sur le site d'une mairie, un mot de passe par défaut n'est pas une
         # option acceptable même « le temps des tests ».
-        raise RuntimeError(
-            "BO_MOT_DE_PASSE_HACHE n'est pas défini. Générez-le avec "
-            "`python3 -m backoffice.auth` et exportez-le avant de démarrer.")
+        #
+        # Message écrit à la main sur la sortie d'erreur AVANT de lever :
+        # uvicorn enrobe l'exception dans une trace d'une douzaine de lignes où
+        # la cause se perd, et un démarrage qui échoue de façon illisible est un
+        # démarrage qu'on abandonne.
+        print(
+            "\n"
+            "  Aucun mot de passe d'administration n'est configuré.\n"
+            "\n"
+            "  Le plus simple :   ./backoffice/lancer.sh\n"
+            "  À la main      :   python3 -m backoffice.auth\n"
+            "                     puis exporter BO_MOT_DE_PASSE_HACHE\n",
+            file=sys.stderr)
+        raise RuntimeError("Mot de passe d'administration non configuré.")
 
 
 # ---------------------------------------------------------------------------
@@ -257,7 +269,11 @@ async def connexion(request: Request, response: Response):
     reponse.set_cookie(
         config.COOKIE_NOM, jeton,
         httponly=True,          # illisible en JavaScript, donc involable par XSS
-        secure=config.COOKIE_SECURE,
+        # Déduit du schéma réel : https derrière un tunnel ou nginx, http en
+        # local. Posé en dur à True, le navigateur jetait silencieusement le
+        # cookie en http://localhost et l'application rebouclait sur l'écran de
+        # connexion sans jamais dire pourquoi.
+        secure=(request.url.scheme == "https"),
         samesite="lax",         # bloque l'envoi depuis un site tiers
         max_age=config.SESSION_DUREE_H * 3600,
         path=P + "/admin/")

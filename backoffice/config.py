@@ -72,12 +72,35 @@ TAILLE_MAX_OCTETS = 20 * 1024 * 1024   # 20 Mo
 # Voir README. Sans cette variable, l'application refuse de démarrer plutôt que
 # de tourner avec un mot de passe par défaut — un back-office ouvert publierait
 # n'importe quoi sur le site d'une mairie.
-CONDENSAT_MOT_DE_PASSE = os.environ.get("BO_MOT_DE_PASSE_HACHE", "")
+def _condensat():
+    """Variable d'environnement en priorité, sinon fichier local de développement.
+
+    En production (OVH), c'est l'environnement du service systemd : rien sur le
+    disque, rien dans le dépôt. En développement, retaper un `export` de 120
+    caractères à chaque terminal est le genre de friction qui fait abandonner —
+    `lancer.sh` écrit donc le CONDENSAT (jamais le mot de passe) dans
+    donnees/, qui est ignoré par git.
+    """
+    depuis_env = os.environ.get("BO_MOT_DE_PASSE_HACHE", "").strip()
+    if depuis_env:
+        return depuis_env
+    fichier = DONNEES / "mot-de-passe.hash"
+    if fichier.is_file():
+        return fichier.read_text(encoding="utf-8").strip()
+    return ""
+
+
+CONDENSAT_MOT_DE_PASSE = _condensat()
 
 # Durée d'une session avant reconnexion.
 SESSION_DUREE_H = 12
 
-# Cookie de session. `secure=True` impose HTTPS : vrai derrière un tunnel
-# Cloudflare comme derrière nginx, faux en http://localhost — d'où la variable.
 COOKIE_NOM = "bo_session"
-COOKIE_SECURE = os.environ.get("BO_COOKIE_SECURE", "1") != "0"
+
+# Le drapeau `Secure` du cookie n'est PAS une constante : il se déduit du schéma
+# de la requête (voir app.py). Posé en dur à True, la connexion échouait en
+# http://localhost sans message compréhensible — le serveur répondait « c'est
+# bon », le navigateur jetait le cookie, et l'application revenait à l'écran de
+# connexion en boucle. C'est le genre de panne qu'on ne diagnostique pas, on
+# l'abandonne. Derrière un tunnel ou nginx, le schéma est https et le drapeau
+# revient tout seul.

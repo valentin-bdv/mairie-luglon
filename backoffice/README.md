@@ -29,23 +29,38 @@ sortent seules de la page principale. C'est une requête, pas un rangement.
 ## Démarrer
 
 ```sh
-python3 -m venv .venv && . .venv/bin/activate
-pip install fastapi uvicorn jinja2 python-multipart
-
-# Mot de passe : le condensat va dans l'environnement, JAMAIS dans le dépôt.
-python3 -m backoffice.auth          # affiche la ligne export à copier
-export BO_MOT_DE_PASSE_HACHE='pbkdf2-sha256$...'
-
-python3 -m uvicorn backoffice.app:app --port 8000
+./backoffice/lancer.sh
 ```
 
-Le site est sur `http://localhost:8000/mairie-luglon/`, l'administration sur
-`.../admin/`. En local, en HTTP, ajoutez `BO_COOKIE_SECURE=0` — sinon le cookie
-de session exige HTTPS et la connexion échoue sans message clair.
+C'est tout. Le script crée l'environnement Python s'il manque, installe les
+dépendances au besoin, demande un mot de passe à la première exécution, puis
+démarre le serveur.
 
-Sans `BO_MOT_DE_PASSE_HACHE`, l'application **refuse de démarrer**. C'est
+- Site : `http://localhost:8000/mairie-luglon/`
+- Administration : `http://localhost:8000/mairie-luglon/admin/`
+- Autre port : `PORT=9000 ./backoffice/lancer.sh`
+
+Seul le **condensat** du mot de passe est écrit sur le disque, dans
+`donnees/mot-de-passe.hash`, ignoré par git. Pour en changer, supprimez ce
+fichier et relancez.
+
+Sans mot de passe configuré, l'application **refuse de démarrer**. C'est
 volontaire : un back-office qui publie sur le site d'une mairie ne tourne pas
 avec un mot de passe par défaut, même « le temps des tests ».
+
+### À la main, si vous préférez
+
+```sh
+python3 -m venv .venv
+.venv/bin/pip install fastapi uvicorn jinja2 python-multipart
+.venv/bin/python -m backoffice.auth          # affiche la ligne export
+export BO_MOT_DE_PASSE_HACHE='pbkdf2-sha256$...'   # guillemets SIMPLES obligatoires
+.venv/bin/python -m uvicorn backoffice.app:app --port 8000
+```
+
+Attention aux guillemets : le condensat contient des `$`. Entre guillemets
+doubles, le shell en mange une partie et le mot de passe est ensuite refusé sans
+que rien n'indique pourquoi. C'est la raison d'être de `lancer.sh`.
 
 ## Depuis un téléphone
 
@@ -91,6 +106,11 @@ export BO_PREFIXE_URL=""        # le site est à la racine du domaine
 export BO_DONNEES=/var/lib/mairie-luglon
 export BO_MOT_DE_PASSE_HACHE='...'
 ```
+
+En production, le condensat vient de l'environnement du service systemd, pas du
+fichier local : rien de sensible sur le disque du serveur, et `lancer.sh` ne
+sert pas. Le drapeau `Secure` du cookie se déduit du schéma de la requête —
+derrière nginx en HTTPS il s'active tout seul, il n'y a rien à régler.
 
 nginx devant (TLS Let's Encrypt, fichiers statiques et PDF servis directement),
 uvicorn derrière sous systemd pour qu'il redémarre au boot et après un plantage.
