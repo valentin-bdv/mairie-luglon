@@ -33,6 +33,7 @@ import mimetypes
 import pathlib
 import re
 import secrets
+import urllib.parse
 
 from fastapi import FastAPI, Request, Response, UploadFile, File, Form, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, RedirectResponse
@@ -173,14 +174,37 @@ def page_arretes(request: Request):
         request, par_rubrique=par_rubrique))
 
 
+def _entete_nom(nom: str, telecharger: bool) -> str:
+    """Fabrique un Content-Disposition sûr.
+
+    `nom` vient de ce que le secrétariat a envoyé comme fichier : il peut
+    contenir des accents, et surtout un guillemet ou un retour à la ligne, qui
+    permettraient d'injecter un en-tête HTTP entier. D'où le nettoyage, plus la
+    forme `filename*` de la RFC 5987 pour que les accents survivent quand même.
+    """
+    sans_danger = "".join(c for c in nom if c.isprintable() and c not in '"\\') or "document.pdf"
+    ascii_seul = sans_danger.encode("ascii", "ignore").decode() or "document.pdf"
+    disposition = "attachment" if telecharger else "inline"
+    return (f'{disposition}; filename="{ascii_seul}"; '
+            f"filename*=UTF-8''{urllib.parse.quote(sans_danger)}")
+
+
 @app.get(P + "/documents/{fichier}")
-def telecharger(fichier: str):
+def servir_document(fichier: str, telecharger: int = 0):
     """Sert un PDF déposé par le secrétariat.
+
+    PAR DÉFAUT LE PDF S'OUVRE DANS LE LECTEUR DU NAVIGATEUR (`inline`), il ne se
+    télécharge pas. Quasiment personne n'arrive sur cette page pour archiver un
+    arrêté : on vient le lire. Un fichier qui part dans le dossier
+    « Téléchargements » sans qu'on l'ait demandé est une petite agression, et
+    oblige à aller le chercher pour faire ce qu'on voulait faire tout de suite.
+    Le téléchargement reste possible, mais sur demande explicite —
+    `?telecharger=1`, branché sur un lien à part dans la liste.
 
     `fichier` vient de la base, jamais de l'utilisateur, mais on revalide sa
     forme quand même : c'est la dernière barrière avant une lecture disque, et
-    elle coûte une ligne. Le nom est un identifiant fabriqué à l'envoi, pas le
-    nom d'origine — celui-ci ne sert qu'à nommer le téléchargement.
+    elle coûte une ligne. Le nom sur le disque est un identifiant fabriqué à
+    l'envoi ; le nom d'origine ne sert qu'à l'affichage et au téléchargement.
     """
     if not re.fullmatch(r"[0-9a-f]{32}\.pdf", fichier):
         raise HTTPException(404)
@@ -190,10 +214,15 @@ def telecharger(fichier: str):
     ligne = next((d for d in db.documents() if d["fichier"] == fichier), None)
     nom = ligne["nom_affiche"] if ligne else fichier
     return FileResponse(
-        chemin, media_type="application/pdf", filename=nom,
-        # nosniff : même avec un contrôle des octets à l'envoi, on interdit au
-        # navigateur de deviner un autre type que celui annoncé.
-        headers={"X-Content-Type-Options": "nosniff"})
+        chemin, media_type="application/pdf",
+        # `filename=` n'est PAS utilisé ici : il force `attachment`, donc le
+        # téléchargement automatique. On compose l'en-tête nous-mêmes.
+        headers={
+            "Content-Disposition": _entete_nom(nom, bool(telecharger)),
+            # nosniff : même avec un contrôle des octets à l'envoi, on interdit
+            # au navigateur de deviner un autre type que celui annoncé.
+            "X-Content-Type-Options": "nosniff",
+        })
 
 
 # ---------------------------------------------------------------------------

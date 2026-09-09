@@ -684,6 +684,18 @@ Things to know before touching it:
 - **Uploads are checked on their bytes**, not their extension, and stored under a
   generated name — never the uploaded filename, which is how path traversal gets in.
   PDF only.
+- **PDFs open in the browser's viewer, they do not download.** The route sends
+  `Content-Disposition: inline`; downloading is a separate, explicit link
+  (`?telecharger=1`). Almost nobody opens `/mairie/arretes-et-publications/` to archive
+  an arrêté — they come to read it, and a file landing in ~/Downloads unasked is a small
+  act of aggression that then forces a detour. Note this means **not** passing
+  `filename=` to `FileResponse`: that parameter forces `attachment`, which is exactly the
+  behaviour being avoided. The header is composed by hand, with the filename sanitised
+  (a quote or newline in an uploaded name would otherwise inject an HTTP header) and an
+  RFC 5987 `filename*` so accents survive.
+- **The document accordion opens the first rubric that has documents**, not the first
+  rubric. With empty arrêtés and a bulletin in the third rubric, opening the first one
+  makes the page look like it holds nothing at all.
 - **`donnees/` is gitignored and is the only irreplaceable thing in the project.** The
   code is in git; the commune's actualités and arrêtés are not. Backups belong off the
   server.
