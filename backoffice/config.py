@@ -61,11 +61,22 @@ PREFIXE_URL = os.environ.get("BO_PREFIXE_URL", "/mairie-luglon")
 ADMIN_CHEMIN = os.environ.get("BO_ADMIN_CHEMIN", "/gestion").rstrip("/")
 
 # --- Règles d'affichage ----------------------------------------------------
-# Combien d'actualités restent « en une » sur /actualites/. Au-delà, elles
-# basculent automatiquement vers /actualites/autres/ — c'est toute
-# l'automatisation : personne n'a à déplacer quoi que ce soit à la main, la
-# limite est une requête, pas un rangement.
+# Combien d'actualités chaque rubrique montre sur le sommaire /actualites/.
+# Au-delà, elles ne disparaissent pas : elles restent sur la page de leur
+# rubrique, atteignable par « Voir plus ». C'est toute l'automatisation —
+# personne ne déplace rien à la main, la limite est une requête.
 ACTUALITES_EN_UNE = 5
+
+# Rubriques d'actualités. La clé sert d'URL (/actualites/<clé>/) et est stockée
+# en base ; le libellé s'affiche. Ajouter une rubrique ici lui crée sa page,
+# son entrée de sommaire et son choix dans le formulaire, sans autre
+# modification. En retirer une laisse ses actualités en base sans page pour les
+# afficher — les déplacer avant.
+RUBRIQUES_ACTUALITES = [
+    ("vie-du-village", "Vie du village", "La vie quotidienne de la commune : évènements, animations, rendez-vous."),
+    ("travaux", "Travaux", "Chantiers en cours, voirie, réseaux et perturbations à prévoir."),
+    ("associations", "Associations", "Ce que proposent les associations luglonnaises."),
+]
 
 # Rubriques de documents, dans l'ordre d'affichage sur la page publique.
 # La clé est stockée en base ; changer un libellé est sans risque, changer une
@@ -79,9 +90,21 @@ RUBRIQUES = [
 # --- Dépôt de fichiers -----------------------------------------------------
 # PDF uniquement, et vérifié sur les octets du fichier, pas sur son extension :
 # un envoi utilisateur est la surface la plus exposée de l'application.
-EXTENSIONS_AUTORISEES = {".pdf"}
 SIGNATURE_PDF = b"%PDF-"
 TAILLE_MAX_OCTETS = 20 * 1024 * 1024   # 20 Mo
+
+# Images jointes aux actualités. Mêmes principes : on reconnaît le type sur les
+# premiers octets, jamais sur l'extension. Le SVG est volontairement absent —
+# c'est un format XML qui peut contenir du script, donc une image qui exécute
+# du code chez le visiteur.
+MEDIAS = DONNEES / "medias"
+SIGNATURES_IMAGE = {
+    "image/jpeg": b"\xff\xd8\xff",
+    "image/png": b"\x89PNG\r\n\x1a\n",
+    "image/gif": b"GIF8",
+    "image/webp": b"RIFF",          # + "WEBP" en octets 8-12, vérifié à l'envoi
+}
+TAILLE_MAX_IMAGE = 8 * 1024 * 1024     # 8 Mo
 
 # --- Authentification ------------------------------------------------------
 # Le mot de passe n'est JAMAIS dans le code ni dans le dépôt : il arrive par

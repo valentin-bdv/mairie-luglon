@@ -26,15 +26,16 @@
          (grep "Content-Security-Policy"). -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-src https://www.google.com; connect-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'">
     <meta name="referrer" content="strict-origin-when-cross-origin">
-    <title>Contact - Mairie de Luglon</title>
+    <title>Associations - Mairie de Luglon</title>
 
     <link rel="icon" type="image/png" href="/mairie-luglon/favicon.png">
     <link rel="stylesheet" href="/mairie-luglon/styles.css">
 
-    <meta name="description" content="Contacter la Mairie de Luglon : adresse, téléphone, e-mail et horaires d'ouverture du secrétariat.">
-    <link rel="canonical" href="https://mairie-luglon.fr/contact/">
+    <meta name="description" content="Ce que proposent les associations luglonnaises.">
+    <link rel="canonical" href="https://mairie-luglon.fr/actualites/associations/">
 </head>
 <body>
+
     <a class="skip-link" href="#contenu">Aller au contenu</a>
 
     <nav class="site-nav" aria-label="Navigation principale">
@@ -83,16 +84,16 @@
                     </ul>
                 </li>
                 <li class="site-nav__item--has-menu">
-                    <a href="/mairie-luglon/actualites/">Actualités<span class="site-nav__chevron" aria-hidden="true"></span></a>
+                    <a href="/mairie-luglon/actualites/" aria-current="true">Actualités<span class="site-nav__chevron" aria-hidden="true"></span></a>
                     <ul class="site-nav__submenu">
                         <li><a href="/mairie-luglon/actualites/vie-du-village/">Vie du village</a></li>
                         <li><a href="/mairie-luglon/actualites/travaux/">Travaux</a></li>
-                        <li><a href="/mairie-luglon/actualites/associations/">Associations</a></li>
+                        <li><a href="/mairie-luglon/actualites/associations/" aria-current="page">Associations</a></li>
                         <li><a href="https://incendie.cdf-luglon.fr/" target="_blank" rel="noopener noreferrer">Incendie</a></li>
                     </ul>
                 </li>
                 <li>
-                    <a href="/mairie-luglon/contact/" aria-current="page">Contact</a>
+                    <a href="/mairie-luglon/contact/">Contact</a>
                 </li>
             </ul>
             <button class="site-nav__toggle" type="button"
@@ -103,89 +104,52 @@
         </div>
     </nav>
 
-    <div class="site-nav__scrim" aria-hidden="true"></div>
-    <div class="site-nav__sentinel" aria-hidden="true"></div>
-
     <div class="main-hero" id="contenu">
         <div class="hero-content">
-            <p class="main-subtitle">La mairie vous répond</p>
-            <h1 class="main-title">CONTACT</h1>
+            <p class="main-subtitle">Actualités</p>
+            <h1 class="main-title">ASSOCIATIONS</h1>
+            
+            <div class="cta-row">
+                <a class="btn btn--ghost" href="/mairie-luglon/actualites/">← Actualités</a>
+            </div>
+
         </div>
         <picture class="hero-image">
             <source media="(max-width: 768px)" srcset="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='1200'%20height='676'/%3E">
-            <img src="/mairie-luglon/images/contact-hero.jpg" alt="Enveloppes de courrier"
+            <img src="/mairie-luglon/images/actualites-hero.jpg" alt=""
                  width="1200" height="676" decoding="async">
         </picture>
     </div>
 
     <main>
+
         <section class="page-section has-decor">
             <span class="decor-vine decor-vine--left" aria-hidden="true"><span class="decor-vine__ink"></span></span>
             <span class="decor-vine decor-vine--right" aria-hidden="true"><span class="decor-vine__ink"></span></span>
             <div class="section-head" data-reveal>
-                <p class="kicker">Nous joindre</p>
-                <h2>Par le moyen qui vous arrange</h2>
-                <p>
-                    Une question sur une démarche, une demande de rendez-vous ou une
-                    réservation de salle : tout arrive au même endroit.
-                </p>
+                <p class="kicker">Rubrique</p>
+                <h2>Associations</h2>
+                <p>Ce que proposent les associations luglonnaises.</p>
             </div>
 
-            <div class="contact-grid">
-                <div class="contact-card contact-card--photo" data-reveal style="--i:0">
-                    <img class="contact-card__photo" src="/mairie-luglon/images/mairie-vignette.jpg" alt="" loading="lazy" width="700" height="699">
-                    <div class="contact-card__icon icon-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 21.4s7-6.1 7-11.1a7 7 0 1 0-14 0c0 5 7 11.1 7 11.1Z"/><circle cx="12" cy="10.3" r="2.6"/></svg></div>
-                    <h3>Adresse</h3>
-                    <p>Le Bourg, 40630 Luglon</p>
-                    <a href="https://www.google.com/maps/search/?api=1&query=Mairie+de+Luglon" target="_blank" rel="noopener noreferrer">Voir sur la carte</a>
-                </div>
+            
+            <div class="prose" data-reveal>
+                <p><em>Aucune actualité publiée dans cette rubrique pour le moment.</em></p>
+            </div>
+            
+        </section>
 
-                <div class="contact-card" data-reveal style="--i:1">
-                    <div class="contact-card__icon icon-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4.4 4.4h3.4l1.4 4.6-2.3 1.7a12.6 12.6 0 0 0 6.4 6.4l1.7-2.3 4.6 1.4v3.4c0 1-.9 1.8-1.9 1.7C9.4 20.6 3.4 14.6 2.7 6.3c-.1-1 .7-1.9 1.7-1.9Z"/></svg></div>
-                    <h3>Téléphone</h3>
-                    <a href="tel:+33558075012">05 58 07 50 12</a>
-                </div>
-
-                <div class="contact-card contact-card--photo" data-reveal style="--i:2">
-                    <img class="contact-card__photo" src="/mairie-luglon/images/contact-vignette.jpg" alt="" loading="lazy" width="700" height="1050">
-                    <div class="contact-card__icon icon-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2.8" y="4.9" width="18.4" height="14.2" rx="2.2"/><path d="m3.6 6.6 8.4 6.3 8.4-6.3"/></svg></div>
-                    <h3>E-mail</h3>
-                    <p>Nous répondons en général sous quelques jours.</p>
-                    <a href="mailto:accueil@mairie-luglon.fr">accueil@mairie-luglon.fr</a>
-                </div>
-
-                <div class="contact-card" data-reveal style="--i:3">
-                    <div class="contact-card__icon icon-badge"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 6.8V12l3.4 2"/></svg></div>
-                    <h3>Horaires d'accueil</h3>
-                    <p>Lundi, mardi, jeudi : 9h-12h<br>Vendredi : 14h-17h</p>
+        <section class="page-section page-section--footer-band">
+            <div class="section-head section-head--center" data-reveal>
+                <p class="kicker">Revenir</p>
+                <h2>Toutes les actualités</h2>
+                <div class="cta-row" style="justify-content:center">
+                    <a class="btn btn--primary" href="/mairie-luglon/actualites/">Actualités</a>
+                    <a class="btn btn--ghost" href="/mairie-luglon/">Retour à l'accueil</a>
                 </div>
             </div>
         </section>
 
-        <section class="page-section">
-            <div class="panel">
-                <div class="section-head" data-reveal>
-                    <p class="kicker">Bon à savoir</p>
-                    <h2>Avant d'écrire</h2>
-                </div>
-                <div class="prose" data-reveal>
-                    <p>
-                        <strong>Réservation d'une salle municipale :</strong> la demande se fait en
-                        ligne sur la <a href="/mairie-luglon/vie-pratique/reservation-salle/">page dédiée</a>. La
-                        mairie vous recontacte ensuite pour confirmer.
-                    </p>
-                    <p>
-                        <strong>Démarches administratives :</strong> retrouvez le détail des
-                        démarches courantes sur la page <a href="/mairie-luglon/vie-pratique/">Vie pratique</a>.
-                    </p>
-                    <p>
-                        <strong>Données personnelles :</strong> les informations que vous nous
-                        transmettez servent uniquement à vous répondre. Voir la
-                        <a href="/mairie-luglon/confidentialite/">politique de confidentialité</a>.
-                    </p>
-                </div>
-            </div>
-        </section>
     </main>
 
     <footer class="site-footer">
@@ -206,7 +170,10 @@
     </footer>
 
     <script src="/mairie-luglon/scroll-animations.js"></script>
+    <script src="/mairie-luglon/events.js"></script>
+    <script src="/mairie-luglon/rail-dots.js"></script>
     <script src="/mairie-luglon/hero-fit.js"></script>
     <script src="/mairie-luglon/nav.js"></script>
+
 </body>
 </html>

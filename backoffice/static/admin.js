@@ -88,7 +88,7 @@
     if (archive) {
       const marque = document.createElement('span');
       marque.className = 'archive';
-      marque.textContent = 'dans « Autres actualités »';
+      marque.textContent = 'hors sommaire, sur sa page de rubrique';
       t.appendChild(marque);
     }
 
@@ -140,21 +140,33 @@
     const ul = $('liste-actualites');
     ul.textContent = '';
     $('resume-actualites').textContent = actualites.length
-      ? `${actualites.length} actualité${actualites.length > 1 ? 's' : ''} en ligne, `
-        + `dont ${Math.min(enUne, actualites.length)} en grand sur la page Actualités.`
+      ? `${actualites.length} actualité${actualites.length > 1 ? 's' : ''} en ligne.`
       : '';
     if (!actualites.length) {
       listeVide(ul, 'Aucune actualité publiée.');
       return;
     }
-    actualites.forEach((a, i) => {
+    // Le rang se compte PAR RUBRIQUE, pas sur la liste entière : c'est chaque
+    // rubrique qui montre ses cinq premières sur le sommaire. Sans ce compteur,
+    // la sixième actualité toutes rubriques confondues serait marquée « hors
+    // sommaire » alors qu'elle est peut-être la première de la sienne.
+    const rang = {};
+    actualites.forEach((a) => {
+      rang[a.rubrique] = (rang[a.rubrique] || 0) + 1;
       ul.appendChild(ligne(
         a.titre,
-        `${a.categorie} · ${a.date_evenement}${a.lieu ? ' · ' + a.lieu : ''}`,
-        i >= enUne,
+        `${libelleRubrique(a.rubrique)} · ${a.date_evenement}${a.lieu ? ' · ' + a.lieu : ''}`,
+        rang[a.rubrique] > enUne,
         () => api('actualites/' + a.id, { method: 'DELETE' })
       ));
     });
+  }
+
+  // Le <select> du formulaire porte déjà la correspondance clé → libellé :
+  // inutile de la recopier ici, elle divergerait.
+  function libelleRubrique(cle) {
+    const opt = document.querySelector(`#a-rubrique option[value="${CSS.escape(cle)}"]`);
+    return opt ? opt.textContent : cle;
   }
 
   function rendreDocuments(documents) {
@@ -211,6 +223,116 @@
     montrer('connexion');
   });
 
+  // --- Éditeur de texte ----------------------------------------------------
+  //
+  // contenteditable + document.execCommand. execCommand est officiellement
+  // déconseillé, et pourtant : il est implémenté partout, il gère l'annulation
+  // (Ctrl+Z) et la sélection sans une ligne de code, et l'alternative — piloter
+  // les Range et Selection à la main — représente des milliers de lignes qu'il
+  // faudrait maintenir. Pour une barre d'outils de six boutons dans un outil
+  // interne, le compromis est clairement du bon côté.
+  //
+  // Ce que produit l'éditeur n'a AUCUNE valeur de confiance : le serveur
+  // ré-assainit tout à l'enregistrement (backoffice/contenu.py). Ici on cherche
+  // le confort de saisie, pas la sécurité.
+  const zone = $('a-contenu');
+
+  function conserverSelection(action) {
+    // execCommand agit sur la sélection courante : sans ce focus préalable, un
+    // clic sur un bouton de la barre a déjà déplacé le curseur hors de la zone
+    // et la commande ne s'applique à rien.
+    zone.focus();
+    action();
+  }
+
+  function elementDeBloc() {
+    // Remonte de la sélection jusqu'au bloc qui la contient, sans sortir de la
+    // zone éditable.
+    let n = document.getSelection().anchorNode;
+    if (!n) return null;
+    if (n.nodeType === 3) n = n.parentNode;
+    while (n && n !== zone && !/^(P|H3|H4|LI|BLOCKQUOTE|DIV)$/.test(n.nodeName)) {
+      n = n.parentNode;
+    }
+    return (n && n !== zone) ? n : null;
+  }
+
+  document.querySelectorAll('.editeur__barre [data-cmd]').forEach((b) => {
+    b.addEventListener('click', () => conserverSelection(
+      () => document.execCommand(b.dataset.cmd, false, null)));
+  });
+
+  document.querySelectorAll('.editeur__barre [data-bloc]').forEach((b) => {
+    b.addEventListener('click', () => conserverSelection(
+      () => document.execCommand('formatBlock', false, b.dataset.bloc)));
+  });
+
+  // Alignement et couleur passent par des CLASSES du site, jamais par
+  // execCommand('justifyCenter') ni ('foreColor') qui posent des styles en
+  // ligne — l'assainisseur les retirerait, et la mise en forme serait perdue
+  // sans que personne comprenne pourquoi.
+  document.querySelectorAll('.editeur__barre [data-classe]').forEach((b) => {
+    b.addEventListener('click', () => conserverSelection(() => {
+      const bloc = elementDeBloc();
+      if (!bloc) return;
+      bloc.classList.remove('ta-left', 'ta-center', 'ta-right');
+      bloc.classList.add(b.dataset.classe);
+    }));
+  });
+
+  document.querySelectorAll('.editeur__barre [data-couleur]').forEach((b) => {
+    b.addEventListener('click', () => conserverSelection(() => {
+      const couleur = b.dataset.couleur;
+      const bloc = elementDeBloc();
+      if (!bloc) return;
+      bloc.classList.remove('co-marine', 'co-discret', 'co-alerte');
+      if (couleur) bloc.classList.add(couleur);
+    }));
+  });
+
+  $('btn-lien').addEventListener('click', () => {
+    const url = prompt('Adresse du lien (https://…)');
+    if (!url) return;
+    if (!/^https?:\/\//i.test(url)) {
+      erreur('erreur-actualite', 'Le lien doit commencer par https://');
+      return;
+    }
+    conserverSelection(() => document.execCommand('createLink', false, url));
+  });
+
+  // Image : on envoie d'abord le fichier, puis on insère l'URL renvoyée. Aucune
+  // image n'est jamais mise en base64 dans le contenu — un JPEG de 2 Mo encodé
+  // ferait une ligne de base de 3 Mo, illisible et impossible à mettre en cache.
+  $('btn-image').addEventListener('click', () => $('a-image').click());
+  $('a-image').addEventListener('change', async () => {
+    const champ = $('a-image');
+    if (!champ.files.length) return;
+    const fd = new FormData();
+    fd.append('fichier', champ.files[0]);
+    try {
+      const r = await api('medias', { method: 'POST', body: fd });
+      const img = document.createElement('img');
+      img.src = r.url;
+      img.alt = '';
+      zone.focus();
+      document.execCommand('insertHTML', false, img.outerHTML + '<p><br></p>');
+    } catch (err) {
+      erreur('erreur-actualite', err.message);
+    } finally {
+      champ.value = '';    // pour pouvoir redéposer le même fichier
+    }
+  });
+
+  // Collage : on force le texte brut. Un copier-coller depuis Word ou une page
+  // web amène des dizaines de balises et de styles en ligne, que l'assainisseur
+  // retirerait de toute façon — autant ne pas les laisser entrer, sinon
+  // l'aperçu à l'écran ne ressemble pas à ce qui sera publié.
+  zone.addEventListener('paste', (e) => {
+    e.preventDefault();
+    const texte = (e.clipboardData || window.clipboardData).getData('text/plain');
+    document.execCommand('insertText', false, texte);
+  });
+
   $('form-actualite').addEventListener('submit', async (e) => {
     e.preventDefault();
     $('erreur-actualite').hidden = true;
@@ -218,12 +340,15 @@
     const bouton = f.querySelector('button[type=submit]');
     bouton.disabled = true;
     try {
+      const données = Object.fromEntries(new FormData(f));
+      données.contenu = zone.innerHTML;
       await api('actualites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(Object.fromEntries(new FormData(f))),
+        body: JSON.stringify(données),
       });
       f.reset();
+      zone.innerHTML = '';
       await rafraichir();
       succes('erreur-actualite', 'Actualité publiée. Elle est en ligne immédiatement.');
     } catch (err) {

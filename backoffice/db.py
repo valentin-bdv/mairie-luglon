@@ -23,12 +23,12 @@ SCHEMA = """
 CREATE TABLE IF NOT EXISTS actualites (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     titre           TEXT NOT NULL,
-    categorie       TEXT NOT NULL,   -- s'affiche dans .event-card__tag
+    rubrique        TEXT NOT NULL,   -- une clé de config.RUBRIQUES_ACTUALITES
     date_evenement  TEXT NOT NULL,   -- AAAA-MM-JJ ; pilote le badge À venir/Terminé
     lieu            TEXT NOT NULL DEFAULT '',
-    texte           TEXT NOT NULL,
-    meta            TEXT NOT NULL DEFAULT '',  -- petite ligne sous le texte
-    lien_url        TEXT NOT NULL DEFAULT '',  -- « En savoir plus », vide si aucun
+    contenu         TEXT NOT NULL,   -- HTML DÉJÀ ASSAINI (voir contenu.py)
+    extrait         TEXT NOT NULL DEFAULT '',  -- texte brut, pour les cartes du sommaire
+    lien_url        TEXT NOT NULL DEFAULT '',  -- « En savoir plus » externe, souvent vide
     publie_le       TEXT NOT NULL
 );
 
@@ -61,7 +61,17 @@ def connexion():
 
 
 def initialiser():
+    """Crée le schéma s'il manque.
+
+    Il n'y a pas de migrations : `CREATE TABLE IF NOT EXISTS` ne modifie pas une
+    table déjà créée avec d'anciennes colonnes. Si le schéma change en cours de
+    développement, supprimez `donnees/backoffice.sqlite3` — à ce volume, une
+    machinerie de migration coûterait plus cher que les données qu'elle
+    protège. En production, une modification de schéma se fait à la main sur une
+    base sauvegardée au préalable.
+    """
     config.DEPOTS.mkdir(parents=True, exist_ok=True)
+    config.MEDIAS.mkdir(parents=True, exist_ok=True)
     with connexion() as conn:
         conn.executescript(SCHEMA)
 
@@ -78,29 +88,38 @@ def _maintenant():
 # rend la bascule vers « autres actualités » compréhensible pour le visiteur :
 # la page principale montre ce qui vient, l'archive montre ce qui est passé.
 
-def actualites(limite=None, decalage=0):
-    sql = "SELECT * FROM actualites ORDER BY date_evenement DESC, id DESC"
+def actualites(rubrique=None, limite=None):
+    sql = "SELECT * FROM actualites"
     params = []
+    if rubrique:
+        sql += " WHERE rubrique = ?"
+        params.append(rubrique)
+    sql += " ORDER BY date_evenement DESC, id DESC"
     if limite is not None:
-        sql += " LIMIT ? OFFSET ?"
-        params = [limite, decalage]
+        sql += " LIMIT ?"
+        params.append(limite)
     with connexion() as conn:
         return [dict(r) for r in conn.execute(sql, params)]
 
 
-def compter_actualites():
+def compter_actualites(rubrique=None):
+    sql = "SELECT COUNT(*) AS n FROM actualites"
+    params = []
+    if rubrique:
+        sql += " WHERE rubrique = ?"
+        params.append(rubrique)
     with connexion() as conn:
-        return conn.execute("SELECT COUNT(*) AS n FROM actualites").fetchone()["n"]
+        return conn.execute(sql, params).fetchone()["n"]
 
 
 def ajouter_actualite(données):
     with connexion() as conn:
         cur = conn.execute(
             """INSERT INTO actualites
-               (titre, categorie, date_evenement, lieu, texte, meta, lien_url, publie_le)
+               (titre, rubrique, date_evenement, lieu, contenu, extrait, lien_url, publie_le)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-            (données["titre"], données["categorie"], données["date_evenement"],
-             données.get("lieu", ""), données["texte"], données.get("meta", ""),
+            (données["titre"], données["rubrique"], données["date_evenement"],
+             données.get("lieu", ""), données["contenu"], données.get("extrait", ""),
              données.get("lien_url", ""), _maintenant()))
         return cur.lastrowid
 

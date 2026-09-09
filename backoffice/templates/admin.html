@@ -59,9 +59,10 @@
         <section class="carte">
             <h1>Publier une actualité</h1>
             <p class="aide">
-                Les <b>{{ en_une }}</b> actualités les plus proches dans le temps s'affichent
-                en grand sur la page Actualités. Les suivantes basculent toutes seules
-                vers « Autres actualités » : vous n'avez rien à déplacer.
+                Chaque rubrique montre ses <b>{{ en_une }}</b> actualités les plus proches
+                dans le temps sur la page Actualités. Les suivantes ne disparaissent pas :
+                elles restent sur la page de leur rubrique, derrière « Voir plus ».
+                Vous n'avez jamais rien à déplacer.
             </p>
             <form id="form-actualite" autocomplete="off">
                 <div class="grille">
@@ -71,9 +72,12 @@
                                placeholder="Réouverture de l'agence postale">
                     </div>
                     <div>
-                        <label for="a-categorie">Catégorie</label>
-                        <input id="a-categorie" name="categorie" required maxlength="40"
-                               placeholder="Travaux, Animations, Vie municipale…">
+                        <label for="a-rubrique">Rubrique</label>
+                        <select id="a-rubrique" name="rubrique" required>
+                            {% for cle, libelle, _ in rubriques_actualites %}
+                            <option value="{{ cle }}">{{ libelle }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <div>
                         <label for="a-date">Date de l'évènement</label>
@@ -86,21 +90,53 @@
                         <input id="a-lieu" name="lieu" maxlength="60" placeholder="Salle des fêtes">
                     </div>
                 </div>
-                <label for="a-texte">Texte</label>
-                <textarea id="a-texte" name="texte" required rows="4" maxlength="600"
-                          placeholder="Deux ou trois phrases : ce qui se passe, où, et pour qui."></textarea>
-                <div class="grille">
-                    <div>
-                        <label for="a-meta">Précision <span class="facultatif">(facultatif)</span></label>
-                        <input id="a-meta" name="meta" maxlength="80"
-                               placeholder="Programme complet à venir">
+
+                <label for="a-contenu">Texte de l'actualité</label>
+                <!-- Barre d'outils. Chaque bouton porte la commande qu'il applique ;
+                     admin.js les branche en une boucle, il n'y a pas un gestionnaire
+                     par bouton à maintenir. Les boutons de couleur et d'alignement
+                     posent des CLASSES du site, jamais un style en ligne : c'est ce
+                     qui garde la charte tenue et l'assainissement vérifiable. -->
+                <div class="editeur">
+                    <div class="editeur__barre" role="toolbar" aria-label="Mise en forme">
+                        <button type="button" data-cmd="bold" title="Gras (Ctrl+B)"><b>G</b></button>
+                        <button type="button" data-cmd="italic" title="Italique (Ctrl+I)"><i>I</i></button>
+                        <button type="button" data-cmd="underline" title="Souligné (Ctrl+U)"><u>S</u></button>
+                        <button type="button" data-cmd="strikeThrough" title="Barré"><s>B</s></button>
+                        <span class="editeur__sep"></span>
+                        <button type="button" data-bloc="h3" title="Titre">Titre</button>
+                        <button type="button" data-bloc="h4" title="Sous-titre">Sous-titre</button>
+                        <button type="button" data-bloc="p" title="Paragraphe normal">Normal</button>
+                        <span class="editeur__sep"></span>
+                        <button type="button" data-cmd="insertUnorderedList" title="Liste à puces">• Liste</button>
+                        <button type="button" data-cmd="insertOrderedList" title="Liste numérotée">1. Liste</button>
+                        <span class="editeur__sep"></span>
+                        <button type="button" data-classe="ta-left" data-groupe="ta" title="Aligner à gauche">⇤</button>
+                        <button type="button" data-classe="ta-center" data-groupe="ta" title="Centrer">↔</button>
+                        <button type="button" data-classe="ta-right" data-groupe="ta" title="Aligner à droite">⇥</button>
+                        <span class="editeur__sep"></span>
+                        <button type="button" data-couleur="co-marine" title="Bleu marine du site" class="pastille pastille--marine"></button>
+                        <button type="button" data-couleur="co-discret" title="Gris discret" class="pastille pastille--discret"></button>
+                        <button type="button" data-couleur="co-alerte" title="Rouge d'alerte" class="pastille pastille--alerte"></button>
+                        <button type="button" data-couleur="" title="Retirer la couleur">✕</button>
+                        <span class="editeur__sep"></span>
+                        <button type="button" id="btn-lien" title="Insérer un lien">Lien</button>
+                        <button type="button" id="btn-image" title="Insérer une image">Image</button>
                     </div>
-                    <div>
-                        <label for="a-lien">Lien « En savoir plus » <span class="facultatif">(facultatif)</span></label>
-                        <input id="a-lien" name="lien_url" type="url" maxlength="300"
-                               placeholder="https://…">
-                    </div>
+                    <div id="a-contenu" class="editeur__zone" contenteditable="true"
+                         role="textbox" aria-multiline="true"
+                         aria-label="Texte de l'actualité"></div>
+                    <input type="file" id="a-image" accept="image/jpeg,image/png,image/gif,image/webp" hidden>
                 </div>
+                <p class="aide">
+                    Les polices et les couleurs sont celles du site : c'est ce qui évite
+                    qu'une publication à l'autre le site parte dans tous les sens.
+                </p>
+
+                <label for="a-lien-url">Lien « En savoir plus » <span class="facultatif">(facultatif)</span></label>
+                <input id="a-lien-url" name="lien_url" type="url" maxlength="300"
+                       placeholder="https://…">
+
                 <p class="erreur" id="erreur-actualite" hidden></p>
                 <button type="submit" class="bouton bouton--principal">Publier l'actualité</button>
             </form>

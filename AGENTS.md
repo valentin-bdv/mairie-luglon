@@ -657,19 +657,39 @@ renders three pages from SQLite, exposes the back-office API, hosts the admin PW
 and serves the other 21 pages as the static files they have always been. It replaced
 `tools/dev-server.py`, which did a subset of this.
 
-**Only three public pages come out of the database** — `/actualites/`,
-`/actualites/autres/` and `/mairie/arretes-et-publications/`. Everything else stays a
-hand-edited HTML file. That line was drawn deliberately: those are the only pages whose
-content changes between two visits from the secretariat, and turning the other 21 into
-templates would multiply the work without making anything more editable.
+**The public pages that come out of the database** are the actualités summary
+(`/actualites/`), one page per rubrique (`/actualites/<clé>/`) and
+`/mairie/arretes-et-publications/`. Everything else stays a hand-edited HTML file. That
+line was drawn deliberately: those are the only pages whose content changes between two
+visits from the secretariat.
 
 Things to know before touching it:
 
-- **The 5-then-overflow rule is a query, not a rearrangement.** `ACTUALITES_EN_UNE` in
-  `backoffice/config.py` decides how many actualités stay on the main page; the rest
-  appear on `/actualites/autres/` automatically. Nobody moves anything. Ordering is by
-  **event date descending**, not publication date — an item typed today about last
-  year's meeting must not jump ahead of next month's fête.
+- **`/actualites/` is a summary, not a list.** It shows the `ACTUALITES_EN_UNE` most
+  recent items **of each rubrique**, in short cards carrying an excerpt. "Voir plus" goes
+  to that rubrique's page, which shows the same actualités **in full** — formatted text
+  and images included. There is no page per actualité: the rubrique page is what carries
+  the detail, which is why cards link to it rather than to an item.
+- **The overflow is a query, not a rearrangement.** Publishing a rubrique's sixth item
+  pushes its oldest off the summary; it stays on the rubrique page. Nobody moves
+  anything. Ordering is by **event date descending**, not publication date — an item
+  typed today about last year's meeting must not jump ahead of next month's fête.
+- **Rubriques live in `config.RUBRIQUES_ACTUALITES`.** Adding one there creates its page,
+  its summary section and its choice in the form. It does **not** add the nav entry: the
+  submenu lives in the 26 static files and in `_layout.html`, and has to be updated by
+  hand (see the drift note below).
+- **Rich text is sanitised server-side by `contenu.py`, always.** The editor only
+  produces allowed markup, but the API takes JSON — anyone with the password can post
+  anything. The filter is on the server, never in the interface. It **rebuilds** from an
+  allowlist rather than stripping what looks dangerous: an unknown tag is never emitted.
+  `{{ a.contenu | safe }}` in `rubrique.html` is the only legitimate use of `| safe` in
+  this repo, and only because of that.
+- **Colour and alignment are classes, never inline styles.** `ta-center`, `co-alerte` and
+  the rest are declared in three places that must agree: `CLASSES` in `contenu.py`
+  (otherwise the attribute is stripped on save and the formatting silently vanishes),
+  `styles.css` for the public rendering, and `admin.css` so the editor shows what will be
+  published. A free colour picker was deliberately not offered — a site whose colours are
+  chosen one publication at a time stops looking designed.
 - **`config.py` holds everything client-specific.** No other Python module contains a
   commune name, a URL or a rubric. Templates *are* client-specific by nature — for
   another client you replace them. `_layout.html` was **extracted from a real page of
@@ -703,10 +723,12 @@ Things to know before touching it:
   publishes to a mairie's website does not run with a default password, not even "just
   for testing".
 
-`actualites/autres/index.html` exists as a **static file too**, generated from the same
-Jinja template with an empty list. That's the GitHub Pages copy — same "théâtre" as the
-reservation form. It was generated, not written: hand-writing it would have created a
-second truth that diverges the first time the template changes.
+The database-backed pages exist as **static files too** (`actualites/index.html` and
+`actualites/<clé>/index.html`), generated from the same Jinja templates with empty lists.
+That's the GitHub Pages copy — same "théâtre" as the reservation form. They were
+generated, not written: hand-writing them would have created a second truth that diverges
+the first time a template changes. Regenerate them the same way after changing a template
+or a rubrique.
 
 ### Security posture — what an audit fixed, and what it can't
 

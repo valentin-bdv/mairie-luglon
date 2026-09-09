@@ -204,3 +204,94 @@ label .aide, .grille .aide { margin: 6px 0 0; display: block; }
   border-left: 3px solid #b4761a;
   color: #7a4f0d;
 }
+
+/* --- Éditeur de texte ------------------------------------------------------
+   Une zone contenteditable et sa barre d'outils. Le rendu à l'écran imite
+   grossièrement celui du site (titres plus gros, couleurs identiques) sans le
+   copier : l'objectif est que la personne reconnaisse ce qu'elle met en forme,
+   pas d'obtenir un aperçu fidèle — celui-là, c'est la page publique. */
+.editeur {
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon);
+  background: var(--blanc);
+}
+.editeur__barre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border-bottom: 1px solid var(--bord);
+  background: var(--fond);
+}
+.editeur__barre button {
+  min-width: 34px;
+  height: 32px;
+  padding: 0 9px;
+  border: 1px solid transparent;
+  border-radius: var(--rayon);
+  background: var(--blanc);
+  color: var(--texte);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.editeur__barre button:hover {
+  border-color: var(--bord);
+  background: var(--fond);
+}
+.editeur__sep {
+  width: 1px;
+  height: 22px;
+  margin: 0 4px;
+  background: var(--bord);
+}
+/* Pastilles de couleur : le bouton EST l'échantillon, plus lisible qu'un
+   libellé « rouge » à côté d'une couleur qu'on ne voit pas. */
+.pastille {
+  min-width: 26px !important;
+  padding: 0 !important;
+  border: 1px solid var(--bord) !important;
+}
+.pastille--marine  { background: #1b2a4a !important; }
+.pastille--discret { background: #5c6270 !important; }
+.pastille--alerte  { background: #a4232b !important; }
+
+.editeur__zone {
+  min-height: 220px;
+  padding: 16px 18px;
+  outline: none;
+  line-height: 1.6;
+}
+.editeur__zone:focus-visible {
+  outline: 2px solid var(--marine-clair);
+  outline-offset: -2px;
+}
+.editeur__zone h3 { font-size: 1.25rem; margin: 1.2em 0 .3em; }
+.editeur__zone h4 { font-size: 1.05rem; margin: 1.1em 0 .3em; }
+.editeur__zone p { margin: 0 0 .8em; }
+.editeur__zone ul,
+.editeur__zone ol { margin: 0 0 .8em; padding-left: 1.4em; }
+.editeur__zone blockquote {
+  margin: 1em 0;
+  padding-left: 12px;
+  border-left: 3px solid var(--marine);
+  color: var(--discret);
+}
+.editeur__zone img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1em 0;
+}
+.editeur__zone a { color: var(--marine-clair); }
+
+/* Mêmes noms que dans styles.css et dans la liste blanche de contenu.py : la
+   personne voit à l'écran ce qui sera réellement publié. */
+.editeur__zone .ta-left   { text-align: left; }
+.editeur__zone .ta-center { text-align: center; }
+.editeur__zone .ta-right  { text-align: right; }
+.editeur__zone .co-marine  { color: #1b2a4a; }
+.editeur__zone .co-discret { color: #5c6270; }
+.editeur__zone .co-alerte  { color: #a4232b; }

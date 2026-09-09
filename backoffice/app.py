@@ -40,7 +40,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, Redirect
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from . import config, db, auth
+from . import config, db, auth, contenu
 
 app = FastAPI(title=f"{config.SITE_NOM} — site et back-office")
 gabarits = Jinja2Templates(directory=str(config.BASE / "templates"))
@@ -147,24 +147,66 @@ def _badge(date_evenement: str) -> str:
 
 @app.get(P + "/actualites/", response_class=HTMLResponse)
 def page_actualites(request: Request):
-    """Les ACTUALITES_EN_UNE plus récentes, en grand.
+    """Sommaire : les ACTUALITES_EN_UNE plus récentes DE CHAQUE RUBRIQUE.
 
-    Tout le reste bascule vers /actualites/autres/. C'est là toute
-    l'automatisation demandée : personne ne « déplace » une actualité, la
-    limite est une requête. Publier la sixième repousse mécaniquement la
-    dernière dans les autres actualités.
+    C'est là toute l'automatisation. Personne ne déplace jamais une actualité :
+    publier la sixième d'une rubrique pousse mécaniquement la dernière hors du
+    sommaire, où elle reste accessible sur la page de sa rubrique. La limite est
+    une requête, pas un rangement.
+
+    Les cartes du sommaire portent l'EXTRAIT, jamais le contenu riche : elles
+    doivent rester courtes et de hauteur régulière. Le texte mis en forme et les
+    images vivent sur la page de rubrique.
     """
-    toutes = db.actualites(limite=config.ACTUALITES_EN_UNE)
-    reste = max(0, db.compter_actualites() - len(toutes))
+    sections = []
+    for cle, libelle, description in config.RUBRIQUES_ACTUALITES:
+        recentes = db.actualites(rubrique=cle, limite=config.ACTUALITES_EN_UNE)
+        sections.append({
+            "cle": cle,
+            "libelle": libelle,
+            "description": description,
+            "actualites": recentes,
+            "reste": max(0, db.compter_actualites(cle) - len(recentes)),
+        })
     return gabarits.TemplateResponse("actualites.html", contexte(
-        request, actualites=toutes, reste=reste, badge=_badge))
+        request, sections=sections, badge=_badge))
 
 
-@app.get(P + "/actualites/autres/", response_class=HTMLResponse)
-def page_autres_actualites(request: Request):
-    autres = db.actualites()[config.ACTUALITES_EN_UNE:]
-    return gabarits.TemplateResponse("autres-actualites.html", contexte(
-        request, actualites=autres, badge=_badge))
+@app.get(P + "/actualites/{cle}/", response_class=HTMLResponse)
+def page_rubrique(request: Request, cle: str):
+    """Une rubrique, ses actualités EN ENTIER.
+
+    Contrairement au sommaire, on rend ici le contenu mis en forme et les
+    images. C'est la conséquence du choix de structure : il n'y a pas de page
+    par actualité, donc c'est la page de rubrique qui porte le détail.
+    """
+    rubrique = next((r for r in config.RUBRIQUES_ACTUALITES if r[0] == cle), None)
+    if rubrique is None:
+        raise HTTPException(404)
+    return gabarits.TemplateResponse("rubrique.html", contexte(
+        request, cle=cle, libelle=rubrique[1], description=rubrique[2],
+        actualites=db.actualites(rubrique=cle), badge=_badge))
+
+
+# Deux chemins pour la même image, volontairement. Les URL stockées dans le
+# contenu des actualités s'écrivent SANS le préfixe du site (« /medias/x.jpg ») :
+# c'est ce qui leur permet de survivre au passage de /mairie-luglon/ à la racine
+# d'un vrai domaine, où le préfixe disparaît. Comme le site est servi sous un
+# préfixe en développement, on répond aussi à la forme préfixée.
+@app.get("/medias/{fichier}")
+@app.get(P + "/medias/{fichier}")
+def servir_media(fichier: str):
+    """Image jointe à une actualité. Toujours `inline` : c'est une illustration."""
+    if not re.fullmatch(r"[0-9a-f]{32}\.(jpg|png|gif|webp)", fichier):
+        raise HTTPException(404)
+    chemin = config.MEDIAS / fichier
+    if not chemin.is_file():
+        raise HTTPException(404)
+    types = {"jpg": "image/jpeg", "png": "image/png",
+             "gif": "image/gif", "webp": "image/webp"}
+    return FileResponse(
+        chemin, media_type=types[fichier.rsplit(".", 1)[1]],
+        headers={"X-Content-Type-Options": "nosniff"})
 
 
 @app.get(P + "/mairie/arretes-et-publications/", response_class=HTMLResponse)
@@ -266,7 +308,9 @@ def admin_sans_slash():
 @app.get(A + "/", response_class=HTMLResponse)
 def admin(request: Request):
     return gabarits.TemplateResponse("admin.html", contexte(
-        request, rubriques=config.RUBRIQUES, en_une=config.ACTUALITES_EN_UNE))
+        request, rubriques=config.RUBRIQUES,
+        rubriques_actualites=config.RUBRIQUES_ACTUALITES,
+        en_une=config.ACTUALITES_EN_UNE))
 
 
 @app.get(A + "/sw.js")
@@ -339,17 +383,70 @@ def etat(request: Request):
 async def creer_actualite(request: Request):
     _exige_session(request)
     corps = await request.json()
-    for champ in ("titre", "categorie", "date_evenement", "texte"):
+
+    for champ in ("titre", "rubrique", "date_evenement"):
         if not str(corps.get(champ, "")).strip():
             raise HTTPException(400, f"Le champ « {champ} » est obligatoire.")
+    if corps["rubrique"] not in {r[0] for r in config.RUBRIQUES_ACTUALITES}:
+        raise HTTPException(400, "Rubrique inconnue.")
     if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", corps["date_evenement"]):
         raise HTTPException(400, "Date attendue au format AAAA-MM-JJ.")
-    lien = corps.get("lien_url", "").strip()
+
+    # ASSAINISSEMENT CÔTÉ SERVEUR, TOUJOURS. L'éditeur du navigateur ne produit
+    # que du balisage autorisé, mais rien n'oblige un client à passer par lui :
+    # cette route accepte du JSON, et n'importe qui muni du mot de passe peut y
+    # poster ce qu'il veut. Le filtre est ici, pas dans l'interface.
+    html_propre = contenu.assainir(corps.get("contenu", ""))
+    if not contenu.extrait(html_propre):
+        raise HTTPException(400, "Le texte de l'actualité est vide.")
+
+    lien = (corps.get("lien_url") or "").strip()
     if lien and not lien.startswith(("https://", "http://")):
         # Sans ce contrôle, un « javascript:… » collé dans le champ deviendrait
         # un lien exécutable sur la page publique.
         raise HTTPException(400, "Le lien doit commencer par https://")
-    return {"ok": True, "id": db.ajouter_actualite(corps)}
+
+    return {"ok": True, "id": db.ajouter_actualite({
+        "titre": corps["titre"].strip(),
+        "rubrique": corps["rubrique"],
+        "date_evenement": corps["date_evenement"],
+        "lieu": (corps.get("lieu") or "").strip(),
+        "contenu": html_propre,
+        "extrait": contenu.extrait(html_propre),
+        "lien_url": lien,
+    })}
+
+
+@app.post(A + "/api/medias")
+async def deposer_media(request: Request, fichier: UploadFile = File(...)):
+    """Reçoit une image et renvoie son URL, que l'éditeur insère dans le texte.
+
+    Le SVG est refusé : c'est du XML qui peut contenir du script, donc une
+    « image » capable d'exécuter du code chez le visiteur. Les formats acceptés
+    sont reconnus sur leurs premiers octets, jamais sur l'extension du nom.
+    """
+    _exige_session(request)
+    octets = await fichier.read()
+    if len(octets) > config.TAILLE_MAX_IMAGE:
+        raise HTTPException(400, "Image trop lourde (8 Mo maximum).")
+
+    extension = None
+    for type_mime, signature in config.SIGNATURES_IMAGE.items():
+        if octets.startswith(signature):
+            if type_mime == "image/webp" and octets[8:12] != b"WEBP":
+                continue          # RIFF sans WEBP : autre chose (audio WAV…)
+            extension = {"image/jpeg": "jpg", "image/png": "png",
+                         "image/gif": "gif", "image/webp": "webp"}[type_mime]
+            break
+    if extension is None:
+        raise HTTPException(400, "Format non reconnu : JPEG, PNG, GIF ou WebP.")
+
+    nom = secrets.token_hex(16) + "." + extension
+    (config.MEDIAS / nom).write_bytes(octets)
+    # SANS le préfixe du site : cette URL part dans le contenu de l'actualité,
+    # donc en base, donc elle doit rester juste le jour où le site quitte
+    # /mairie-luglon/ pour la racine d'un domaine. Voir servir_media().
+    return {"ok": True, "url": f"/medias/{nom}"}
 
 
 @app.delete(A + "/api/actualites/{id_}")

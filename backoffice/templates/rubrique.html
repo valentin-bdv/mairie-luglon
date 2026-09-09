@@ -1,0 +1,65 @@
+{% extends "_layout.html" %}
+
+{% block titre %}{{ libelle }}{% endblock %}
+{% block description %}{{ description }}{% endblock %}
+{% block canonical %}/actualites/{{ cle }}/{% endblock %}
+{% block sous_titre %}Actualités{% endblock %}
+{% block titre_hero %}{{ libelle | upper }}{% endblock %}
+
+{% block hero_retour %}
+            <div class="cta-row">
+                <a class="btn btn--ghost" href="{{ p }}/actualites/">← Actualités</a>
+            </div>
+{% endblock %}
+
+{% block contenu %}
+        <section class="page-section has-decor">
+            <span class="decor-vine decor-vine--left" aria-hidden="true"><span class="decor-vine__ink"></span></span>
+            <span class="decor-vine decor-vine--right" aria-hidden="true"><span class="decor-vine__ink"></span></span>
+            <div class="section-head" data-reveal>
+                <p class="kicker">Rubrique</p>
+                <h2>{{ libelle }}</h2>
+                <p>{{ description }}</p>
+            </div>
+
+            {% if actualites %}
+            {# Les actualités EN ENTIER, pas en cartes : c'est cette page qui
+               porte le détail, puisqu'il n'y a pas de page par actualité.
+               `| safe` est légitime ici et NULLE PART AILLEURS : `contenu` a été
+               assaini à l'enregistrement (backoffice/contenu.py), et il est le
+               seul champ dans ce cas. Ne jamais appliquer ce filtre à un titre,
+               un lieu ou un extrait — ceux-là sont du texte brut et doivent
+               rester échappés. #}
+            {% for a in actualites %}
+            <article class="actu{% if badge(a.date_evenement) == 'passe' %} actu--passee{% endif %}" data-reveal style="--i:{{ loop.index }}">
+                <p class="actu__date">
+                    <time datetime="{{ a.date_evenement }}">{{ date_fr(a.date_evenement, jour=True) }}</time>{% if a.lieu %} · {{ a.lieu }}{% endif %}
+                    <span class="event-card__badge{% if badge(a.date_evenement) == 'passe' %} event-card__badge--past{% endif %}">{{ 'Terminé' if badge(a.date_evenement) == 'passe' else 'À venir' }}</span>
+                </p>
+                <h3 class="actu__titre">{{ a.titre }}</h3>
+                <div class="actu__corps prose">{{ a.contenu | safe }}</div>
+                {%- if a.lien_url %}
+                <p class="actu__lien">
+                    <a href="{{ a.lien_url }}" target="_blank" rel="noopener noreferrer">En savoir plus</a>
+                </p>
+                {%- endif %}
+            </article>
+            {% endfor %}
+            {% else %}
+            <div class="prose" data-reveal>
+                <p><em>Aucune actualité publiée dans cette rubrique pour le moment.</em></p>
+            </div>
+            {% endif %}
+        </section>
+
+        <section class="page-section page-section--footer-band">
+            <div class="section-head section-head--center" data-reveal>
+                <p class="kicker">Revenir</p>
+                <h2>Toutes les actualités</h2>
+                <div class="cta-row" style="justify-content:center">
+                    <a class="btn btn--primary" href="{{ p }}/actualites/">Actualités</a>
+                    <a class="btn btn--ghost" href="{{ p }}/">Retour à l'accueil</a>
+                </div>
+            </div>
+        </section>
+{% endblock %}

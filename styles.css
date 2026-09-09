@@ -87,6 +87,10 @@
      que le thème sombre (fond #1a1a1a) puisse le remplacer par une teinte
      plus claire sans toucher aux surfaces — voir plus bas, mode sombre. */
   --navy-ink: #1b2a4a;
+  /* Encre d'alerte, pour la classe .co-alerte de l'éditeur du back-office.
+     Même logique que --navy-ink : une couleur de TEXTE, donc elle doit changer
+     entre les deux thèmes — un rouge sombre sur fond noir est illisible. */
+  --alerte-ink: #a4232b;
 
   /* Déclinaisons du bleu marine de marque (dérivées de --luglon-navy) */
   --navy-050: #eef1f6;
@@ -248,6 +252,7 @@
 
     /* Voir le commentaire de --navy-ink dans :root */
     --navy-ink: #a9c1e0;
+    --alerte-ink: #f08a8f;
 
     --navy-050: #17223a;
     --navy-100: #1c2c4a;
@@ -2559,6 +2564,114 @@ html {
   font-size: var(--fs-xs);
   color: var(--muted);
 }
+
+/* --- Actualité en entier (pages de rubrique) --------------------------------
+   Une .event-card est une vignette dans une grille : hauteur régulière, texte
+   court, pas d'image. Une .actu est l'inverse — un article qui coule sur toute
+   la mesure, avec sa mise en forme et ses illustrations. Les deux montrent la
+   même actualité à deux endroits : la carte sur le sommaire, l'article sur la
+   page de sa rubrique. */
+.actu {
+  max-width: var(--measure);
+  padding-bottom: var(--space-l);
+  margin-bottom: var(--space-l);
+  border-bottom: 1px solid var(--tab-border);
+}
+.actu:last-of-type {
+  padding-bottom: 0;
+  margin-bottom: 0;
+  border-bottom: none;
+}
+.actu__date {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  flex-wrap: wrap;
+  margin: 0 0 var(--space-2xs);
+  font-family: var(--font-title);
+  letter-spacing: var(--tracking-title);
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  text-transform: uppercase;
+}
+/* Le titre de l'actualité doit dominer les intertitres que le secrétariat pose
+   DANS le texte : les deux sont des <h3> (le <h2> de la page est déjà pris par
+   l'en-tête de rubrique), donc sans ces tailles explicites, un « Une belle
+   journée » écrit dans le corps s'affiche aussi gros que le titre de
+   l'actualité qui le contient. */
+.actu__titre {
+  margin: 0 0 var(--space-s);
+  font-size: var(--fs-lead-xl);
+  line-height: 1.15;
+}
+.actu__corps h3 { font-size: var(--fs-h3); }
+.actu__corps h4 { font-size: var(--fs-lead); }
+.actu__lien {
+  margin: var(--space-s) 0 0;
+}
+.actu__lien a {
+  color: var(--navy-ink);
+}
+/* Actualité passée : en retrait, comme .event-card--past, mais sans fond —
+   un pavé grisé sur toute la mesure serait lourd. */
+.actu--passee .actu__titre,
+.actu--passee .actu__corps {
+  opacity: 0.75;
+}
+
+/* --- Contenu saisi dans l'éditeur du back-office ----------------------------
+   CES CLASSES SONT LA LISTE BLANCHE de backoffice/contenu.py. Ajouter une règle
+   ici ne suffit pas : sans son nom dans CLASSES là-bas, l'assainisseur retire
+   l'attribut à l'enregistrement et la mise en forme est perdue en silence.
+
+   Elles existent pour que le secrétariat n'écrive JAMAIS de style en ligne : la
+   couleur et l'alignement restent décidés par cette feuille, donc la charte
+   tient dans le temps, et l'assainissement se réduit à comparer des noms. */
+.actu__corps > :first-child { margin-top: 0; }
+.actu__corps > :last-child { margin-bottom: 0; }
+.actu__corps h3,
+.actu__corps h4 {
+  margin: var(--space-m) 0 var(--space-2xs);
+}
+.actu__corps ul,
+.actu__corps ol {
+  margin: 0 0 var(--space-s);
+  padding-left: 1.4em;
+}
+.actu__corps li { margin-bottom: var(--space-3xs); }
+.actu__corps blockquote {
+  margin: var(--space-m) 0;
+  padding-left: var(--space-s);
+  border-left: 3px solid var(--luglon-navy);
+  color: var(--muted);
+}
+.actu__corps a { color: var(--navy-ink); }
+/* Les images occupent la mesure et gardent leurs proportions. `height: auto`
+   est indispensable : sans lui, une image sans attributs de dimensions se
+   déforme dès que la largeur est contrainte. */
+.actu__corps img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: var(--space-m) 0;
+}
+.actu__corps figure { margin: var(--space-m) 0; }
+.actu__corps figcaption {
+  margin-top: var(--space-2xs);
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
+.ta-left   { text-align: left; }
+.ta-center { text-align: center; }
+.ta-right  { text-align: right; }
+/* Trois couleurs, pas un sélecteur libre : une palette ouverte finit en
+   arc-en-ciel au bout de quelques publications. --navy-ink et --muted suivent
+   le thème clair/sombre, et --alerte-ink a été ajouté pour la même raison :
+   un rouge sombre sur fond noir ne se lit pas. */
+.co-marine  { color: var(--navy-ink); }
+.co-discret { color: var(--muted); }
+.co-alerte  { color: var(--alerte-ink); }
 
 /* Évènement passé : présent, lisible, mais visiblement en retrait */
 .event-card--past {

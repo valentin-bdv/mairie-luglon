@@ -2,53 +2,45 @@
 {% from "_carte.html" import carte with context %}
 
 {% block titre %}Actualités{% endblock %}
-{% block description %}Les actualités de la commune de Luglon : travaux, animations, rendez-vous associatifs et informations municipales.{% endblock %}
+{% block description %}Les actualités de la commune de Luglon : vie du village, travaux et associations.{% endblock %}
 {% block canonical %}/actualites/{% endblock %}
 {% block sous_titre %}La vie de la commune au fil de l'eau{% endblock %}
 {% block titre_hero %}ACTUALITÉS{% endblock %}
 
 {% block contenu %}
-        <section class="page-section has-decor">
+        {# SOMMAIRE : une section par rubrique, chacune montrant ses cinq plus
+           récentes. Les cartes portent l'extrait, pas le contenu mis en forme —
+           celui-ci vit sur la page de rubrique, derrière « Voir plus ». #}
+        {% for s in sections %}
+        <section class="page-section{% if loop.first %} has-decor{% endif %}">
+            {%- if loop.first %}
             <span class="decor-vine decor-vine--left" aria-hidden="true"><span class="decor-vine__ink"></span></span>
             <span class="decor-vine decor-vine--right" aria-hidden="true"><span class="decor-vine__ink"></span></span>
+            {%- endif %}
             <div class="section-head" data-reveal>
-                <p class="kicker">Toute l'année</p>
-                <h2>Ce qui se passe à Luglon</h2>
-                <p>
-                    Travaux, animations, commerces et rendez-vous associatifs : retrouvez
-                    ici les annonces de la commune.
-                </p>
+                <p class="kicker">{{ 'Actualités' if loop.first else 'Rubrique' }}</p>
+                <h2>{{ s.libelle }}</h2>
+                <p>{{ s.description }}</p>
             </div>
 
-            {% if actualites %}
+            {% if s.actualites %}
             <div class="rail event-grid" tabindex="0"
-                 role="group" aria-label="Les actualités de la commune">
-{% for a in actualites %}{{ carte(a, loop.index, badge) }}
+                 role="group" aria-label="{{ s.libelle }}">
+{% for a in s.actualites %}{{ carte(a, loop.index, badge, p ~ '/actualites/' ~ s.cle ~ '/') }}
 {% endfor %}            </div>
             <div class="rail-dots" role="group" aria-label="Aller à une actualité"></div>
+            <div class="cta-row" style="justify-content:center">
+                <a class="btn btn--primary" href="{{ p }}/actualites/{{ s.cle }}/">
+                    Voir plus{% if s.reste %} ({{ s.reste }} de plus){% endif %}
+                </a>
+            </div>
             {% else %}
-            {# Aucune actualité en base : on le dit, plutôt que d'afficher un rail vide
-               dont le visiteur ne saurait pas s'il est cassé ou simplement vide. #}
             <div class="prose" data-reveal>
-                <p><em>Aucune actualité publiée pour le moment.</em></p>
+                <p><em>Aucune actualité dans cette rubrique pour le moment.</em></p>
             </div>
             {% endif %}
         </section>
-
-        {% if reste %}
-        {# Le passage à « autres actualités » est automatique : au-delà de
-           ACTUALITES_EN_UNE, les plus anciennes basculent seules. Personne ne
-           déplace rien à la main — c'est une requête, pas un rangement. #}
-        <section class="page-section">
-            <div class="section-head section-head--center" data-reveal>
-                <p class="kicker">Archives</p>
-                <h2>{{ reste }} autre{{ 's' if reste > 1 }} actualité{{ 's' if reste > 1 }}</h2>
-                <div class="cta-row" style="justify-content:center">
-                    <a class="btn btn--primary" href="{{ p }}/actualites/autres/">Voir les autres actualités</a>
-                </div>
-            </div>
-        </section>
-        {% endif %}
+        {% endfor %}
 
         <section class="page-section page-section--footer-band">
             <div class="section-head section-head--center" data-reveal>
