@@ -578,16 +578,57 @@ rather than the near-black brand navy), never by going pale, and it re-asserts
 white text (6.3:1), so it has no dark-theme variant and must never be used as ink. It is
 currently used by that one rule only.
 
-### Reservation form has no real backend
+### The reservation form has two modes, chosen by one line in `config.js`
 
-`script.js`'s room-reservation form is a **client-side-only demo**: submitting stores the
-request in `localStorage` and simulates a short network delay — it does not send data
-anywhere. This is intentional (see `confidentialite/index.html`, which says so plainly to
-visitors). Before any real deployment, a real submission path (email, shared spreadsheet,
-etc.) needs to be wired into `submitReservationOnServer()` in `script.js`, and the privacy
-page updated to match. Don't add a call to a live third-party endpoint here without the
-user explicitly setting one up — the previous version of this code pointed at the Comité
-des Fêtes' real Google Apps Script deployment, which must never be reintroduced.
+`LUGLON.API_BASE` decides where a booking request goes, and `submitReservationOnServer()`
+in `script.js` reads it:
+
+- **empty (the committed value)** — no backend. The request stays in the browser and a
+  short delay is simulated. This is what GitHub Pages serves, and it is **not a leftover
+  to delete**: it's what keeps the public demo link presentable at all times while a
+  backend only runs intermittently. The mayor's copy has nothing to demonstrate
+  server-side.
+- **`'/api'`** — one app serves the site *and* the API from the same origin. Today that's
+  `tools/dev-server.py` behind a tunnel; later it's OVH.
+
+Two rules that keep this from becoming a maintenance problem:
+
+- **Keep `API_BASE` a relative path, never an absolute URL.** Same origin is what lets the
+  CSP stay identical in all three environments (`connect-src 'self'`). An API on its own
+  domain would mean reopening the policy on all 26 pages — and with a dev tunnel whose URL
+  changes every session, reopening it constantly. A backend hosted apart from the site is
+  deliberately not supported.
+- **Never commit `API_BASE` non-empty.** GitHub Pages has no API; the form would fail
+  there instead of falling back to demo mode. It's a value you flip locally while
+  developing.
+
+A network failure must stay a failure — `submitReservationOnServer()` resolves
+`{success: false}` rather than falling back to demo mode, so nobody is told their request
+was sent when the mairie received nothing.
+
+`confidentialite/` section 4 describes the demo behaviour to visitors and has to be
+rewritten the day a real backend goes live. Don't point this at a third-party endpoint
+without the site owner setting one up — the pre-mairie version of this code posted to the
+Comité des Fêtes' Google Apps Script deployment, which must never come back.
+
+### `tools/dev-server.py` is a preview harness, not a build step and not the backend
+
+The site stays 100% static and GitHub Pages keeps serving it as-is. This FastAPI script
+exists for one reason: letting the site be tested **from a phone, through a tunnel, with a
+form actually wired to a server** — something GitHub Pages can't do because it executes
+nothing.
+
+It mirrors the eventual OVH setup in the two ways that matter: one application serves both
+the static files and the API (hence same-origin, no CORS, no CSP change), and the site is
+mounted under **`/mairie-luglon/`, not `/`** — mounting at the root 404s every internal
+link, since they all carry that prefix. Note the mount is declared *last* in the file: a
+`StaticFiles` mount swallows everything under its prefix, including routes declared after
+it.
+
+It deliberately has no database, no mail, no auth — requests are appended to a gitignored
+JSONL file. It's a wiring check, not something to put online. Running it needs a venv
+(`.venv/`, gitignored) with `fastapi` and `uvicorn`; the site itself still has no
+dependency and no package manager.
 
 Whoever wires that path up inherits three things the demo already put in place, and
 should not undo them: the text inputs carry `maxlength` (80/20/120/120/500) so a real
@@ -614,6 +655,10 @@ the fixes it produced are load-bearing. Four of them are easy to undo by acciden
   would force `'unsafe-inline'` and gut the most valuable directive in the policy. Inline
   `style=` attributes are a different matter — there are ~114 of them (`--i:0`,
   `justify-content`), hence `style-src 'unsafe-inline'`, which is far less dangerous.
+  `connect-src` is `'self'`, not `'none'`: that's what lets the booking form reach a
+  same-origin backend without touching the policy per environment. `form-action` stays
+  `'none'` so a JS failure can't fall back to a native submit that would put a name and
+  phone number in the URL.
 - **Google Maps loads on click, never on page load** (`map-consent.js` +
   `.map-consent`). The two maps on `vie-pratique/dechets/` are the site's only third
   party; embedding them directly sent every visitor's IP to Google before they did

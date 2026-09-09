@@ -47,6 +47,16 @@ renvoie une 404 alors que ses pages filles fonctionnent.
   détection de doublon, récapitulatif) mais **n'est relié à aucun backend réel** : les
   demandes ne sont enregistrées que dans le navigateur de la personne qui les envoie. Un
   circuit de traitement réel (e-mail, tableur partagé, etc.) reste à brancher.
+
+  Le point de bascule existe déjà : `API_BASE` dans `config.js`. Vide (valeur commitée),
+  le formulaire reste en démonstration — c'est ce que sert GitHub Pages en permanence.
+  Renseigné à `/api`, il poste vers un backend qui sert le site depuis la même origine.
+  Ne jamais commiter une valeur non vide : GitHub Pages n'a pas d'API.
+
+  Pour développer ce backend et le tester depuis un téléphone, `tools/dev-server.py`
+  (FastAPI) sert le site et l'API à la même adresse, à exposer au besoin par un tunnel
+  (`cloudflared tunnel --url http://localhost:8000`). Ce n'est ni une étape de build ni
+  le backend de production : le site reste 100 % statique.
 - Le site ne charge **aucun script tiers** et ne dépose aucun cookie. Les deux cartes
   Google Maps de la page « Déchets » ne se chargent qu'après un clic explicite du
   visiteur, pour ne rien transmettre à Google sans son accord.

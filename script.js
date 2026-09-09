@@ -332,24 +332,48 @@ form.addEventListener('submit', e => {
     submitReservation(formData);
 });
 
-// Simule l'envoi de la demande. CE GABARIT DE DÉMONSTRATION N'A PAS DE
-// BACKEND RÉEL : la demande est seulement enregistrée dans le navigateur
-// (localStorage), avec un court délai simulé pour reproduire la sensation
-// d'un envoi réseau. Avant mise en production, il faudrait brancher un
-// vrai destinataire (formulaire d'e-mail, tableur partagé via Apps
-// Script, service tiers...) pour que les demandes arrivent réellement aux
-// services municipaux.
-function submitReservationOnServer() {
-    return new Promise((resolve) => {
-        setTimeout(() => resolve({ success: true }), 700);
-    });
+// Envoi de la demande. Deux comportements, selon LUGLON.API_BASE (config.js) :
+//
+//   vide      → AUCUN BACKEND. On simule un court délai réseau et on répond
+//               « c'est bon » ; la demande ne quitte pas le navigateur. C'est
+//               l'état servi par GitHub Pages, qui n'exécute rien côté serveur.
+//   renseigné → POST vers API_BASE + '/reservation', même origine que le site
+//               (FastAPI qui sert aussi les fichiers statiques).
+//
+// Le mode démonstration n'est pas un provisoire à supprimer : c'est ce qui
+// permet au lien GitHub Pages de rester présentable en permanence pendant que
+// le backend, lui, ne tourne que par intermittence (tunnel de développement).
+// Les deux environnements sortent du même dépôt et du même push.
+//
+// Un échec réseau doit rester un échec : surtout ne pas retomber sur le mode
+// démonstration en cas d'erreur, la personne croirait sa demande transmise
+// alors que la mairie n'a rien reçu.
+function submitReservationOnServer(formData) {
+    const base = (window.LUGLON.API_BASE || '').replace(/\/$/, '');
+
+    if (!base) {
+        return new Promise((resolve) => {
+            setTimeout(() => resolve({ success: true }), 700);
+        });
+    }
+
+    return fetch(base + '/reservation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+    })
+        .then((response) => {
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            return { success: true };
+        })
+        .catch(() => ({ success: false }));
 }
 
 function submitReservation(formData) {
     submitButton.disabled = true;
     setSubmissionStatus('sending', 'Envoi en cours...');
 
-    submitReservationOnServer().then((res) => {
+    submitReservationOnServer(formData).then((res) => {
         if (res && res.success) {
             const entry = {
                 name: formData.name,

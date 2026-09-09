@@ -1,2 +1,8 @@
 .aider*
 .DS_Store
+
+# Artefacts du serveur de développement (tools/dev-server.py) : demandes de
+# test et environnement Python. Le site lui-même reste 100 % statique.
+demandes-dev.jsonl
+.venv/
+__pycache__/

@@ -14,10 +14,17 @@
          n'en a pas besoin : aucune page ne contient de <script> en ligne, et il
          ne faut pas en introduire, ce serait affaiblir la règle la plus utile.
          frame-src n'ouvre que Google Maps, pour les cartes de vie-pratique/dechets/.
+         connect-src est à 'self' et non 'none' : c'est ce qui laisse le
+         formulaire de réservation poster vers un backend qui sert le site
+         depuis la MÊME origine (config.js, API_BASE). Une API sur un autre
+         domaine imposerait de rouvrir cette politique sur les 26 pages —
+         raison pour laquelle ce montage n'est pas prévu. form-action reste
+         'none' : si JS échoue, le formulaire ne doit pas retomber sur une
+         soumission native, qui mettrait nom et téléphone dans l'URL.
          La même politique est répétée à l'identique sur toutes les pages : il n'y a
          pas de gabarit dans ce dépôt, donc si vous la modifiez, modifiez-la partout
          (grep "Content-Security-Policy"). -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-src https://www.google.com; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; frame-src https://www.google.com; connect-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>Réservation de salle - Mairie de Luglon</title>
 
