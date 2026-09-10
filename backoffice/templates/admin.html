@@ -176,25 +176,43 @@
                         <button type="button" data-cmd="strikeThrough" title="Barré"><s>B</s></button>
                         <span class="editeur__sep"></span>
                         <select id="ed-bloc" class="editeur__choix" aria-label="Niveau de texte">
-                            <option value="p">Normal</option>
+                            <option value="p">Corps</option>
                             <option value="h3">Titre</option>
                             <option value="h4">Sous-titre</option>
                         </select>
                         <select id="ed-liste" class="editeur__choix" aria-label="Liste">
-                            <option value="">Pas de liste</option>
-                            <option value="insertUnorderedList">Liste à puces</option>
-                            <option value="insertOrderedList">Liste numérotée</option>
+                            <option value="">Liste</option>
+                            <option value="insertUnorderedList">•&nbsp;&nbsp;Liste à puces</option>
+                            <option value="insertOrderedList">1.&nbsp;&nbsp;Liste numérotée</option>
                         </select>
-                        <select id="ed-couleur" class="editeur__choix" aria-label="Couleur du texte">
-                            <option value="">Couleur normale</option>
-                            <option value="co-marine">Bleu marine</option>
-                            <option value="co-discret">Gris discret</option>
-                            <option value="co-alerte">Rouge d'alerte</option>
-                        </select>
+
+                        <!-- Choix de couleur maison, et non un <select>.
+                             Une <option> ne se colore pas de façon fiable : Chrome et
+                             Firefox l'acceptent sur ordinateur, iOS l'ignore et affiche
+                             le sélecteur natif du système — trois carrés y seraient
+                             indiscernables. Un petit menu à nous rend les mêmes carrés
+                             partout. -->
+                        <div class="choix-couleur">
+                            <button type="button" id="ed-couleur-bouton" class="choix-couleur__declencheur"
+                                    aria-haspopup="true" aria-expanded="false" title="Couleur du texte">
+                                <span class="pastille" id="ed-couleur-actuelle" data-couleur=""></span>
+                                <span class="choix-couleur__chevron" aria-hidden="true"></span>
+                            </button>
+                            <div class="choix-couleur__menu" id="ed-couleur-menu" role="menu" hidden>
+                                <button type="button" role="menuitem" class="pastille" data-couleur="" title="Couleur du texte courant" aria-label="Couleur du texte courant"></button>
+                                <button type="button" role="menuitem" class="pastille" data-couleur="co-marine" title="Bleu marine" aria-label="Bleu marine"></button>
+                                <button type="button" role="menuitem" class="pastille" data-couleur="co-discret" title="Gris discret" aria-label="Gris discret"></button>
+                                <button type="button" role="menuitem" class="pastille" data-couleur="co-alerte" title="Rouge d'alerte" aria-label="Rouge d'alerte"></button>
+                            </div>
+                        </div>
+
                         <span class="editeur__sep"></span>
-                        <button type="button" data-classe="ta-left" title="Aligner à gauche">⇤</button>
-                        <button type="button" data-classe="ta-center" title="Centrer">↔</button>
-                        <button type="button" data-classe="ta-right" title="Aligner à droite">⇥</button>
+                        <!-- Icônes d'alignement à la Word : des barres qui figurent des
+                             lignes de texte, calées à gauche, centrées ou à droite. Les
+                             flèches précédentes disaient « déplacer », pas « aligner ». -->
+                        <button type="button" data-classe="ta-left" class="aligne aligne--gauche" title="Aligner à gauche" aria-label="Aligner à gauche"></button>
+                        <button type="button" data-classe="ta-center" class="aligne aligne--centre" title="Centrer" aria-label="Centrer"></button>
+                        <button type="button" data-classe="ta-right" class="aligne aligne--droite" title="Aligner à droite" aria-label="Aligner à droite"></button>
                         <span class="editeur__sep"></span>
                         <button type="button" id="btn-lien" title="Insérer un lien">Lien</button>
                         <button type="button" id="btn-image" title="Insérer une image">Image</button>

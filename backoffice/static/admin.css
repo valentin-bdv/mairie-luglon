@@ -287,6 +287,103 @@ input[type="date"] {
   margin: 0 4px;
   background: var(--bord);
 }
+/* --- Carrés de couleur ---------------------------------------------------
+   Un carré plein qui montre la couleur qu'il applique : c'est plus direct
+   qu'un libellé « Rouge d'alerte », et ça se lit sans lire. */
+.pastille {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--bord);
+  border-radius: 2px;
+  cursor: pointer;
+}
+.pastille[data-couleur=""] {
+  /* « Couleur du texte courant » : fond blanc barré d'un trait oblique, la
+     convention pour « aucune ». Un carré noir plein se confondrait avec une
+     couleur choisie. */
+  background:
+    linear-gradient(to top right,
+      transparent calc(50% - 1px), var(--rouge) calc(50% - 1px),
+      var(--rouge) calc(50% + 1px), transparent calc(50% + 1px)),
+    var(--blanc);
+}
+.pastille[data-couleur="co-marine"]  { background: #1b2a4a; }
+.pastille[data-couleur="co-discret"] { background: #5c6270; }
+.pastille[data-couleur="co-alerte"]  { background: #a4232b; }
+
+.choix-couleur { position: relative; display: inline-flex; }
+.choix-couleur__declencheur {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon);
+  background: var(--blanc);
+  cursor: pointer;
+}
+.choix-couleur__declencheur:hover { background: var(--fond); }
+.choix-couleur__chevron {
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid var(--discret);
+  border-bottom: 1.5px solid var(--discret);
+  transform: translateY(-2px) rotate(45deg);
+}
+.choix-couleur__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 5;
+  display: flex;
+  gap: 6px;
+  padding: 7px;
+  background: var(--blanc);
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .15);
+}
+.choix-couleur__menu .pastille { width: 22px; height: 22px; }
+
+/* --- Alignement, à la Word -------------------------------------------------
+   Quatre barres qui figurent des lignes de texte. Les barres courtes sont
+   calées du côté choisi, ce qui donne la silhouette du paragraphe obtenu —
+   une flèche, elle, dit « déplacer » et pas « aligner ». Dessinées en dégradés
+   plutôt qu'en SVG : quatre traits ne valent pas un fichier d'icône. */
+/* Sélecteur en DEUX classes, à dessein : `.editeur__barre button` pose un
+   `background:` raccourci, et un raccourci remet background-image à none. Avec
+   une seule classe, il l'emportait et les trois boutons s'affichaient vides. */
+.editeur__barre .aligne {
+  width: 32px;
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: var(--rayon);
+  background-color: var(--blanc);
+  background-repeat: no-repeat;
+  /* Deux barres longues et deux courtes, en alternance : la silhouette d'un
+     paragraphe. Ce sont les barres COURTES qui se déplacent selon
+     l'alignement, exactement comme dans un traitement de texte. */
+  background-size: 18px 2px, 12px 2px, 18px 2px, 12px 2px;
+  background-image:
+    linear-gradient(var(--marine), var(--marine)),
+    linear-gradient(var(--marine), var(--marine)),
+    linear-gradient(var(--marine), var(--marine)),
+    linear-gradient(var(--marine), var(--marine));
+  cursor: pointer;
+}
+.editeur__barre .aligne:hover { border-color: var(--bord); background-color: var(--fond); }
+.editeur__barre .aligne--gauche {
+  background-position: 7px 9px, 7px 14px, 7px 19px, 7px 24px;
+}
+.editeur__barre .aligne--centre {
+  background-position: 7px 9px, 10px 14px, 7px 19px, 10px 24px;
+}
+.editeur__barre .aligne--droite {
+  background-position: 7px 9px, 13px 14px, 7px 19px, 13px 24px;
+}
+
 /* Les trois listes déroulantes de la barre. Assez étroites pour tenir à côté
    des boutons, et leur libellé dit à lui seul ce qu'elles règlent — pas besoin
    d'une étiquette au-dessus. */

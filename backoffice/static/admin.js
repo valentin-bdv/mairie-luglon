@@ -575,7 +575,35 @@
     b.addEventListener('click', () => appliquerClasse(ALIGNEMENTS, b.dataset.classe));
   });
 
-  $('ed-couleur').addEventListener('change', (e) => appliquerClasse(COULEURS, e.target.value));
+  // --- Choix de couleur ----------------------------------------------------
+  const declencheur = $('ed-couleur-bouton');
+  const menuCouleur = $('ed-couleur-menu');
+  const carreActuel = $('ed-couleur-actuelle');
+
+  function fermerCouleurs() {
+    menuCouleur.hidden = true;
+    declencheur.setAttribute('aria-expanded', 'false');
+  }
+
+  declencheur.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const ouvert = menuCouleur.hidden;
+    menuCouleur.hidden = !ouvert;
+    declencheur.setAttribute('aria-expanded', String(ouvert));
+  });
+
+  menuCouleur.querySelectorAll('[data-couleur]').forEach((b) => {
+    b.addEventListener('click', () => {
+      appliquerClasse(COULEURS, b.dataset.couleur);
+      carreActuel.dataset.couleur = b.dataset.couleur;
+      fermerCouleurs();
+    });
+  });
+
+  // Un menu ouvert doit se refermer au clic ailleurs et à Échap, sinon il
+  // reste pendu au-dessus du texte pendant qu'on écrit.
+  document.addEventListener('click', fermerCouleurs);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fermerCouleurs(); });
 
   // Les listes déroulantes reflètent ce qu'on vient de sélectionner. Sans ça,
   // elles afficheraient « Normal » au milieu d'un titre — un menu qui ment sur
@@ -586,7 +614,7 @@
     $('ed-bloc').value = bloc && /^H3|H4$/.test(bloc.nodeName) ? bloc.nodeName.toLowerCase() : 'p';
     $('ed-liste').value = document.queryCommandState('insertUnorderedList') ? 'insertUnorderedList'
                         : document.queryCommandState('insertOrderedList') ? 'insertOrderedList' : '';
-    $('ed-couleur').value = bloc ? (COULEURS.find((c) => bloc.classList.contains(c)) || '') : '';
+    carreActuel.dataset.couleur = bloc ? (COULEURS.find((c) => bloc.classList.contains(c)) || '') : '';
   });
 
   // Le lien passe par un champ du panneau, pas par prompt(). Voir confirmer().

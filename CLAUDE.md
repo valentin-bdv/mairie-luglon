@@ -748,6 +748,17 @@ Things to know before touching it:
   middle of a heading is worse than no menu. Note the list dropdown turns the existing
   list off before applying the new one: `execCommand` toggles, so switching bulleted →
   numbered otherwise produced two nested lists.
+- **The colour picker is hand-built, not a `<select>`.** An `<option>` can't be coloured
+  reliably: Chrome and Firefox honour it on desktop, iOS ignores it and shows the system
+  picker, where three squares would be indistinguishable. A small menu of our own renders
+  the same swatches everywhere.
+- **Alignment icons are bars, not arrows** — the Word convention: two long lines and two
+  short ones, the short ones sliding to the chosen side, so the button shows the shape of
+  the paragraph you get. An arrow says "move", not "align". They're drawn with four
+  `linear-gradient` background layers, and their selector needs **two classes**
+  (`.editeur__barre .aligne`): `.editeur__barre button` sets a `background:` shorthand,
+  and a shorthand resets `background-image` to none — with one class the buttons rendered
+  blank.
 - **Colour and alignment are classes, never inline styles.** `ta-center`, `co-alerte` and
   the rest are declared in three places that must agree: `CLASSES` in `contenu.py`
   (otherwise the attribute is stripped on save and the formatting silently vanishes),
