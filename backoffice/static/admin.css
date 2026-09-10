@@ -144,6 +144,19 @@ input, select, textarea {
   min-width: 0;
   max-width: 100%;
 }
+/* UN CHAMP DATE N'A PAS BESOIN D'ÊTRE AUSSI LARGE QU'UN TITRE. Il contient
+   « jj/mm/aaaa » et une icône, rien de plus. Étiré à 100 % il était non
+   seulement disgracieux, mais sur iOS sa largeur incompressible dépassait la
+   colonne et poussait toute la grille au-delà du panneau : d'où un ascenseur
+   horizontal qui n'apparaissait que sur téléphone. Le borner règle les deux. */
+input[type="date"] {
+  max-width: 11em;
+}
+/* Dernier rempart : rien, dans un panneau, ne doit pouvoir provoquer un
+   défilement latéral. Le contenu s'adapte ou se coupe, il ne déborde pas. */
+.panneau__corps {
+  overflow-x: hidden;
+}
 
 .bouton {
   margin-top: 20px;
@@ -274,16 +287,19 @@ input, select, textarea {
   margin: 0 4px;
   background: var(--bord);
 }
-/* Pastilles de couleur : le bouton EST l'échantillon, plus lisible qu'un
-   libellé « rouge » à côté d'une couleur qu'on ne voit pas. */
-.pastille {
-  min-width: 26px !important;
-  padding: 0 !important;
-  border: 1px solid var(--bord) !important;
+/* Les trois listes déroulantes de la barre. Assez étroites pour tenir à côté
+   des boutons, et leur libellé dit à lui seul ce qu'elles règlent — pas besoin
+   d'une étiquette au-dessus. */
+.editeur__choix {
+  width: auto;
+  height: 32px;
+  padding: 0 6px;
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon);
+  background: var(--blanc);
+  font: inherit;
+  font-size: 13px;
 }
-.pastille--marine  { background: #1b2a4a !important; }
-.pastille--discret { background: #5c6270 !important; }
-.pastille--alerte  { background: #a4232b !important; }
 
 .editeur__zone {
   min-height: 220px;

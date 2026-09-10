@@ -529,31 +529,64 @@
       () => document.execCommand(b.dataset.cmd, false, null)));
   });
 
-  document.querySelectorAll('.editeur__barre [data-bloc]').forEach((b) => {
-    b.addEventListener('click', () => conserverSelection(
-      () => document.execCommand('formatBlock', false, b.dataset.bloc)));
+  // Niveau de texte, type de liste et couleur sont des CHOIX EXCLUSIFS : un
+  // paragraphe est normal OU un titre, une liste est à puces OU numérotée, un
+  // texte porte une couleur OU aucune. Une liste déroulante dit cela d'elle-même
+  // et tient en une ligne, là où neuf boutons alignés obligeaient à deviner
+  // lesquels s'annulent entre eux — et remplissaient la barre.
+
+  $('ed-bloc').addEventListener('change', (e) => {
+    conserverSelection(() => document.execCommand('formatBlock', false, e.target.value));
+  });
+
+  $('ed-liste').addEventListener('change', (e) => {
+    const voulue = e.target.value;
+    conserverSelection(() => {
+      // execCommand bascule : rappeler la commande d'une liste déjà active la
+      // retire. On désactive donc l'existante avant d'appliquer la nouvelle,
+      // sinon passer de « à puces » à « numérotée » donnait deux listes
+      // imbriquées.
+      if (document.queryCommandState('insertUnorderedList')) {
+        document.execCommand('insertUnorderedList');
+      } else if (document.queryCommandState('insertOrderedList')) {
+        document.execCommand('insertOrderedList');
+      }
+      if (voulue) document.execCommand(voulue);
+    });
   });
 
   // Alignement et couleur passent par des CLASSES du site, jamais par
   // execCommand('justifyCenter') ni ('foreColor') qui posent des styles en
   // ligne — l'assainisseur les retirerait, et la mise en forme serait perdue
   // sans que personne comprenne pourquoi.
-  document.querySelectorAll('.editeur__barre [data-classe]').forEach((b) => {
-    b.addEventListener('click', () => conserverSelection(() => {
+  function appliquerClasse(groupe, classe) {
+    conserverSelection(() => {
       const bloc = elementDeBloc();
       if (!bloc) return;
-      bloc.classList.remove('ta-left', 'ta-center', 'ta-right');
-      bloc.classList.add(b.dataset.classe);
-    }));
+      bloc.classList.remove(...groupe);
+      if (classe) bloc.classList.add(classe);
+    });
+  }
+
+  const ALIGNEMENTS = ['ta-left', 'ta-center', 'ta-right'];
+  const COULEURS = ['co-marine', 'co-discret', 'co-alerte'];
+
+  document.querySelectorAll('.editeur__barre [data-classe]').forEach((b) => {
+    b.addEventListener('click', () => appliquerClasse(ALIGNEMENTS, b.dataset.classe));
   });
 
-  document.querySelectorAll('.editeur__barre [data-couleur]').forEach((b) => {
-    b.addEventListener('click', () => conserverSelection(() => {
-      const bloc = elementDeBloc();
-      if (!bloc) return;
-      bloc.classList.remove('co-marine', 'co-discret', 'co-alerte');
-      if (b.dataset.couleur) bloc.classList.add(b.dataset.couleur);
-    }));
+  $('ed-couleur').addEventListener('change', (e) => appliquerClasse(COULEURS, e.target.value));
+
+  // Les listes déroulantes reflètent ce qu'on vient de sélectionner. Sans ça,
+  // elles afficheraient « Normal » au milieu d'un titre — un menu qui ment sur
+  // l'état courant est pire que pas de menu du tout.
+  document.addEventListener('selectionchange', () => {
+    if (!zone.contains(document.getSelection().anchorNode)) return;
+    const bloc = elementDeBloc();
+    $('ed-bloc').value = bloc && /^H3|H4$/.test(bloc.nodeName) ? bloc.nodeName.toLowerCase() : 'p';
+    $('ed-liste').value = document.queryCommandState('insertUnorderedList') ? 'insertUnorderedList'
+                        : document.queryCommandState('insertOrderedList') ? 'insertOrderedList' : '';
+    $('ed-couleur').value = bloc ? (COULEURS.find((c) => bloc.classList.contains(c)) || '') : '';
   });
 
   // Le lien passe par un champ du panneau, pas par prompt(). Voir confirmer().

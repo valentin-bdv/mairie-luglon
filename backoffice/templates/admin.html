@@ -175,21 +175,26 @@
                         <button type="button" data-cmd="underline" title="Souligné (Ctrl+U)"><u>S</u></button>
                         <button type="button" data-cmd="strikeThrough" title="Barré"><s>B</s></button>
                         <span class="editeur__sep"></span>
-                        <button type="button" data-bloc="h3" title="Titre">Titre</button>
-                        <button type="button" data-bloc="h4" title="Sous-titre">Sous-titre</button>
-                        <button type="button" data-bloc="p" title="Paragraphe normal">Normal</button>
-                        <span class="editeur__sep"></span>
-                        <button type="button" data-cmd="insertUnorderedList" title="Liste à puces">• Liste</button>
-                        <button type="button" data-cmd="insertOrderedList" title="Liste numérotée">1. Liste</button>
+                        <select id="ed-bloc" class="editeur__choix" aria-label="Niveau de texte">
+                            <option value="p">Normal</option>
+                            <option value="h3">Titre</option>
+                            <option value="h4">Sous-titre</option>
+                        </select>
+                        <select id="ed-liste" class="editeur__choix" aria-label="Liste">
+                            <option value="">Pas de liste</option>
+                            <option value="insertUnorderedList">Liste à puces</option>
+                            <option value="insertOrderedList">Liste numérotée</option>
+                        </select>
+                        <select id="ed-couleur" class="editeur__choix" aria-label="Couleur du texte">
+                            <option value="">Couleur normale</option>
+                            <option value="co-marine">Bleu marine</option>
+                            <option value="co-discret">Gris discret</option>
+                            <option value="co-alerte">Rouge d'alerte</option>
+                        </select>
                         <span class="editeur__sep"></span>
                         <button type="button" data-classe="ta-left" title="Aligner à gauche">⇤</button>
                         <button type="button" data-classe="ta-center" title="Centrer">↔</button>
                         <button type="button" data-classe="ta-right" title="Aligner à droite">⇥</button>
-                        <span class="editeur__sep"></span>
-                        <button type="button" data-couleur="co-marine" title="Bleu marine du site" class="pastille pastille--marine"></button>
-                        <button type="button" data-couleur="co-discret" title="Gris discret" class="pastille pastille--discret"></button>
-                        <button type="button" data-couleur="co-alerte" title="Rouge d'alerte" class="pastille pastille--alerte"></button>
-                        <button type="button" data-couleur="" title="Retirer la couleur">✕</button>
                         <span class="editeur__sep"></span>
                         <button type="button" id="btn-lien" title="Insérer un lien">Lien</button>
                         <button type="button" id="btn-image" title="Insérer une image">Image</button>

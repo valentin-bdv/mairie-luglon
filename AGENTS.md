@@ -705,6 +705,11 @@ Things to know before touching it:
   room and never crops when there isn't. The panel's `max-height` is `100%` of the
   overlay and not `100vh`, because on mobile `100vh` counts the browser bar that appears
   and disappears while scrolling.
+- **The date field is capped at `11em`.** It holds `jj/mm/aaaa` and an icon; stretched to
+  100% it was both ugly and, on iOS, wider than its column — which pushed the whole grid
+  past the panel and produced a horizontal scrollbar *only on a phone*. `.panneau__corps`
+  also carries `overflow-x: hidden` as a last resort: nothing inside a panel should ever
+  scroll sideways.
 - **Grid children carry `min-width: 0`.** By default a grid item is `min-width: auto` and
   refuses to shrink below its content's minimum width — and `<input type="date">` has a
   far larger incompressible width on iOS than on a desktop browser. The result was a
@@ -735,6 +740,14 @@ Things to know before touching it:
   description, card, description, card. `.accordion-intro` handles only the spacing:
   giving it a size and a colour crushed `.prose` where the two meet and shrank body
   paragraphs into grey captions.
+- **Exclusive choices are dropdowns, not rows of buttons.** Text level, list type and
+  colour are `<select>` in the editor toolbar: a paragraph is normal *or* a heading, a
+  list is bulleted *or* numbered, text has one colour *or* none. Nine aligned buttons
+  made the reader guess which ones cancelled each other, and filled the bar. They also
+  reflect the current selection on `selectionchange` — a menu that says "Normal" in the
+  middle of a heading is worse than no menu. Note the list dropdown turns the existing
+  list off before applying the new one: `execCommand` toggles, so switching bulleted →
+  numbered otherwise produced two nested lists.
 - **Colour and alignment are classes, never inline styles.** `ta-center`, `co-alerte` and
   the rest are declared in three places that must agree: `CLASSES` in `contenu.py`
   (otherwise the attribute is stripped on save and the formatting silently vanishes),
