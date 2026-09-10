@@ -46,6 +46,21 @@ CREATE TABLE IF NOT EXISTS documents (
 -- Réglages persistants de l'application, dont le condensat du mot de passe.
 -- En base et non dans un fichier à côté : c'est le même endroit que le reste
 -- des données, donc la même sauvegarde, et une chose de moins à retrouver.
+-- Messages du formulaire de contact. Ils sont enregistrés AVANT la tentative
+-- d'envoi : si le serveur de messagerie est en panne, la demande d'un administré
+-- ne doit pas disparaître avec elle. `envoye` dit si le courriel est parti.
+CREATE TABLE IF NOT EXISTS messages (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    nom         TEXT NOT NULL,
+    email       TEXT NOT NULL,
+    telephone   TEXT NOT NULL DEFAULT '',
+    sujet       TEXT NOT NULL,
+    message     TEXT NOT NULL,
+    envoye      INTEGER NOT NULL DEFAULT 0,
+    erreur      TEXT NOT NULL DEFAULT '',
+    recu_le     TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS reglages (
     cle     TEXT PRIMARY KEY,
     valeur  TEXT NOT NULL
@@ -144,6 +159,44 @@ def _rattraper_schema(conn):
         conn.execute("UPDATE actualites SET extrait = substr(texte, 1, 180) WHERE extrait = ''")
 
     print("  base : ancien schéma d'actualités rattrapé, les lignes sont conservées")
+
+
+def ajouter_message(données):
+    with connexion() as conn:
+        cur = conn.execute(
+            """INSERT INTO messages (nom, email, telephone, sujet, message, recu_le)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (données["nom"], données["email"], données.get("telephone", ""),
+             données["sujet"], données["message"], _maintenant()))
+        return cur.lastrowid
+
+
+def marquer_message(id_, envoye, erreur=""):
+    with connexion() as conn:
+        conn.execute("UPDATE messages SET envoye = ?, erreur = ? WHERE id = ?",
+                     (1 if envoye else 0, erreur[:500], id_))
+
+
+def messages(limite=100):
+    with connexion() as conn:
+        return [dict(r) for r in conn.execute(
+            "SELECT * FROM messages ORDER BY id DESC LIMIT ?", (limite,))]
+
+
+def compter_messages_recents(email, minutes=10):
+    """Combien de messages cette adresse a envoyés récemment.
+
+    Garde-fou contre l'envoi en rafale, volontairement basé sur l'adresse et non
+    sur l'IP : derrière le partage d'adresse d'un opérateur mobile, tout un
+    village peut sortir par la même IP.
+    """
+    import datetime
+    depuis = (datetime.datetime.now()
+              - datetime.timedelta(minutes=minutes)).isoformat(timespec="seconds")
+    with connexion() as conn:
+        return conn.execute(
+            "SELECT COUNT(*) AS n FROM messages WHERE email = ? AND recu_le > ?",
+            (email, depuis)).fetchone()["n"]
 
 
 def reglage(cle, defaut=""):

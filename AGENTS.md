@@ -884,6 +884,43 @@ run — that's the honest state, the same device used by `mairie/arretes-et-publ
 and it should be replaced by a measured figure once an audit happens, not quietly
 upgraded to "partiellement conforme" because the site looks decent.
 
+### The contact form: sender identity is the whole game
+
+`contact/index.html` posts to `POST /api/contact`. The interesting part is
+`backoffice/courriel.py`:
+
+- **`From:` is always an address the server is authorised to send for**, never the
+  visitor's. Putting the visitor in `From:` is impersonating their provider — SPF and
+  DKIM fail, DMARC makes the message bounce, and the mairie receives nothing while the
+  visitor is told it went through. The visitor's address goes in **`Reply-To:`**, so the
+  secretariat can just hit Reply.
+- **Header values are collapsed to one line.** A `\n` in the name or subject would
+  otherwise inject a whole header — a `Bcc:` back to the sender turns a town-hall form
+  into an open relay. Verified against a capture server: the injection attempt comes out
+  as literal text and the envelope carries one recipient.
+- **The message is stored in the database BEFORE the send is attempted.** If the mail
+  server is down, a resident's request must not vanish with it. `envoye` and `erreur`
+  record what happened.
+- **Never answer "sent" when nothing was sent.** No SMTP configured returns 503 with an
+  honest message and the phone number; a failed send returns 502 the same way. The
+  static copy (no API) says plainly that the site is a demonstration.
+- **Anti-robots without a CAPTCHA**: a honeypot field placed off-screen rather than
+  `display: none` (some bots skip hidden fields), a minimum fill time, and a per-address
+  rate limit. A bot that trips one of these gets a plain `200` — an error would teach it
+  the trap exists.
+
+**The subject arrives by URL, the scroll by anchor.** `mairie/signalement/`'s four cards
+link to `/contact/?sujet=voirie#ecrire`. The parameter preselects the subject (only if it
+matches a real option — a URL parameter is written by anyone); the **`#ecrire` fragment**
+does the scrolling, natively. Don't replace it with `scrollIntoView()`: fired early it
+targets a position that no longer exists once fonts and images have loaded, and fired
+`smooth` it gets cancelled by the browser's own scroll anchoring. Both were tried and
+both failed silently.
+
+Everything except the SMTP credentials is done. What's missing is documented in
+`backoffice/README.md`, including the two DNS records (SPF, DKIM) without which the mail
+leaves but lands in the spam folder.
+
 ### No link may fall back to the browser's default blue
 
 `styles.css` sets `a { color: var(--navy-ink) }` in the reset, and `admin.css` does the

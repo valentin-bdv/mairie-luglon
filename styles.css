@@ -91,6 +91,9 @@
      Même logique que --navy-ink : une couleur de TEXTE, donc elle doit changer
      entre les deux thèmes — un rouge sombre sur fond noir est illisible. */
   --alerte-ink: #a4232b;
+  /* Encre de confirmation, même logique que --alerte-ink : une couleur de
+     TEXTE, donc une variante par thème. */
+  --succes-ink: #1f6b3f;
 
   /* Déclinaisons du bleu marine de marque (dérivées de --luglon-navy) */
   --navy-050: #eef1f6;
@@ -253,6 +256,7 @@
     /* Voir le commentaire de --navy-ink dans :root */
     --navy-ink: #a9c1e0;
     --alerte-ink: #f08a8f;
+    --succes-ink: #7fd0a0;
 
     --navy-050: #17223a;
     --navy-100: #1c2c4a;
@@ -3565,6 +3569,66 @@ input[type="number"] {
 }
 .input-error {
   border-color: var(--error-red);
+}
+
+/* --- Formulaire de contact -------------------------------------------------
+   Il réutilise les règles génériques `label`, `input`, `textarea`, `select` et
+   `.input-error` définies plus haut pour le formulaire de réservation ; on
+   n'ajoute ici que la mise en colonnes et les messages. */
+.form-contact {
+  max-width: var(--measure);
+}
+.form-contact__ligne {
+  display: grid;
+  /* Deux colonnes quand il y a la place, une seule sinon. min() et non une
+     valeur figée : une piste de 220px déborde d'un écran plus étroit. */
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: 0 var(--space-m);
+}
+/* Un enfant de grille est en min-width: auto et refuse de se comprimer sous la
+   largeur minimale de son contenu — d'où un débordement latéral sur téléphone
+   si on l'oublie. Même piège que dans l'application de gestion. */
+.form-contact__ligne > * { min-width: 0; }
+.form-champ { min-width: 0; }
+.form-champ .facultatif {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.form-erreur {
+  margin: var(--space-2xs) 0 0;
+  min-height: 1.2em;      /* réserve la place : le texte ne fait pas sauter la mise en page */
+  font-size: var(--fs-sm);
+  color: var(--error-red);
+}
+
+.form-contact__rgpd {
+  margin: var(--space-m) 0 0;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
+.form-message {
+  margin: var(--space-m) 0 0;
+  padding: var(--space-s) var(--space-m);
+  border-left: 3px solid currentColor;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+}
+.form-message--succes { color: var(--succes-ink); background: var(--navy-tint-08); }
+.form-message--erreur { color: var(--error-red); background: var(--navy-tint-08); }
+.form-message--info   { color: var(--muted); background: var(--navy-tint-08); }
+
+/* Piège à robots : hors de l'écran plutôt que `display: none`. Certains
+   automates ignorent les champs masqués — celui-ci leur paraît normal. Il est
+   sorti de la navigation clavier et des lecteurs d'écran par tabindex="-1" et
+   aria-hidden dans le HTML. */
+.piege {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
 }
 
 /* --- Statut d'envoi ---

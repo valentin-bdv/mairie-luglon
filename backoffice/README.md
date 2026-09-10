@@ -124,6 +124,47 @@ uvicorn derrière sous systemd pour qu'il redémarre au boot et après un planta
 Ne pas oublier de retirer le préfixe `/mairie-luglon/` du HTML statique **et de
 `styles.css`** — voir `CLAUDE.md`, cette étape a déjà été oubliée une fois.
 
+## Formulaire de contact : ce qu'il faut fournir
+
+Le formulaire fonctionne déjà (contrôles, anti-robots, enregistrement en base).
+Il ne manque que **de quoi envoyer le courriel**. Cinq variables :
+
+```sh
+export BO_SMTP_SERVEUR='ssl0.ovh.net'        # serveur d'envoi du fournisseur
+export BO_SMTP_PORT=587                       # 587 (STARTTLS) ou 465 (+ BO_SMTP_SSL=1)
+export BO_SMTP_UTILISATEUR='site@mairie-luglon.fr'
+export BO_SMTP_MOT_DE_PASSE='…'               # guillemets SIMPLES
+export BO_SMTP_EXPEDITEUR='site@mairie-luglon.fr'
+# facultatif, accueil@mairie-luglon.fr par défaut :
+export BO_CONTACT_DESTINATAIRE='accueil@mairie-luglon.fr'
+```
+
+**L'expéditeur n'est pas le visiteur, et ce n'est pas un détail.** Le courriel
+part avec `From: site@mairie-luglon.fr` et `Reply-To: <adresse du visiteur>`.
+Mettre l'adresse du visiteur en `From` reviendrait à usurper son fournisseur :
+SPF et DKIM échoueraient, DMARC ferait rejeter le message, et la mairie ne
+recevrait rien — sans qu'aucune erreur ne remonte à qui a écrit.
+
+**Deux enregistrements DNS conditionnent l'arrivée en boîte de réception**, et
+ce n'est pas du code :
+
+- **SPF** — autoriser le serveur d'envoi à émettre pour `mairie-luglon.fr`.
+- **DKIM** — la clé publique fournie par l'hébergeur de messagerie.
+
+Sans eux, le message part mais atterrit en indésirable. Le fournisseur de la
+boîte les documente ; si la messagerie est déjà chez lui, ils existent
+peut-être déjà et il suffit d'y ajouter le serveur d'envoi.
+
+**Rien ne se perd si l'envoi échoue.** Le message est enregistré en base
+*avant* la tentative, avec un indicateur `envoye` et le motif de l'échec. Le
+visiteur reçoit un message honnête — jamais « message envoyé » alors que rien
+n'est parti.
+
+**Relais local plutôt que fournisseur** : si le VPS fait tourner un Postfix,
+`BO_SMTP_SERVEUR=localhost`, `BO_SMTP_PORT=25`, `BO_SMTP_TLS=0`, sans
+identifiants. Ne mettez `BO_SMTP_TLS=0` que dans ce cas : vers un serveur
+distant, le mot de passe circulerait en clair.
+
 ## Sauvegardes
 
 C'est le point qu'on oublie, et le seul qui compte vraiment.

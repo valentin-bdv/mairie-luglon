@@ -41,7 +41,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, Redirect
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from . import config, db, auth, contenu
+from . import config, db, auth, contenu, courriel
 
 app = FastAPI(title=f"{config.SITE_NOM} — site et back-office")
 gabarits = Jinja2Templates(directory=str(config.BASE / "templates"))
@@ -336,6 +336,88 @@ def servir_document(fichier: str, telecharger: int = 0):
 # ---------------------------------------------------------------------------
 # API du site public : la demande de réservation de salle
 # ---------------------------------------------------------------------------
+
+# Libellés des sujets du formulaire de contact. Ici et pas dans le HTML : le
+# courriel envoyé à la mairie doit porter le libellé lisible, pas la clé, et
+# c'est le serveur qui écrit ce courriel.
+SUJETS_CONTACT = {
+    "general": "Question générale",
+    "demarche": "Démarche administrative",
+    "salle": "Réservation de salle",
+    "voirie": "Signalement — voirie",
+    "eclairage": "Signalement — éclairage public",
+    "proprete": "Signalement — propreté",
+    "autre": "Signalement — autre problème",
+}
+
+
+@app.post(API + "/contact")
+async def message_contact(request: Request):
+    """Reçoit un message du formulaire de contact et le transmet à la mairie.
+
+    L'ORDRE COMPTE : on enregistre en base D'ABORD, on tente l'envoi ENSUITE.
+    Si le serveur de messagerie est en panne, la demande d'un administré ne doit
+    pas disparaître avec elle — elle reste en base, et le secrétariat la
+    retrouve. L'inverse (envoyer puis enregistrer) perdrait le message au
+    moindre incident après l'envoi.
+    """
+    corps = await request.json()
+
+    # --- Anti-robots, avant tout contrôle de fond -------------------------
+    # Le champ `site` est invisible pour une personne (voir contact/index.html).
+    # Rempli, c'est un automate : on répond 200 sans rien faire. Renvoyer une
+    # erreur apprendrait au robot que le piège existe.
+    if (corps.get("site") or "").strip():
+        return {"ok": True}
+    # Un formulaire de six champs ne se remplit pas en deux secondes.
+    if int(corps.get("duree_saisie") or 0) < 3:
+        return {"ok": True}
+
+    # Espaces normalisés : un nom ne contient pas de retour à la ligne. Sans
+    # cela, un « \n » saisi ressort en texte dans le sujet du courriel — inoffensif
+    # (courriel.py neutralise l'injection d'en-tête) mais illisible, et il partirait
+    # tel quel en base.
+    nom = " ".join((corps.get("nom") or "").split())
+    email = (corps.get("email") or "").strip()
+    message = (corps.get("message") or "").strip()
+    sujet = corps.get("sujet") or "general"
+
+    if not nom:
+        raise HTTPException(400, "Merci d'indiquer votre nom.")
+    if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]{2,}", email):
+        raise HTTPException(400, "Cette adresse e-mail semble incomplète.")
+    if len(message) < 10:
+        raise HTTPException(400, "Merci d'écrire quelques mots de plus.")
+    if len(message) > 4000:
+        raise HTTPException(400, "Message trop long (4000 caractères maximum).")
+    if sujet not in SUJETS_CONTACT:
+        raise HTTPException(400, "Sujet inconnu.")
+    if db.compter_messages_recents(email) >= 3:
+        raise HTTPException(429, "Vous avez déjà envoyé plusieurs messages. "
+                                 "Laissez-nous le temps d'y répondre.")
+
+    donnees = {"nom": nom, "email": email, "sujet": sujet, "message": message,
+               "telephone": (corps.get("telephone") or "").strip()}
+    id_ = db.ajouter_message(donnees)
+
+    if not courriel.configure():
+        # Enregistré mais pas transmis : on le DIT. Répondre « envoyé » ferait
+        # attendre une réponse qui ne viendrait pas.
+        db.marquer_message(id_, False, "Aucun serveur d'envoi configuré")
+        raise HTTPException(503, "L'envoi de courriel n'est pas encore configuré sur "
+                                 "ce site. Votre message a été enregistré, mais appelez "
+                                 "le 05 58 07 50 12 si c'est urgent.")
+    try:
+        courriel.envoyer_message_contact(donnees, SUJETS_CONTACT[sujet])
+    except Exception as e:
+        db.marquer_message(id_, False, f"{type(e).__name__}: {e}")
+        print(f"  ÉCHEC d'envoi du message {id_} : {type(e).__name__}: {e}", file=sys.stderr)
+        raise HTTPException(502, "Le message n'a pas pu être transmis. Il est enregistré "
+                                 "et sera relevé, mais appelez le 05 58 07 50 12 si c'est urgent.")
+
+    db.marquer_message(id_, True)
+    return {"ok": True}
+
 
 @app.post(API + "/reservation")
 async def reservation(request: Request):

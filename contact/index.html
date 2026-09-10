@@ -157,6 +157,81 @@
             </div>
         </section>
 
+        <section class="page-section has-decor" id="ecrire">
+            <span class="decor-vine decor-vine--left" aria-hidden="true"><span class="decor-vine__ink"></span></span>
+            <span class="decor-vine decor-vine--right" aria-hidden="true"><span class="decor-vine__ink"></span></span>
+            <div class="section-head" data-reveal>
+                <p class="kicker">Écrire à la mairie</p>
+                <h2>Envoyer un message</h2>
+                <p>
+                    Le secrétariat vous répond aux heures d'ouverture. Pour une urgence,
+                    appelez plutôt le <a href="tel:+33558075012">05 58 07 50 12</a>.
+                </p>
+            </div>
+
+            <form id="form-contact" class="form-contact" autocomplete="on" novalidate>
+                <div class="form-contact__ligne">
+                    <div class="form-champ">
+                        <label for="c-nom">Nom et prénom</label>
+                        <input id="c-nom" name="nom" required maxlength="80" autocomplete="name"
+                               aria-describedby="c-nom-erreur">
+                        <p class="form-erreur" id="c-nom-erreur"></p>
+                    </div>
+                    <div class="form-champ">
+                        <label for="c-email">Adresse e-mail</label>
+                        <input id="c-email" name="email" type="email" required maxlength="120"
+                               autocomplete="email" aria-describedby="c-email-erreur">
+                        <p class="form-erreur" id="c-email-erreur"></p>
+                    </div>
+                </div>
+                <div class="form-contact__ligne">
+                    <div class="form-champ">
+                        <label for="c-telephone">Téléphone <span class="facultatif">(facultatif)</span></label>
+                        <input id="c-telephone" name="telephone" type="tel" maxlength="20"
+                               autocomplete="tel">
+                    </div>
+                    <div class="form-champ">
+                        <label for="c-sujet">Sujet</label>
+                        <select id="c-sujet" name="sujet" required>
+                            <option value="general">Question générale</option>
+                            <option value="demarche">Démarche administrative</option>
+                            <option value="salle">Réservation de salle</option>
+                            <option value="voirie">Signalement — voirie</option>
+                            <option value="eclairage">Signalement — éclairage public</option>
+                            <option value="proprete">Signalement — propreté</option>
+                            <option value="autre">Signalement — autre problème</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-champ">
+                    <label for="c-message">Votre message</label>
+                    <textarea id="c-message" name="message" required rows="7" maxlength="4000"
+                              aria-describedby="c-message-erreur"></textarea>
+                    <p class="form-erreur" id="c-message-erreur"></p>
+                </div>
+
+                <!-- Piège à robots. Un champ invisible pour une personne, mais qu'un
+                     automate remplit parce qu'il remplit tout ce qu'il trouve. C'est
+                     l'anti-spam le moins coûteux : rien à résoudre, rien à charger,
+                     rien qui gêne un lecteur d'écran (aria-hidden + tabindex). -->
+                <div class="piege" aria-hidden="true">
+                    <label for="c-site">Ne pas remplir</label>
+                    <input id="c-site" name="site" type="text" tabindex="-1" autocomplete="off">
+                </div>
+
+                <p class="form-contact__rgpd">
+                    Les informations transmises servent uniquement à traiter votre demande.
+                    Voir la <a href="/mairie-luglon/confidentialite/">politique de confidentialité</a>.
+                </p>
+
+                <p class="form-message" id="c-retour" hidden></p>
+
+                <div class="cta-row">
+                    <button type="submit" class="btn btn--primary" id="c-envoyer">Envoyer le message</button>
+                </div>
+            </form>
+        </section>
+
         <section class="page-section">
             <div class="panel">
                 <div class="section-head" data-reveal>
@@ -200,6 +275,8 @@
         </div>
     </footer>
 
+    <script src="/mairie-luglon/config.js"></script>
+    <script src="/mairie-luglon/contact.js"></script>
     <script src="/mairie-luglon/scroll-animations.js"></script>
     <script src="/mairie-luglon/hero-fit.js"></script>
     <script src="/mairie-luglon/nav.js"></script>
