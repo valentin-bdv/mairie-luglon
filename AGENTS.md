@@ -698,6 +698,17 @@ Things to know before touching it:
   once: the secretariat comes to publish one thing, not to scroll past the other. Each tab
   opens on what already exists — the frequent question is "what's online?", not "what can
   I add?" — and the forms live in overlay panels opened on demand.
+- **The overlay is `align-items: flex-start` + `margin: auto` on the panel, never
+  `align-items: center`.** A centred flex item taller than its container overflows on
+  *both* sides: the top goes above the edge, becomes unreachable by scrolling, and the
+  panel's title is cropped. That happened on phones. `margin: auto` centres when there is
+  room and never crops when there isn't. The panel's `max-height` is `100%` of the
+  overlay and not `100vh`, because on mobile `100vh` counts the browser bar that appears
+  and disappears while scrolling.
+- **Grid children carry `min-width: 0`.** By default a grid item is `min-width: auto` and
+  refuses to shrink below its content's minimum width — and `<input type="date">` has a
+  far larger incompressible width on iOS than on a desktop browser. The result was a
+  horizontal scrollbar that appeared *only on a phone*, invisible in desktop testing.
 - **No native browser dialog anywhere.** Not `confirm()`, not `prompt()`, not `alert()`:
   they can't be styled, they look nothing like the rest of the screen, and they freeze
   every browser event. Deletion opens the app's own confirmation panel; `confirmer()` in

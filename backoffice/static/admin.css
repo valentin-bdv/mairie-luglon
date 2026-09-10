@@ -124,11 +124,25 @@ textarea { resize: vertical; }
 label .aide, .grille .aide { margin: 6px 0 0; display: block; }
 
 /* Deux colonnes sur large, une seule dès que c'est serré : le secrétariat
-   travaille parfois sur un portable 13 pouces, parfois sur une tablette. */
+   travaille parfois sur un portable 13 pouces, parfois sur un téléphone. */
 .grille {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  /* min(240px, 100%) et non 240px : sur un écran plus étroit que 240px de
+     contenu utile, une piste figée à 240px déborde du panneau. */
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
   gap: 0 18px;
+}
+/* UN ENFANT DE GRILLE EST EN min-width: auto PAR DÉFAUT : il refuse de
+   descendre sous la largeur minimale de son contenu. Un <input type="date">
+   a une largeur incompressible bien plus grande sur iOS que sur un navigateur
+   de bureau — d'où une grille plus large que le panneau, et un ascenseur
+   horizontal qui n'apparaissait que sur téléphone. */
+.grille > * {
+  min-width: 0;
+}
+input, select, textarea {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .bouton {
@@ -540,16 +554,30 @@ label .aide, .grille .aide { margin: 6px 0 0; display: block; }
   inset: 0;
   z-index: 50;
   display: flex;
-  align-items: center;
+  /* PAS align-items: center. Un élément flex centré qui dépasse son conteneur
+     déborde des DEUX côtés : le haut passe au-dessus du bord, devient
+     inatteignable au défilement, et le titre du panneau se retrouve rogné.
+     C'est exactement ce qui arrivait sur téléphone. `margin: auto` sur le
+     panneau (ci-dessous) centre quand il y a la place et ne rogne jamais
+     quand il n'y en a pas. */
+  align-items: flex-start;
   justify-content: center;
   padding: 20px;
+  /* Encoche et barre de gestes des téléphones récents. */
+  padding-top: max(20px, env(safe-area-inset-top));
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
   background: rgba(20, 24, 34, .55);
   overflow-y: auto;
 }
 .panneau {
   width: 100%;
   max-width: 560px;
-  max-height: 92vh;
+  /* 100% du conteneur, et non 100vh : sur mobile, 100vh compte la barre du
+     navigateur qui apparaît et disparaît au défilement, donc un panneau calé
+     dessus dépasse par moments. Le pourcentage se résout ici sur la boîte de
+     contenu du voile, marges intérieures déjà déduites. */
+  max-height: 100%;
+  margin: auto;
   display: flex;
   flex-direction: column;
   background: var(--blanc);
