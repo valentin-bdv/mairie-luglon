@@ -187,19 +187,18 @@ non-obvious logic.
   the same honest-placeholder device as `mairie/arretes-et-publications/`. Do not fill
   those cards with plausible-sounding projects; wait for the school's own list. An HTML
   comment above the section spells out what to change when it arrives.
-- `actualites/` — News listing. No detail pages exist anymore (the last one,
-  `nouveau-commercant/`, was removed — fictional, "n'existe pas") — every actualité is
-  now just a card. "Incendie à Luglon", "Fêtes de Luglon" and "Concours de belote" are
-  cards whose "En savoir plus" deliberately points off-site, to
+- `actualites/` — News summary, one section per rubrique, all of it from the database.
+  There is no page per actualité: a card links to its rubrique's page, where the item is
+  shown in full. "Incendie à Luglon", "Fêtes de Luglon" and "Concours de belote" are
+  seeded rows whose `lien_url` deliberately points off-site, to
   `https://incendie.cdf-luglon.fr/`, `https://cdf-luglon.fr/evenements/fetes-de-luglon/`
-  and `https://cdf-luglon.fr/evenements/concours-de-belote` respectively
-  (`target="_blank" rel="noopener noreferrer"`; only Incendie is mirrored as a shortcut in
-  the "Actualités" nav submenu, same as before — Fêtes and Concours are card-only, this
-  wasn't changed when Concours got its link). This is an explicit, repeated instruction
-  from the site owner — the general "don't reintroduce cdf-luglon.fr" warning above is
-  about not turning this template back into a copy of that site (content, branding, its
-  Google Apps Script backend), not about never linking to it; treat these three links as
-  settled, not a mistake to quietly revert.
+  and `https://cdf-luglon.fr/evenements/concours-de-belote` respectively — they surface
+  as each item's "En savoir plus". This is an explicit, repeated instruction from the
+  site owner: the general "don't reintroduce cdf-luglon.fr" warning above is about not
+  turning this template back into a copy of that site (content, branding, its Google
+  Apps Script backend), not about never linking to it. Treat these three links as
+  settled, not a mistake to quietly revert. **None of them belongs in the nav** — see
+  the Incendie note further down.
 - `contact/` — its own top-level nav item (`<li>`, no `site-nav__item--has-menu`, no
   chevron, no submenu — just a direct link, styled identically to the dropdown items by
   the same `.site-nav__links a` rule). It used to be a "Nous Contacter" entry inside the
@@ -827,9 +826,14 @@ Consequences to keep in mind:
   The empty states say so in plain French rather than rendering a blank page.
 - **`config.ACTUALITES_DEPART` and the `RUBRIQUES_*` lists are seeds**, planted once into
   an empty database. They are not content in the repo — nothing renders them here.
-- The **external Incendie shortcut** in the Actualités submenu stays hardcoded. It's a
-  fixed link to another site, not one of our rubriques, and the site owner has asked for
-  it repeatedly.
+- **The Incendie shortcut is no longer in the nav.** It used to be a hardcoded
+  `https://incendie.cdf-luglon.fr/` entry in the Actualités submenu, kept across several
+  passes as a settled owner instruction. It had to go once an **Incendie rubrique**
+  existed in the database: a served page then showed "Incendie" *twice*, same label, two
+  destinations. The external address is not lost — it is the `lien_url` of the "Incendie
+  à Luglon" actualité, so it appears as that item's "En savoir plus", which is where a
+  link about a piece of content belongs. Don't restore the nav entry; restoring it
+  recreates the duplicate.
 - Regenerate the committed copies from the templates — with empty lists — after changing
   a template. Never with real data in them.
 

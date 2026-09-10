@@ -2362,6 +2362,18 @@ html {
   padding-top: var(--space-m);
 }
 
+/* Un sous-menu vide ne doit ni s'ouvrir, ni annoncer qu'il existe. Le cas se
+   produit sur les copies du dépôt : les rubriques d'actualités viennent de la
+   base, donc le sous-menu Actualités y est vide (voir CLAUDE.md). Sans ces deux
+   règles, le survol ouvrait un panneau blanc de quelques pixels et le chevron
+   promettait un menu qui n'arrive jamais. */
+.site-nav__submenu:empty {
+  display: none !important;
+}
+.site-nav__item--has-menu:has(.site-nav__submenu:empty) > a .site-nav__chevron {
+  display: none;
+}
+
 /* Chapô — la première phrase d'une section, sortie du pavé.
    Deux paragraphes d'affilée dans la police de labeur, c'est un mur : l'œil
    n'a aucun point d'entrée. Le chapô donne ce point d'entrée en reprenant la
