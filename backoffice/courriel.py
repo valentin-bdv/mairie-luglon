@@ -8,11 +8,12 @@ que son message n'est pas parti. On ne prétend jamais avoir transmis.
 
 DEUX RÈGLES D'EN-TÊTE, ET ELLES NE SONT PAS COSMÉTIQUES
 -------------------------------------------------------
-1. Le `From:` est TOUJOURS une adresse du domaine que ce serveur est autorisé à
-   utiliser. Jamais celle du visiteur. Mettre `From: jean.dupont@gmail.com`
-   revient à usurper Gmail : les vérifications SPF et DKIM échouent, DMARC fait
-   rejeter le message, et la mairie ne reçoit rien — sans qu'aucune erreur ne
-   remonte au visiteur.
+1. Le `From:` porte une adresse DU DOMAINE que ce serveur est autorisé à
+   utiliser — jamais celle du visiteur. Peu importe laquelle : `accueil@` va
+   très bien, une adresse dédiée au site aussi. Ce qui compte est le domaine.
+   Mettre `From: jean.dupont@gmail.com` revient à usurper Gmail : SPF et DKIM
+   échouent, DMARC fait rejeter le message, et la mairie ne reçoit rien — sans
+   qu'aucune erreur ne remonte au visiteur.
 2. Le `Reply-To:` porte l'adresse du visiteur. C'est ce qui permet au
    secrétariat de répondre d'un simple « Répondre », sans recopier l'adresse.
 
@@ -36,10 +37,19 @@ PORT = int(os.environ.get("BO_SMTP_PORT", "587"))
 UTILISATEUR = os.environ.get("BO_SMTP_UTILISATEUR", "")
 MOT_DE_PASSE = os.environ.get("BO_SMTP_MOT_DE_PASSE", "")
 
-# Adresse d'expédition : celle pour laquelle le serveur SMTP est autorisé.
-EXPEDITEUR = os.environ.get("BO_SMTP_EXPEDITEUR", "")
 # Boîte qui reçoit les messages du formulaire.
 DESTINATAIRE = os.environ.get("BO_CONTACT_DESTINATAIRE", "accueil@mairie-luglon.fr")
+
+# Adresse d'expédition. La contrainte porte sur le DOMAINE, pas sur la boîte :
+# il faut que le serveur d'envoi soit autorisé à émettre pour ce domaine
+# (SPF/DKIM). Une adresse dédiée au site est un confort — elle sépare la
+# réputation d'envoi de la boîte du secrétariat et évite de mettre le mot de
+# passe de celle-ci dans la configuration d'un serveur — mais ce n'est pas une
+# obligation. Par défaut on prend donc le compte SMTP utilisé, sinon la boîte
+# de réception : envoyer depuis accueil@ vers accueil@ est parfaitement normal.
+EXPEDITEUR = (os.environ.get("BO_SMTP_EXPEDITEUR", "")
+              or os.environ.get("BO_SMTP_UTILISATEUR", "")
+              or DESTINATAIRE)
 
 # STARTTLS (port 587) par défaut ; SSL direct (port 465) si BO_SMTP_SSL=1.
 SSL_DIRECT = os.environ.get("BO_SMTP_SSL", "0") == "1"

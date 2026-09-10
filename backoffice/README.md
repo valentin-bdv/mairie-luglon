@@ -127,23 +127,36 @@ Ne pas oublier de retirer le préfixe `/mairie-luglon/` du HTML statique **et de
 ## Formulaire de contact : ce qu'il faut fournir
 
 Le formulaire fonctionne déjà (contrôles, anti-robots, enregistrement en base).
-Il ne manque que **de quoi envoyer le courriel**. Cinq variables :
+Il ne manque que **de quoi envoyer le courriel**. Quatre variables suffisent :
 
 ```sh
-export BO_SMTP_SERVEUR='ssl0.ovh.net'        # serveur d'envoi du fournisseur
-export BO_SMTP_PORT=587                       # 587 (STARTTLS) ou 465 (+ BO_SMTP_SSL=1)
-export BO_SMTP_UTILISATEUR='site@mairie-luglon.fr'
-export BO_SMTP_MOT_DE_PASSE='…'               # guillemets SIMPLES
-export BO_SMTP_EXPEDITEUR='site@mairie-luglon.fr'
-# facultatif, accueil@mairie-luglon.fr par défaut :
+export BO_SMTP_SERVEUR='ssl0.ovh.net'                 # serveur d'envoi du fournisseur
+export BO_SMTP_PORT=587                                # 587 (STARTTLS) ou 465 (+ BO_SMTP_SSL=1)
+export BO_SMTP_UTILISATEUR='accueil@mairie-luglon.fr'  # compte d'envoi
+export BO_SMTP_MOT_DE_PASSE='…'                        # guillemets SIMPLES
+```
+
+À défaut d'indication contraire, le courriel part **depuis le compte SMTP
+utilisé** et arrive dans `accueil@mairie-luglon.fr`. Envoyer depuis la boîte qui
+reçoit est parfaitement normal et c'est ce que font la plupart des petits sites.
+
+Deux variables facultatives si vous voulez séparer :
+
+```sh
+export BO_SMTP_EXPEDITEUR='site@mairie-luglon.fr'      # adresse dédiée au site
 export BO_CONTACT_DESTINATAIRE='accueil@mairie-luglon.fr'
 ```
 
-**L'expéditeur n'est pas le visiteur, et ce n'est pas un détail.** Le courriel
-part avec `From: site@mairie-luglon.fr` et `Reply-To: <adresse du visiteur>`.
-Mettre l'adresse du visiteur en `From` reviendrait à usurper son fournisseur :
-SPF et DKIM échoueraient, DMARC ferait rejeter le message, et la mairie ne
-recevrait rien — sans qu'aucune erreur ne remonte à qui a écrit.
+Une adresse dédiée apporte deux choses, sans être obligatoire : la réputation
+d'envoi du site reste séparée de celle de la boîte du secrétariat, et le mot de
+passe placé dans la configuration du serveur n'est pas celui de la boîte
+principale.
+
+**Ce qui n'est PAS négociable, c'est que l'expéditeur ne soit jamais le
+visiteur.** Le courriel part avec `Reply-To: <adresse du visiteur>`, ce qui
+permet de répondre d'un clic. Le mettre en `From` reviendrait à usurper son
+fournisseur : SPF et DKIM échoueraient, DMARC ferait rejeter le message, et la
+mairie ne recevrait rien — sans qu'aucune erreur ne remonte à qui a écrit.
 
 **Deux enregistrements DNS conditionnent l'arrivée en boîte de réception**, et
 ce n'est pas du code :

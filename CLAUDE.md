@@ -889,11 +889,15 @@ upgraded to "partiellement conforme" because the site looks decent.
 `contact/index.html` posts to `POST /api/contact`. The interesting part is
 `backoffice/courriel.py`:
 
-- **`From:` is always an address the server is authorised to send for**, never the
-  visitor's. Putting the visitor in `From:` is impersonating their provider — SPF and
-  DKIM fail, DMARC makes the message bounce, and the mairie receives nothing while the
-  visitor is told it went through. The visitor's address goes in **`Reply-To:`**, so the
-  secretariat can just hit Reply.
+- **`From:` is always an address on a DOMAIN the server is authorised to send for**,
+  never the visitor's. Which mailbox doesn't matter — `accueil@` is fine, and sending
+  from the box that receives is what most small sites do; a dedicated `site@` address is
+  a convenience (separate sending reputation, and the server config doesn't hold the main
+  mailbox's password), not a requirement. `EXPEDITEUR` therefore falls back to the SMTP
+  account, then to the recipient. What is **not** negotiable is that the visitor is never
+  in `From:` — that impersonates their provider, SPF and DKIM fail, DMARC bounces the
+  message, and the mairie receives nothing while the visitor is told it went through.
+  The visitor's address goes in **`Reply-To:`**, so the secretariat can just hit Reply.
 - **Header values are collapsed to one line.** A `\n` in the name or subject would
   otherwise inject a whole header — a `Bcc:` back to the sender turns a town-hall form
   into an open relay. Verified against a capture server: the injection attempt comes out
