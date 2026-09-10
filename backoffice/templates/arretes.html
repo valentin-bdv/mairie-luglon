@@ -35,6 +35,11 @@
            doit pouvoir constater qu'il n'y a rien à télécharger plutôt que de
            se demander si la rubrique existe. #}
         <section class="page-section">
+            {% if not par_rubrique %}
+            <div class="prose" data-reveal>
+                <p><em>Aucun document publié pour le moment.</em></p>
+            </div>
+            {% endif %}
             <div class="accordion-group" data-reveal>
                 {# On ouvre la PREMIÈRE RUBRIQUE QUI CONTIENT QUELQUE CHOSE, pas la
                    première tout court : quand les arrêtés municipaux sont vides et que

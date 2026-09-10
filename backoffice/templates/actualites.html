@@ -11,6 +11,24 @@
         {# SOMMAIRE : une section par rubrique, chacune montrant ses cinq plus
            récentes. Les cartes portent l'extrait, pas le contenu mis en forme —
            celui-ci vit sur la page de rubrique, derrière « Voir plus ». #}
+        {% if not sections %}
+        {# Aucune catégorie : soit le site est servi sans base (copie du dépôt,
+           GitHub Pages), soit tout a été supprimé depuis la gestion. Dans les
+           deux cas on le dit, plutôt que de rendre une page vide dont le
+           visiteur ne sait pas si elle est cassée. #}
+        <section class="page-section has-decor">
+            <span class="decor-vine decor-vine--left" aria-hidden="true"><span class="decor-vine__ink"></span></span>
+            <span class="decor-vine decor-vine--right" aria-hidden="true"><span class="decor-vine__ink"></span></span>
+            <div class="section-head" data-reveal>
+                <p class="kicker">Toute l'année</p>
+                <h2>Ce qui se passe à Luglon</h2>
+            </div>
+            <div class="prose" data-reveal>
+                <p><em>Aucune actualité publiée pour le moment.</em></p>
+            </div>
+        </section>
+        {% endif %}
+
         {% for s in sections %}
         <section class="page-section{% if loop.first %} has-decor{% endif %}">
             {%- if loop.first %}

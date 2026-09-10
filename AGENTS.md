@@ -806,12 +806,32 @@ Things to know before touching it:
   publishes to a mairie's website does not run with a default password, not even "just
   for testing".
 
-The database-backed pages exist as **static files too** (`actualites/index.html` and
-`actualites/<clé>/index.html`), generated from the same Jinja templates with empty lists.
-That's the GitHub Pages copy — same "théâtre" as the reservation form. They were
-generated, not written: hand-writing them would have created a second truth that diverges
-the first time a template changes. Regenerate them the same way after changing a template
-or a rubrique.
+### NO CONTENT IS EVER STORED IN THE REPO
+
+Actualités, documents and rubriques live **only in the database**. The copies committed
+here (`index.html`, `actualites/index.html`, `mairie/arretes-et-publications/`, `404.html`)
+are generated from the same Jinja templates with **empty lists**, and their nav submenu
+lists **no rubrique**. They show the site's structure and its empty states, nothing more.
+
+This rule exists because the alternative was tried and is worse. Three actualités were
+once baked into `index.html` and four rubriques had their own committed pages. That
+created **two ranks of content**: those few survived without a server and appeared on
+GitHub Pages, while everything the secretariat added afterwards existed only in SQLite.
+Nothing added through the admin app can ever reach the repo — `backoffice/donnees/` is
+gitignored and there is no path from the database to git — so freezing a handful of items
+here only makes them look privileged.
+
+Consequences to keep in mind:
+
+- **GitHub Pages shows an empty site.** That is correct, not broken: it has no database.
+  The empty states say so in plain French rather than rendering a blank page.
+- **`config.ACTUALITES_DEPART` and the `RUBRIQUES_*` lists are seeds**, planted once into
+  an empty database. They are not content in the repo — nothing renders them here.
+- The **external Incendie shortcut** in the Actualités submenu stays hardcoded. It's a
+  fixed link to another site, not one of our rubriques, and the site owner has asked for
+  it repeatedly.
+- Regenerate the committed copies from the templates — with empty lists — after changing
+  a template. Never with real data in them.
 
 ### Security posture — what an audit fixed, and what it can't
 

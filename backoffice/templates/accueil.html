@@ -140,6 +140,11 @@
             {# Les cartes viennent de la base. Elles étaient écrites en dur ici :
                les faire entrer en base (config.ACTUALITES_DEPART) évite de les perdre
                et rend la section vivante, sans que personne ait à rouvrir ce fichier. #}
+            {% if not actualites %}
+            <div class="prose" data-reveal>
+                <p><em>Aucune actualité publiée pour le moment.</em></p>
+            </div>
+            {% else %}
             <div class="rail event-grid" tabindex="0"
                  role="group" aria-label="Dernières actualités">
 {% for a in actualites %}{{ carte(a, loop.index, badge, p ~ '/actualites/' ~ a.rubrique ~ '/') }}
@@ -152,6 +157,7 @@
                 {%- endif %}
             </div>
             <div class="rail-dots" role="group" aria-label="Aller à une actualité"></div>
+            {% endif %}
 
             <div class="cta-row" style="justify-content:center; margin-top: var(--space-l)">
                 <a class="btn btn--ghost" href="{{ p }}/actualites/">Toutes les actualités</a>
