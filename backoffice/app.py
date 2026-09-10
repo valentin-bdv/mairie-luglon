@@ -62,7 +62,7 @@ API = "/api"
 @app.on_event("startup")
 def demarrage():
     db.initialiser()
-    if not config.CONDENSAT_MOT_DE_PASSE:
+    if not auth.mot_de_passe_configure():
         # Refus de démarrer plutôt qu'un back-office ouvert : celui-ci publie
         # sur le site d'une mairie, un mot de passe par défaut n'est pas une
         # option acceptable même « le temps des tests ».
@@ -76,8 +76,7 @@ def demarrage():
             "  Aucun mot de passe d'administration n'est configuré.\n"
             "\n"
             "  Le plus simple :   ./backoffice/lancer.sh\n"
-            "  À la main      :   python3 -m backoffice.auth\n"
-            "                     puis exporter BO_MOT_DE_PASSE_HACHE\n",
+            "  À la main      :   python3 -m backoffice.auth\n",
             file=sys.stderr)
         raise RuntimeError("Mot de passe d'administration non configuré.")
 

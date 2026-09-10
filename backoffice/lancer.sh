@@ -26,7 +26,6 @@ cd "$RACINE"
 VENV="$RACINE/.venv"
 PY="$VENV/bin/python"
 DONNEES="${BO_DONNEES:-$RACINE/backoffice/donnees}"
-HASH="$DONNEES/mot-de-passe.hash"
 PORT="${PORT:-8000}"
 
 # --- Environnement Python --------------------------------------------------
@@ -44,30 +43,24 @@ if ! "$PY" -c "import fastapi, uvicorn, jinja2, multipart" 2>/dev/null; then
 fi
 
 # --- Mot de passe ----------------------------------------------------------
-# Seul le CONDENSAT est écrit sur le disque, jamais le mot de passe lui-même.
-# Le dossier donnees/ est ignoré par git.
-if [ -z "${BO_MOT_DE_PASSE_HACHE:-}" ] && [ ! -f "$HASH" ]; then
+# Le condensat est rangé EN BASE, pas dans un fichier. On ne demande donc rien
+# si un mot de passe existe déjà : c'était le défaut de la version précédente,
+# qui redemandait à chaque lancement.
+#
+# `-m backoffice.auth` et non un script passé par heredoc : quand le programme
+# arrive par l'entrée standard, getpass n'a plus de terminal fiable où lire, la
+# saisie repart vide et l'enregistrement échoue en silence. C'est très
+# probablement ce qui faisait redemander le mot de passe à chaque fois.
+if ! "$PY" -c "
+import sys; sys.path.insert(0, '.')
+from backoffice import auth
+sys.exit(0 if auth.mot_de_passe_configure() else 1)
+" 2>/dev/null; then
     echo
-    echo "  Première utilisation : choisissez le mot de passe d'administration."
-    echo "  12 caractères minimum. Il protège la publication sur le site."
+    echo "  Aucun mot de passe d'administration : choisissez-en un maintenant."
+    echo "  12 caractères minimum. Il est retenu, on ne vous le redemandera pas."
     echo
-    mkdir -p "$DONNEES"
-    "$PY" - <<'PYTHON' > "$HASH.tmp"
-import getpass, sys, pathlib
-sys.path.insert(0, str(pathlib.Path.cwd()))
-from backoffice.auth import fabriquer_condensat
-
-mdp = getpass.getpass("  Mot de passe : ")
-if len(mdp) < 12:
-    sys.exit("\n  Trop court : 12 caractères minimum.")
-if mdp != getpass.getpass("  Confirmation : "):
-    sys.exit("\n  Les deux saisies diffèrent.")
-print(fabriquer_condensat(mdp), end="")
-PYTHON
-    mv "$HASH.tmp" "$HASH"
-    chmod 600 "$HASH"
-    echo
-    echo "  Mot de passe enregistré. Pour en changer : supprimez $HASH"
+    "$PY" -m backoffice.auth
 fi
 
 # --- Démarrage -------------------------------------------------------------

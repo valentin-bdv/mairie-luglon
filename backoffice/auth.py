@@ -24,7 +24,12 @@ selon la machine n'est pas acceptable, et PBKDF2 avec un nombre d'itérations
 élevé reste parfaitement défendable pour un mot de passe unique tapé deux fois
 par semaine.
 
-Pour fabriquer le condensat :
+Le condensat est rangé DANS LA BASE, comme le reste des données : même
+sauvegarde, rien de plus à retrouver. Une variable d'environnement
+(BO_MOT_DE_PASSE_HACHE) le remplace quand elle existe, pour qu'un serveur puisse
+imposer le mot de passe depuis la configuration de son service.
+
+Pour définir ou changer le mot de passe :
 
     python3 -m backoffice.auth
 """
@@ -58,11 +63,38 @@ def fabriquer_condensat(mot_de_passe: str) -> str:
                      base64.b64encode(brut).decode()])
 
 
+CLE_REGLAGE = "mot_de_passe"
+
+
+def condensat() -> str:
+    """Le condensat en vigueur : variable d'environnement, sinon base.
+
+    LU À CHAQUE APPEL, jamais mémorisé à l'import. Une constante figée au
+    démarrage obligeait à redémarrer le service après un changement de mot de
+    passe — et pire, laissait croire que le changement n'avait pas pris.
+
+    L'environnement garde la priorité : sur un serveur, on veut pouvoir imposer
+    un mot de passe depuis la configuration du service sans dépendre de ce que
+    contient la base.
+    """
+    depuis_env = os.environ.get("BO_MOT_DE_PASSE_HACHE", "").strip()
+    return depuis_env or db.reglage(CLE_REGLAGE)
+
+
+def definir_mot_de_passe(mot_de_passe: str):
+    """Enregistre le condensat en base. Le mot de passe lui-même n'y entre pas."""
+    db.definir_reglage(CLE_REGLAGE, fabriquer_condensat(mot_de_passe))
+
+
+def mot_de_passe_configure() -> bool:
+    return bool(condensat())
+
+
 def verifier_mot_de_passe(mot_de_passe: str) -> bool:
-    condensat = config.CONDENSAT_MOT_DE_PASSE
-    if not condensat or condensat.count("$") != 3:
+    c = condensat()
+    if not c or c.count("$") != 3:
         return False
-    _, iterations, sel_b64, attendu_b64 = condensat.split("$")
+    _, iterations, sel_b64, attendu_b64 = c.split("$")
     try:
         sel = base64.b64decode(sel_b64)
         attendu = base64.b64decode(attendu_b64)
@@ -110,11 +142,17 @@ def fermer_session(jeton: str):
 
 if __name__ == "__main__":
     import getpass
-    mdp = getpass.getpass("Mot de passe du back-office : ")
+
+    db.initialiser()
+    if mot_de_passe_configure():
+        print("  Un mot de passe est déjà configuré. Le nouveau le remplacera.")
+
+    mdp = getpass.getpass("  Mot de passe du back-office : ")
     if len(mdp) < 12:
-        raise SystemExit("Trop court : 12 caractères minimum. Ce mot de passe "
+        raise SystemExit("\n  Trop court : 12 caractères minimum. Ce mot de passe "
                          "protège la publication sur le site d'une mairie.")
-    if mdp != getpass.getpass("Confirmation : "):
-        raise SystemExit("Les deux saisies diffèrent.")
-    print("\nÀ placer dans l'environnement du service, jamais dans le dépôt :\n")
-    print("export BO_MOT_DE_PASSE_HACHE='" + fabriquer_condensat(mdp) + "'")
+    if mdp != getpass.getpass("  Confirmation : "):
+        raise SystemExit("\n  Les deux saisies diffèrent.")
+
+    definir_mot_de_passe(mdp)
+    print("\n  Mot de passe enregistré en base. Il est retenu d'un lancement à l'autre.")

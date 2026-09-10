@@ -43,6 +43,14 @@ CREATE TABLE IF NOT EXISTS documents (
     publie_le       TEXT NOT NULL
 );
 
+-- Réglages persistants de l'application, dont le condensat du mot de passe.
+-- En base et non dans un fichier à côté : c'est le même endroit que le reste
+-- des données, donc la même sauvegarde, et une chose de moins à retrouver.
+CREATE TABLE IF NOT EXISTS reglages (
+    cle     TEXT PRIMARY KEY,
+    valeur  TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS sessions (
     jeton       TEXT PRIMARY KEY,
     expire_le   TEXT NOT NULL
@@ -136,6 +144,19 @@ def _rattraper_schema(conn):
         conn.execute("UPDATE actualites SET extrait = substr(texte, 1, 180) WHERE extrait = ''")
 
     print("  base : ancien schéma d'actualités rattrapé, les lignes sont conservées")
+
+
+def reglage(cle, defaut=""):
+    with connexion() as conn:
+        r = conn.execute("SELECT valeur FROM reglages WHERE cle = ?", (cle,)).fetchone()
+        return r["valeur"] if r else defaut
+
+
+def definir_reglage(cle, valeur):
+    with connexion() as conn:
+        conn.execute("INSERT INTO reglages (cle, valeur) VALUES (?, ?) "
+                     "ON CONFLICT(cle) DO UPDATE SET valeur = excluded.valeur",
+                     (cle, valeur))
 
 
 def _semer_rubriques(conn):

@@ -158,25 +158,9 @@ TAILLE_MAX_IMAGE = 8 * 1024 * 1024     # 8 Mo
 # Voir README. Sans cette variable, l'application refuse de démarrer plutôt que
 # de tourner avec un mot de passe par défaut — un back-office ouvert publierait
 # n'importe quoi sur le site d'une mairie.
-def _condensat():
-    """Variable d'environnement en priorité, sinon fichier local de développement.
-
-    En production (OVH), c'est l'environnement du service systemd : rien sur le
-    disque, rien dans le dépôt. En développement, retaper un `export` de 120
-    caractères à chaque terminal est le genre de friction qui fait abandonner —
-    `lancer.sh` écrit donc le CONDENSAT (jamais le mot de passe) dans
-    donnees/, qui est ignoré par git.
-    """
-    depuis_env = os.environ.get("BO_MOT_DE_PASSE_HACHE", "").strip()
-    if depuis_env:
-        return depuis_env
-    fichier = DONNEES / "mot-de-passe.hash"
-    if fichier.is_file():
-        return fichier.read_text(encoding="utf-8").strip()
-    return ""
-
-
-CONDENSAT_MOT_DE_PASSE = _condensat()
+# Le condensat du mot de passe n'est PLUS ici : il vit en base et se lit par
+# auth.condensat(), à chaque vérification. Le garder dans ce module obligeait à
+# le charger à l'import, donc à redémarrer le service après tout changement.
 
 # Durée d'une session avant reconnexion.
 SESSION_DUREE_H = 12

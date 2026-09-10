@@ -759,7 +759,15 @@ Things to know before touching it:
 - **`donnees/` is gitignored and is the only irreplaceable thing in the project.** The
   code is in git; the commune's actualités and arrêtés are not. Backups belong off the
   server.
-- The app **refuses to start** without `BO_MOT_DE_PASSE_HACHE`. A back-office that
+- **The password hash lives in the database**, in the `reglages` table, and is read at
+  every verification rather than once at import — a value frozen at startup meant a
+  password change silently didn't take until the service restarted.
+  `BO_MOT_DE_PASSE_HACHE` in the environment still wins when set, so a server can impose
+  the password from its service configuration. It used to be a file in `donnees/`, and
+  `lancer.sh` asked for it again at every launch: the interactive prompt was fed through
+  a heredoc, so `getpass` had no reliable terminal to read from and the write failed
+  silently. Never pass an interactive script through a heredoc.
+- The app **refuses to start** with no password configured. A back-office that
   publishes to a mairie's website does not run with a default password, not even "just
   for testing".
 

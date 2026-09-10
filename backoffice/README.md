@@ -45,9 +45,9 @@ défaut). Il ne vaut pas `/admin` parce que cette adresse-là est testée en
 permanence par les robots — c'est du bruit en moins, pas une serrure : ne
 comptez jamais dessus, le mot de passe reste la seule vraie barrière.
 
-Seul le **condensat** du mot de passe est écrit sur le disque, dans
-`donnees/mot-de-passe.hash`, ignoré par git. Pour en changer, supprimez ce
-fichier et relancez.
+À la première utilisation seulement, il demande un mot de passe. Seul son
+**condensat** est enregistré, **en base**, donc il est retenu d'un lancement à
+l'autre. Pour en changer : `python3 -m backoffice.auth`.
 
 Sans mot de passe configuré, l'application **refuse de démarrer**. C'est
 volontaire : un back-office qui publie sur le site d'une mairie ne tourne pas
@@ -58,14 +58,15 @@ avec un mot de passe par défaut, même « le temps des tests ».
 ```sh
 python3 -m venv .venv
 .venv/bin/pip install fastapi uvicorn jinja2 python-multipart
-.venv/bin/python -m backoffice.auth          # affiche la ligne export
-export BO_MOT_DE_PASSE_HACHE='pbkdf2-sha256$...'   # guillemets SIMPLES obligatoires
+.venv/bin/python -m backoffice.auth          # enregistre le condensat en base
 .venv/bin/python -m uvicorn backoffice.app:app --port 8000
 ```
 
-Attention aux guillemets : le condensat contient des `$`. Entre guillemets
-doubles, le shell en mange une partie et le mot de passe est ensuite refusé sans
-que rien n'indique pourquoi. C'est la raison d'être de `lancer.sh`.
+En production, `BO_MOT_DE_PASSE_HACHE` dans l'environnement du service prend le
+pas sur la base : c'est ce qui permet d'imposer le mot de passe depuis la
+configuration systemd sans dépendre du contenu de la base. Attention aux
+guillemets **simples** — le condensat contient des `$`, que le shell
+développerait entre guillemets doubles.
 
 ## Depuis un téléphone
 
